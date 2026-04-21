@@ -1,0 +1,325 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=Cabin:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root, .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 40% 10%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 40% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 224 95% 64%;
+    --primary-foreground: 210 40% 98%;
+    --primary-glow: 230 100% 70%;
+
+    --secondary: 222 30% 14%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 222 30% 14%;
+    --muted-foreground: 220 9% 64%;
+
+    --accent: 230 80% 60%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 70% 55%;
+    --warning: 38 92% 60%;
+
+    --border: 222 30% 18%;
+    --input: 222 30% 18%;
+    --ring: 224 95% 64%;
+
+    --radius: 1.25rem;
+
+    /* Surfaces */
+    --surface: 222 40% 11%;
+    --surface-elevated: 222 38% 14%;
+    --glass-border: 220 30% 28%;
+
+    /* Gradients */
+    --gradient-bg: radial-gradient(ellipse at top left, hsl(224 60% 14%), hsl(222 50% 6%) 60%, hsl(225 60% 4%));
+    --gradient-card: linear-gradient(145deg, hsl(222 40% 13% / 0.85), hsl(222 45% 9% / 0.7));
+    --gradient-primary: linear-gradient(135deg, hsl(224 95% 64%), hsl(245 90% 65%));
+    --gradient-portfolio: linear-gradient(135deg, hsl(230 70% 35%), hsl(250 60% 40%) 60%, hsl(225 80% 50%));
+    --gradient-blob: radial-gradient(circle at 30% 30%, hsl(224 90% 70% / 0.6), hsl(260 80% 50% / 0.3) 60%, transparent 80%);
+
+    /* Shadows */
+    --shadow-glow: 0 0 40px hsl(224 95% 64% / 0.4);
+    --shadow-card: 0 8px 32px hsl(222 60% 2% / 0.6), inset 0 1px 0 hsl(220 30% 30% / 0.4);
+    --shadow-soft: 0 4px 20px hsl(222 60% 2% / 0.4);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 224 90% 58%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 230 95% 65%;
+
+    --secondary: 220 20% 94%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 220 20% 94%;
+    --muted-foreground: 215 16% 46%;
+
+    --accent: 230 80% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 65% 42%;
+    --warning: 38 92% 50%;
+
+    --border: 220 18% 88%;
+    --input: 220 18% 88%;
+    --ring: 224 90% 58%;
+
+    --surface: 210 30% 96%;
+    --surface-elevated: 0 0% 100%;
+    --glass-border: 220 20% 80%;
+
+    --gradient-bg: radial-gradient(ellipse at top left, hsl(220 50% 96%), hsl(210 40% 98%) 60%, hsl(220 30% 95%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.85), hsl(220 30% 98% / 0.7));
+    --gradient-primary: linear-gradient(135deg, hsl(224 90% 58%), hsl(245 85% 62%));
+    --gradient-portfolio: linear-gradient(135deg, hsl(224 90% 58%), hsl(250 70% 60%) 60%, hsl(225 80% 65%));
+    --gradient-blob: radial-gradient(circle at 30% 30%, hsl(224 90% 70% / 0.35), hsl(260 80% 60% / 0.18) 60%, transparent 80%);
+
+    --shadow-glow: 0 0 30px hsl(224 90% 58% / 0.25);
+    --shadow-card: 0 4px 20px hsl(220 30% 50% / 0.08), inset 0 1px 0 hsl(0 0% 100% / 0.6);
+    --shadow-soft: 0 2px 12px hsl(220 30% 50% / 0.06);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body, #root {
+    @apply h-full;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  body {
+    @apply text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--gradient-bg);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  button, a {
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+
+  button:not(:disabled):hover {
+    filter: brightness(1.08);
+  }
+}
+
+@layer components {
+  /* ===== Liquid Glass — Cards ===== */
+  .glass-card {
+    position: relative;
+    background:
+      linear-gradient(145deg, hsl(var(--foreground) / 0.04), transparent 40%),
+      var(--gradient-card);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid hsl(var(--glass-border) / 0.45);
+    box-shadow:
+      var(--shadow-card),
+      inset 0 1px 0 hsl(var(--foreground) / 0.06),
+      inset 0 0 0 1px hsl(var(--foreground) / 0.02);
+    border-radius: var(--radius);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    overflow: hidden;
+  }
+
+  /* Top highlight reflection */
+  .glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--foreground) / 0.18) 0%,
+      hsl(var(--foreground) / 0.03) 30%,
+      transparent 60%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-2px);
+    border-color: hsl(var(--primary) / 0.4);
+    box-shadow:
+      var(--shadow-card),
+      0 12px 40px hsl(var(--primary) / 0.18),
+      inset 0 1px 0 hsl(var(--foreground) / 0.08);
+  }
+
+  /* Disable hover transform inside / on floating layers (prevents modal jitter) */
+  [role="dialog"].glass-card:hover,
+  [role="alertdialog"].glass-card:hover,
+  [role="dialog"] .glass-card:hover,
+  [role="alertdialog"] .glass-card:hover,
+  [role="menu"] .glass-card:hover,
+  [role="listbox"] .glass-card:hover,
+  [data-radix-popper-content-wrapper] .glass-card:hover,
+  [data-radix-popper-content-wrapper] .glass-card {
+    transform: translate(-50%, -50%) !important;
+    border-color: hsl(var(--glass-border) / 0.45);
+  }
+
+  /* Radix Dialog/AlertDialog content keeps its centering translate even on hover */
+  [role="dialog"][data-state],
+  [role="alertdialog"][data-state] {
+    will-change: auto;
+  }
+  [role="dialog"][data-state].glass-card:hover,
+  [role="alertdialog"][data-state].glass-card:hover {
+    transform: translate(-50%, -50%) !important;
+  }
+
+  [data-radix-popper-content-wrapper] {
+    transform-style: flat;
+  }
+
+  /* ===== Inner glass surface (chips, pills, sub-panels) ===== */
+  .glass-inner {
+    background:
+      linear-gradient(145deg, hsl(var(--foreground) / 0.05), hsl(var(--surface-elevated) / 0.4));
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid hsl(var(--glass-border) / 0.35);
+    border-radius: 1rem;
+    box-shadow:
+      inset 0 1px 0 hsl(var(--foreground) / 0.05),
+      0 1px 2px hsl(var(--background) / 0.3);
+  }
+
+  .glow-primary {
+    box-shadow:
+      0 0 24px hsl(var(--primary) / 0.5),
+      inset 0 1px 0 hsl(220 100% 90% / 0.25);
+  }
+
+  /* ===== Sidebar — liquid glass panel ===== */
+  .glass-sidebar {
+    position: relative;
+    background:
+      linear-gradient(180deg, hsl(var(--surface) / 0.55), hsl(var(--background) / 0.35));
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    border-right: 1px solid hsl(var(--glass-border) / 0.4);
+    box-shadow:
+      inset -1px 0 0 hsl(var(--foreground) / 0.05),
+      inset 1px 0 0 hsl(var(--foreground) / 0.06),
+      4px 0 30px hsl(var(--background) / 0.5);
+  }
+
+  /* ===== Liquid pill / button finish ===== */
+  .glass-pill {
+    background:
+      linear-gradient(145deg, hsl(var(--foreground) / 0.08), hsl(var(--surface-elevated) / 0.45));
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid hsl(var(--glass-border) / 0.4);
+    box-shadow:
+      inset 0 1px 0 hsl(var(--foreground) / 0.08),
+      0 2px 8px hsl(var(--background) / 0.3);
+  }
+
+  /* ===== Global primitive treatments — apply liquid glass to shadcn layers ===== */
+  /* Dialogs */
+  [role="dialog"] > div[class*="bg-background"],
+  [role="alertdialog"] > div[class*="bg-background"] {
+    background:
+      linear-gradient(145deg, hsl(var(--foreground) / 0.05), transparent 40%),
+      var(--gradient-card) !important;
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    border: 1px solid hsl(var(--glass-border) / 0.45) !important;
+    box-shadow:
+      var(--shadow-card),
+      inset 0 1px 0 hsl(var(--foreground) / 0.08) !important;
+  }
+
+  /* Dialog overlay — frosted backdrop */
+  [data-radix-dialog-overlay],
+  [data-radix-alert-dialog-overlay] {
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    background: hsl(var(--background) / 0.55) !important;
+  }
+
+  /* Popovers, dropdowns, selects, menus, command */
+  [data-radix-popper-content-wrapper] > * {
+    background:
+      linear-gradient(145deg, hsl(var(--foreground) / 0.05), transparent 40%),
+      var(--gradient-card) !important;
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid hsl(var(--glass-border) / 0.45) !important;
+    box-shadow:
+      var(--shadow-card),
+      inset 0 1px 0 hsl(var(--foreground) / 0.06) !important;
+  }
+
+  /* Inputs / textareas / selects */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  [role="combobox"] {
+    background:
+      linear-gradient(145deg, hsl(var(--foreground) / 0.04), hsl(var(--surface-elevated) / 0.35)) !important;
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid hsl(var(--glass-border) / 0.4) !important;
+    box-shadow:
+      inset 0 1px 0 hsl(var(--foreground) / 0.05),
+      0 1px 2px hsl(var(--background) / 0.25) !important;
+    transition: var(--transition-smooth);
+  }
+
+  input:focus-visible,
+  textarea:focus-visible,
+  [role="combobox"]:focus-visible {
+    border-color: hsl(var(--primary) / 0.5) !important;
+    box-shadow:
+      inset 0 1px 0 hsl(var(--foreground) / 0.08),
+      0 0 0 3px hsl(var(--primary) / 0.18) !important;
+  }
+}
+
