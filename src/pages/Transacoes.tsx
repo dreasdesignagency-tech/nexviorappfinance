@@ -23,9 +23,15 @@ import { toast } from "sonner";
 const Transacoes = () => {
   const { transactions, removeTransaction } = useTransactions();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [tipo, setTipo] = useState<"todos" | "receita" | "despesa">("todos");
   const [categoria, setCategoria] = useState<string>("todas");
+
+  const editingTransaction = useMemo(
+    () => transactions.find((transaction) => transaction.id === editingId) ?? null,
+    [transactions, editingId]
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -48,6 +54,16 @@ const Transacoes = () => {
   const handleDelete = (id: string, titulo: string) => {
     removeTransaction(id);
     toast.success("Transação removida", { description: titulo });
+  };
+
+  const handleEdit = (id: string) => {
+    setEditingId(id);
+    setOpen(true);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) setEditingId(null);
   };
 
   return (
@@ -158,7 +174,7 @@ const Transacoes = () => {
                         <DropdownMenuItem onClick={() => toast.info("Visualização em breve")}>
                           <Eye className="w-4 h-4 mr-2" /> Visualizar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toast.info("Edição em breve")}>
+                        <DropdownMenuItem onClick={() => handleEdit(t.id)}>
                           <Pencil className="w-4 h-4 mr-2" /> Editar
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -176,7 +192,7 @@ const Transacoes = () => {
           )}
         </div>
 
-        <NewTransactionDialog open={open} onOpenChange={setOpen} />
+        <NewTransactionDialog open={open} onOpenChange={handleOpenChange} initialValues={editingTransaction} />
       </main>
     </div>
   );
