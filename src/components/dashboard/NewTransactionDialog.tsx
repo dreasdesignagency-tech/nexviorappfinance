@@ -21,12 +21,26 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   defaultType?: TipoTransacao;
+  initialValues?: {
+    id: string;
+    tipo: TipoTransacao;
+    titulo: string;
+    valor: number;
+    categoria: string;
+    data: string;
+    forma_pagamento?: FormaPagamento;
+    parcelado?: boolean;
+    numero_parcelas?: number;
+    parcela_atual?: number;
+    recorrente?: boolean;
+    observacao?: string;
+  } | null;
 }
 
 const formasPagamento: FormaPagamento[] = ["PIX", "Débito", "Crédito", "Dinheiro", "Transferência", "Boleto", "Outro"];
 
-export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despesa" }: Props) => {
-  const { addTransaction } = useTransactions();
+export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despesa", initialValues = null }: Props) => {
+  const { addTransaction, updateTransaction } = useTransactions();
 
   const [tipo, setTipo] = useState<TipoTransacao>(defaultType);
   const [titulo, setTitulo] = useState("");
@@ -41,8 +55,27 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
   const [observacao, setObservacao] = useState("");
 
   useEffect(() => {
-    if (open) setTipo(defaultType);
-  }, [open, defaultType]);
+    if (!open) return;
+
+    if (initialValues) {
+      setTipo(initialValues.tipo);
+      setTitulo(initialValues.titulo);
+      setValor(String(initialValues.valor));
+      setCategoria(initialValues.categoria);
+      setData(initialValues.data);
+      setFormaPagamento(initialValues.forma_pagamento ?? "PIX");
+      setParcelado(initialValues.parcelado ?? false);
+      setNumParcelas(String(initialValues.numero_parcelas ?? 2));
+      setParcelaAtual(String(initialValues.parcela_atual ?? 1));
+      setRecorrente(initialValues.recorrente ?? false);
+      setObservacao(initialValues.observacao ?? "");
+      return;
+    }
+
+    setTipo(defaultType);
+    reset();
+    setData(new Date().toISOString().slice(0, 10));
+  }, [open, defaultType, initialValues]);
 
   const reset = () => {
     setTitulo(""); setValor(""); setCategoria("");
@@ -50,7 +83,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
     setNumParcelas("2"); setParcelaAtual("1"); setFormaPagamento("PIX");
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const v = parseFloat(valor.replace(",", "."));
     if (!titulo.trim()) return toast.error("Informe o título.");
@@ -58,7 +91,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
     if (!categoria) return toast.error("Selecione uma categoria.");
     if (!data) return toast.error("Informe a data.");
 
-    addTransaction({
+    const payload = {
       tipo,
       titulo: titulo.trim(),
       valor: v,
@@ -70,11 +103,20 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
       parcela_atual: parcelado ? Number(parcelaAtual) : undefined,
       recorrente,
       observacao: observacao.trim() || undefined,
-    });
+    };
 
-    toast.success("Transação adicionada!", {
-      description: `${titulo} · ${tipo === "receita" ? "+" : "-"}R$ ${v.toFixed(2)}`,
-    });
+    if (initialValues) {
+      await updateTransaction(initialValues.id, payload);
+      toast.success("Transação atualizada!", {
+        description: `${titulo} · ${tipo === "receita" ? "+" : "-"}R$ ${v.toFixed(2)}`,
+      });
+    } else {
+      await addTransaction(payload);
+      toast.success("Transação adicionada!", {
+        description: `${titulo} · ${tipo === "receita" ? "+" : "-"}R$ ${v.toFixed(2)}`,
+      });
+    }
+
     reset();
     onOpenChange(false);
   };
@@ -83,8 +125,10 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass-card border-border/60 max-w-lg">
         <DialogHeader>
-          <DialogTitle>Nova Transação</DialogTitle>
-          <DialogDescription className="hidden sm:block">Registre uma nova receita ou despesa.</DialogDescription>
+          <DialogTitle>{initialValues ? "Editar Transação" : "Nova Transação"}</DialogTitle>
+          <DialogDescription className="hidden sm:block">
+            {initialValues ? "Atualize os dados da transação selecionada." : "Registre uma nova receita ou despesa."}
+          </DialogDescription>
         </DialogHeader>
 
         {/* Tipo toggle */}
