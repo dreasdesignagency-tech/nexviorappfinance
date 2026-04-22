@@ -67,7 +67,7 @@ export const MonthlySpending = () => {
 
   return (
     <div className="glass-card p-4 sm:p-6 md:p-7 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6 md:mb-8 gap-3">
         <h3 className="text-sm font-semibold">Gastos mensais</h3>
         <DropdownMenu>
           <DropdownMenuTrigger className="glass-inner px-3.5 py-1.5 rounded-full text-xs flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition border border-border/50">
@@ -84,14 +84,14 @@ export const MonthlySpending = () => {
       </div>
 
       {hasData ? (
-        <div className="flex-1 flex items-end justify-between gap-3 px-1 min-h-[160px] pt-6">
+        <div className="flex-1 flex items-end justify-between gap-2 md:gap-3 px-1 min-h-[160px] pt-4 md:pt-6 overflow-hidden">
           {windowData.map((d, i) => {
             const pct = max > 0 ? (d.value / max) * 100 : 0;
             const isMax = i === maxIdx;
             return (
               <div
                 key={d.label}
-                className="flex flex-col items-center gap-3 flex-1 min-w-0 group"
+                className="flex flex-col items-center gap-2.5 md:gap-3 flex-1 min-w-0 group"
                 title={`${d.label} · ${formatFull(d.value)}`}
               >
                 <div className="relative w-full flex items-end justify-center" style={{ height: 140 }}>
