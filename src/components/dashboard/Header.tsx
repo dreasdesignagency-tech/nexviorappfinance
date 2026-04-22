@@ -27,15 +27,15 @@ export const Header = ({ userName, onNewTransaction }: HeaderProps) => {
   const initial = firstName.charAt(0).toUpperCase() || "U";
 
   return (
-    <header className="flex items-center justify-between mb-6 gap-3 md:gap-4 flex-wrap px-1 pl-12 md:pl-0 md:px-0">
+    <header className="flex items-center justify-between mb-5 md:mb-6 gap-3 md:gap-4 flex-nowrap px-0 pl-12 md:pl-0 md:px-0 min-w-0">
       <div className="min-w-0 flex-1">
-        <h1 className="text-xl md:text-3xl font-bold tracking-tight text-foreground truncate">
+        <h1 className="text-lg sm:text-xl md:text-3xl font-bold tracking-tight text-foreground truncate leading-tight">
           {getGreeting()}, <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">{firstName}</span>
         </h1>
         <p className="hidden md:block text-sm text-muted-foreground/80 mt-1 truncate">Clareza total sobre seu dinheiro</p>
       </div>
 
-      <div className="flex items-center gap-3 md:gap-3 shrink-0">
+      <div className="flex items-center gap-2.5 md:gap-3 shrink-0 self-center">
         <NavLink
           to="/notificacoes"
           aria-label="Notificações"
