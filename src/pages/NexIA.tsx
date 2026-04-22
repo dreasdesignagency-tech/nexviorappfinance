@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Sparkles, Send, Loader2, RotateCcw } from "lucide-react";
+import { supabaseConfig } from "@/lib/supabase";
 import { useTransactions } from "@/store/transactions";
 import { useCards } from "@/store/cards";
 import { useRecurrents } from "@/store/recurrents";
@@ -118,12 +119,12 @@ const NexIA = () => {
     setIsLoading(true);
 
     try {
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nex-ia-chat`;
+      const url = `${supabaseConfig.url}/functions/v1/nex-ia-chat`;
       const resp = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
           messages: novasMsgs.map((m) => ({ role: m.role, content: m.content })),
