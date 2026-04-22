@@ -134,8 +134,8 @@ export const AIInsights = () => {
   const current = insights[cycle % insights.length];
 
   return (
-    <div className="glass-card p-5 relative overflow-hidden">
-      <div className="flex items-center justify-between mb-3">
+    <div className="glass-card p-5 md:p-5 relative overflow-hidden border border-border/50 bg-surface-elevated/10">
+      <div className="flex items-center justify-between mb-3 md:mb-3 gap-3">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
             <Sparkles className="w-3.5 h-3.5 text-primary-glow" />
@@ -154,12 +154,12 @@ export const AIInsights = () => {
         )}
       </div>
 
-      <p className="text-sm text-foreground leading-snug">{current.title}</p>
-      <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{current.recommendation}</p>
+      <p className="text-sm md:text-sm text-foreground leading-relaxed">{current.title}</p>
+      <p className="text-[13px] md:text-xs text-muted-foreground mt-2 leading-relaxed">{current.recommendation}</p>
 
       <Link
         to="/nex-ia"
-        className="mt-4 inline-flex items-center gap-1.5 text-xs text-primary-glow font-medium hover:gap-2 transition-all"
+        className="mt-4 inline-flex items-center gap-1.5 text-xs text-primary-glow font-medium hover:gap-2 transition-all break-words"
       >
         Conversar com a nex.ia <ArrowRight className="w-3 h-3" />
       </Link>

@@ -84,7 +84,7 @@ export const NetWorthCard = () => {
           <p className="text-[10px] font-bold tracking-[0.15em] text-primary-glow">
             NEX IA · INSIGHT DO MÊS
           </p>
-          <p className="text-sm text-foreground mt-1 leading-relaxed">
+          <p className="text-sm md:text-sm text-foreground mt-1 leading-relaxed pr-1">
             Adicione transações para receber insights personalizados da{" "}
             <span className="font-semibold">nex.ia</span>!
           </p>
@@ -92,17 +92,17 @@ export const NetWorthCard = () => {
       </div>
 
       {/* MEIO — Seletor de meses */}
-      <div className="relative py-5 flex justify-start">
-        <div className="glass-inner p-1.5 inline-flex items-center gap-1 rounded-full flex-wrap">
+      <div className="relative py-5 flex justify-start overflow-x-auto no-scrollbar -mx-1 px-1">
+        <div className="glass-inner p-1.5 inline-flex items-center gap-1 rounded-full flex-nowrap min-w-max">
           {MONTHS.map(({ label }) => {
             const isActive = label === activeMonth;
             return (
               <button
                 key={label}
                 onClick={() => setActiveMonth(label)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition ${
+                className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition ${
                   isActive
-                    ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground glow-primary"
+                    ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground glow-primary shadow-[0_0_18px_hsl(var(--primary)/0.45)]"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -116,21 +116,21 @@ export const NetWorthCard = () => {
       {/* BASE — Patrimônio + Métricas */}
       <div className="relative pt-5 border-t border-border/40">
         {/* Patrimônio */}
-        <div className="mb-5">
+        <div className="mb-6 md:mb-5">
           <p className="text-sm text-muted-foreground mb-2">Saldo Líquido</p>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight break-all">
+          <h2 className="text-[1.9rem] leading-tight sm:text-4xl md:text-5xl font-extrabold tracking-tight break-words max-w-full">
             {formatBRL(patrimonio)}
           </h2>
         </div>
 
         {/* Métricas */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-3 w-full">
           {metrics.map((it) => {
             const Icon = it.icon;
             return (
               <div
                 key={it.label}
-                className="glass-inner rounded-2xl p-4 min-w-0 w-full box-border"
+                className="glass-inner rounded-2xl p-4 md:p-4 min-w-0 w-full box-border"
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-[10px] font-bold tracking-[0.15em] text-muted-foreground truncate">
@@ -142,10 +142,10 @@ export const NetWorthCard = () => {
                     <Icon className={`w-3.5 h-3.5 ${it.tone}`} />
                   </div>
                 </div>
-                <p className="text-base md:text-lg font-bold mt-2 tabular-nums truncate">
+                <p className="text-lg md:text-lg font-bold mt-2 tabular-nums break-words leading-snug">
                   {formatBRL(it.value)}
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed break-words">
                   {it.diff}
                 </p>
               </div>
