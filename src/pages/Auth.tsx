@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { z } from "zod";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/store/auth";
 import { Input } from "@/components/ui/input";

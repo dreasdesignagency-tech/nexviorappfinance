@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Trash2, Shield, User as UserIcon } from "lucide-react";
