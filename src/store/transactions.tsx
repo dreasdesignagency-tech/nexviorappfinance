@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import type { TablesUpdate } from "@/integrations/supabase/types";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
 
@@ -23,6 +23,8 @@ export interface Transaction {
   created_at: string;
 }
 
+type NewTransactionInput = Omit<Transaction, "id" | "created_at">;
+
 export const CATEGORIAS = [
   "Meus Mimos",
   "Transporte",
@@ -38,7 +40,7 @@ export const CATEGORIAS = [
 interface Ctx {
   transactions: Transaction[];
   loading: boolean;
-  addTransaction: (t: Omit<Transaction, "id" | "created_at">) => Promise<void>;
+  addTransaction: (t: NewTransactionInput) => Promise<void>;
   removeTransaction: (id: string) => Promise<void>;
   updateTransaction: (id: string, t: Partial<Transaction>) => Promise<void>;
   totalReceitas: number;
@@ -80,6 +82,21 @@ const fromDb = (r: DbRow): Transaction => ({
   created_at: r.created_at,
 });
 
+const toInsertPayload = (userId: string, t: NewTransactionInput): TablesInsert<"transactions"> => ({
+  user_id: userId,
+  tipo: t.tipo,
+  descricao: t.titulo,
+  valor: t.valor,
+  categoria: t.categoria,
+  data: t.data,
+  observacoes: t.observacao ?? null,
+  forma_pagamento: t.forma_pagamento ?? null,
+  parcelado: !!t.parcelado,
+  numero_parcelas: t.parcelado ? t.numero_parcelas ?? null : null,
+  parcela_atual: t.parcelado ? t.parcela_atual ?? null : null,
+  recorrente: !!t.recorrente,
+});
+
 export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -94,6 +111,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     const { data, error } = await supabase
       .from("transactions")
       .select("*")
+      .eq("user_id", user.id)
       .order("data", { ascending: false })
       .order("created_at", { ascending: false });
     setLoading(false);
@@ -115,20 +133,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     }
     const { data, error } = await supabase
       .from("transactions")
-      .insert({
-        user_id: user.id,
-        tipo: t.tipo,
-        descricao: t.titulo,
-        valor: t.valor,
-        categoria: t.categoria,
-        data: t.data,
-        observacoes: t.observacao ?? null,
-        forma_pagamento: t.forma_pagamento ?? null,
-        parcelado: !!t.parcelado,
-        numero_parcelas: t.parcelado ? t.numero_parcelas ?? null : null,
-        parcela_atual: t.parcelado ? t.parcela_atual ?? null : null,
-        recorrente: !!t.recorrente,
-      })
+      .insert(toInsertPayload(user.id, t))
       .select()
       .single();
     if (error) {
@@ -139,7 +144,12 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeTransaction = async (id: string) => {
-    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    if (!user) {
+      toast.error("Faça login para remover transações.");
+      return;
+    }
+
+    const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", user.id);
     if (error) {
       toast.error("Erro ao remover transação.");
       return;
@@ -148,6 +158,11 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateTransaction: Ctx["updateTransaction"] = async (id, patch) => {
+    if (!user) {
+      toast.error("Faça login para atualizar transações.");
+      return;
+    }
+
     const dbPatch: TablesUpdate<"transactions"> = {};
     if (patch.tipo !== undefined) dbPatch.tipo = patch.tipo;
     if (patch.titulo !== undefined) dbPatch.descricao = patch.titulo;
@@ -165,6 +180,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
       .from("transactions")
       .update(dbPatch)
       .eq("id", id)
+      .eq("user_id", user.id)
       .select()
       .single();
     if (error) {
