@@ -10,9 +10,9 @@ export const EvolutionChart = () => {
   const { transactions } = useTransactions();
 
   const data = useMemo(() => {
-    // últimos 6 meses até abril/2026 (referência atual do dashboard)
-    const refYear = 2026;
-    const refMonth = 4; // abril (1-12)
+    const now = new Date();
+    const refYear = now.getFullYear();
+    const refMonth = now.getMonth() + 1;
     const series: { mes: string; Receitas: number; Despesas: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const m = ((refMonth - 1 - i) % 12 + 12) % 12; // 0-11
@@ -27,28 +27,7 @@ export const EvolutionChart = () => {
       }
       series.push({ mes: MESES[m], Receitas: r, Despesas: d });
     }
-    // mantém alguns dados iniciais para o gráfico não ficar vazio
-    if (series.every((s) => s.Receitas === 0 && s.Despesas === 0)) {
-      return [
-        { mes: "Nov", Receitas: 1500, Despesas: 800 },
-        { mes: "Dez", Receitas: 1800, Despesas: 950 },
-        { mes: "Jan", Receitas: 1700, Despesas: 700 },
-        { mes: "Fev", Receitas: 1600, Despesas: 1100 },
-        { mes: "Mar", Receitas: 1900, Despesas: 600 },
-        { mes: "Abr", Receitas: 0, Despesas: 0 },
-      ];
-    }
-    // injeta histórico mockado para meses sem dados (apenas estética)
-    const mock: Record<string, { r: number; d: number }> = {
-      Nov: { r: 1500, d: 800 }, Dez: { r: 1800, d: 950 },
-      Jan: { r: 1700, d: 700 }, Fev: { r: 1600, d: 1100 }, Mar: { r: 1900, d: 600 },
-    };
-    return series.map((s, idx) => {
-      if (idx < series.length - 1 && s.Receitas === 0 && s.Despesas === 0 && mock[s.mes]) {
-        return { mes: s.mes, Receitas: mock[s.mes].r, Despesas: mock[s.mes].d };
-      }
-      return s;
-    });
+    return series;
   }, [transactions]);
 
   return (
