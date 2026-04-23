@@ -5,6 +5,7 @@ import { useProfile } from "@/store/profile";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
 import { MobileSidebar } from "@/components/dashboard/MobileSidebar";
+import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { Logo } from "@/components/Logo";
 
 const items = [
