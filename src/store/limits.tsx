@@ -1,4 +1,7 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/store/auth";
+import { toast } from "sonner";
 
 export type PeriodoLimite = "Mensal" | "Semanal" | "Anual";
 
@@ -7,7 +10,7 @@ export interface Limit {
   categoria: string;
   valor_limite: number;
   periodo: PeriodoLimite;
-  data_inicial: string; // ISO yyyy-mm-dd
+  data_inicial: string;
   observacao?: string;
   created_at: string;
 }
@@ -37,66 +40,282 @@ export interface Investment {
   tipo: TipoInvestimento;
   valor_investido: number;
   valor_atual?: number;
-  rentabilidade?: number; // %
-  data_investimento: string; // ISO
+  rentabilidade?: number;
+  data_investimento: string;
   observacao?: string;
   created_at: string;
 }
 
-interface Ctx {
+type LimitInput = Omit<Limit, "id" | "created_at">;
+type InvestmentInput = Omit<Investment, "id" | "created_at">;
+
+interface LimitsContextValue {
   limits: Limit[];
   investments: Investment[];
-  addLimit: (l: Omit<Limit, "id" | "created_at">) => void;
-  removeLimit: (id: string) => void;
-  updateLimit: (id: string, patch: Partial<Limit>) => void;
-  addInvestment: (i: Omit<Investment, "id" | "created_at">) => void;
-  removeInvestment: (id: string) => void;
-  updateInvestment: (id: string, patch: Partial<Investment>) => void;
+  loading: boolean;
+  addLimit: (limit: LimitInput) => Promise<boolean>;
+  removeLimit: (id: string) => Promise<boolean>;
+  updateLimit: (id: string, patch: Partial<Limit>) => Promise<boolean>;
+  addInvestment: (investment: InvestmentInput) => Promise<boolean>;
+  removeInvestment: (id: string) => Promise<boolean>;
+  updateInvestment: (id: string, patch: Partial<Investment>) => Promise<boolean>;
   totalInvestido: number;
   patrimonioAtual: number;
   lucroPrejuizo: number;
   rentabilidadeMedia: number;
+  refetch: () => Promise<void>;
 }
 
-const LimitsContext = createContext<Ctx | null>(null);
+type LimitRow = {
+  id: string;
+  categoria: string;
+  valor_limite: number | string;
+  periodo: PeriodoLimite;
+  data_inicial: string;
+  observacao: string | null;
+  created_at: string;
+};
+
+type InvestmentRow = {
+  id: string;
+  nome: string;
+  tipo: TipoInvestimento;
+  valor_investido: number | string;
+  valor_atual: number | string | null;
+  rentabilidade: number | string | null;
+  data_investimento: string;
+  observacao: string | null;
+  created_at: string;
+};
+
+const LimitsContext = createContext<LimitsContextValue | null>(null);
+const db = supabase as any;
+
+const fromLimit = (row: LimitRow): Limit => ({
+  id: row.id,
+  categoria: row.categoria,
+  valor_limite: Number(row.valor_limite),
+  periodo: row.periodo,
+  data_inicial: row.data_inicial,
+  observacao: row.observacao ?? undefined,
+  created_at: row.created_at,
+});
+
+const fromInvestment = (row: InvestmentRow): Investment => ({
+  id: row.id,
+  nome: row.nome,
+  tipo: row.tipo,
+  valor_investido: Number(row.valor_investido),
+  valor_atual: row.valor_atual === null ? undefined : Number(row.valor_atual),
+  rentabilidade: row.rentabilidade === null ? undefined : Number(row.rentabilidade),
+  data_investimento: row.data_investimento,
+  observacao: row.observacao ?? undefined,
+  created_at: row.created_at,
+});
 
 export const LimitsProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth();
   const [limits, setLimits] = useState<Limit[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const addLimit: Ctx["addLimit"] = (l) =>
-    setLimits((prev) => [
-      { ...l, id: crypto.randomUUID(), created_at: new Date().toISOString() },
-      ...prev,
+  const refetch = useCallback(async () => {
+    if (!user) {
+      setLimits([]);
+      setInvestments([]);
+      return;
+    }
+
+    setLoading(true);
+    const [limitsResult, investmentsResult] = await Promise.all([
+      db.from("limits").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      db.from("investments").select("*").eq("user_id", user.id).order("data_investimento", { ascending: false }),
     ]);
-  const removeLimit = (id: string) => setLimits((prev) => prev.filter((l) => l.id !== id));
-  const updateLimit: Ctx["updateLimit"] = (id, patch) =>
-    setLimits((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+    setLoading(false);
 
-  const addInvestment: Ctx["addInvestment"] = (i) =>
-    setInvestments((prev) => [
-      { ...i, id: crypto.randomUUID(), created_at: new Date().toISOString() },
-      ...prev,
-    ]);
-  const removeInvestment = (id: string) =>
-    setInvestments((prev) => prev.filter((i) => i.id !== id));
-  const updateInvestment: Ctx["updateInvestment"] = (id, patch) =>
-    setInvestments((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+    if (limitsResult.error) {
+      toast.error("Erro ao carregar limites.");
+    } else {
+      setLimits(((limitsResult.data ?? []) as LimitRow[]).map(fromLimit));
+    }
 
-  const totalInvestido = investments.reduce((s, i) => s + i.valor_investido, 0);
-  const patrimonioAtual = investments.reduce(
-    (s, i) => s + (i.valor_atual ?? i.valor_investido),
-    0,
+    if (investmentsResult.error) {
+      toast.error("Erro ao carregar investimentos.");
+    } else {
+      setInvestments(((investmentsResult.data ?? []) as InvestmentRow[]).map(fromInvestment));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
+  const addLimit = async (limit: LimitInput) => {
+    if (!user) {
+      toast.error("Faça login para cadastrar limites.");
+      return false;
+    }
+
+    const { data, error } = await db
+      .from("limits")
+      .insert({
+        user_id: user.id,
+        categoria: limit.categoria,
+        valor_limite: limit.valor_limite,
+        periodo: limit.periodo,
+        data_inicial: limit.data_inicial,
+        observacao: limit.observacao ?? null,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      toast.error("Erro ao salvar limite.");
+      return false;
+    }
+
+    setLimits((prev) => [fromLimit(data as LimitRow), ...prev]);
+    return true;
+  };
+
+  const removeLimit = async (id: string) => {
+    if (!user) {
+      toast.error("Faça login para remover limites.");
+      return false;
+    }
+
+    const { error } = await db.from("limits").delete().eq("id", id).eq("user_id", user.id);
+    if (error) {
+      toast.error("Erro ao remover limite.");
+      return false;
+    }
+
+    setLimits((prev) => prev.filter((item) => item.id !== id));
+    return true;
+  };
+
+  const updateLimit = async (id: string, patch: Partial<Limit>) => {
+    if (!user) {
+      toast.error("Faça login para atualizar limites.");
+      return false;
+    }
+
+    const dbPatch: Record<string, unknown> = {};
+    if (patch.categoria !== undefined) dbPatch.categoria = patch.categoria;
+    if (patch.valor_limite !== undefined) dbPatch.valor_limite = patch.valor_limite;
+    if (patch.periodo !== undefined) dbPatch.periodo = patch.periodo;
+    if (patch.data_inicial !== undefined) dbPatch.data_inicial = patch.data_inicial;
+    if (patch.observacao !== undefined) dbPatch.observacao = patch.observacao ?? null;
+
+    const { data, error } = await db
+      .from("limits")
+      .update(dbPatch)
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      toast.error("Erro ao atualizar limite.");
+      return false;
+    }
+
+    setLimits((prev) => prev.map((item) => (item.id === id ? fromLimit(data as LimitRow) : item)));
+    return true;
+  };
+
+  const addInvestment = async (investment: InvestmentInput) => {
+    if (!user) {
+      toast.error("Faça login para cadastrar investimentos.");
+      return false;
+    }
+
+    const { data, error } = await db
+      .from("investments")
+      .insert({
+        user_id: user.id,
+        nome: investment.nome,
+        tipo: investment.tipo,
+        valor_investido: investment.valor_investido,
+        valor_atual: investment.valor_atual ?? null,
+        rentabilidade: investment.rentabilidade ?? null,
+        data_investimento: investment.data_investimento,
+        observacao: investment.observacao ?? null,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      toast.error("Erro ao salvar investimento.");
+      return false;
+    }
+
+    setInvestments((prev) => [fromInvestment(data as InvestmentRow), ...prev]);
+    return true;
+  };
+
+  const removeInvestment = async (id: string) => {
+    if (!user) {
+      toast.error("Faça login para remover investimentos.");
+      return false;
+    }
+
+    const { error } = await db.from("investments").delete().eq("id", id).eq("user_id", user.id);
+    if (error) {
+      toast.error("Erro ao remover investimento.");
+      return false;
+    }
+
+    setInvestments((prev) => prev.filter((item) => item.id !== id));
+    return true;
+  };
+
+  const updateInvestment = async (id: string, patch: Partial<Investment>) => {
+    if (!user) {
+      toast.error("Faça login para atualizar investimentos.");
+      return false;
+    }
+
+    const dbPatch: Record<string, unknown> = {};
+    if (patch.nome !== undefined) dbPatch.nome = patch.nome;
+    if (patch.tipo !== undefined) dbPatch.tipo = patch.tipo;
+    if (patch.valor_investido !== undefined) dbPatch.valor_investido = patch.valor_investido;
+    if (patch.valor_atual !== undefined) dbPatch.valor_atual = patch.valor_atual ?? null;
+    if (patch.rentabilidade !== undefined) dbPatch.rentabilidade = patch.rentabilidade ?? null;
+    if (patch.data_investimento !== undefined) dbPatch.data_investimento = patch.data_investimento;
+    if (patch.observacao !== undefined) dbPatch.observacao = patch.observacao ?? null;
+
+    const { data, error } = await db
+      .from("investments")
+      .update(dbPatch)
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      toast.error("Erro ao atualizar investimento.");
+      return false;
+    }
+
+    setInvestments((prev) => prev.map((item) => (item.id === id ? fromInvestment(data as InvestmentRow) : item)));
+    return true;
+  };
+
+  const totalInvestido = useMemo(() => investments.reduce((sum, item) => sum + item.valor_investido, 0), [investments]);
+  const patrimonioAtual = useMemo(
+    () => investments.reduce((sum, item) => sum + (item.valor_atual ?? item.valor_investido), 0),
+    [investments],
   );
   const lucroPrejuizo = patrimonioAtual - totalInvestido;
-  const rentabilidadeMedia =
-    totalInvestido > 0 ? (lucroPrejuizo / totalInvestido) * 100 : 0;
+  const rentabilidadeMedia = totalInvestido > 0 ? (lucroPrejuizo / totalInvestido) * 100 : 0;
 
   return (
     <LimitsContext.Provider
       value={{
         limits,
         investments,
+        loading,
         addLimit,
         removeLimit,
         updateLimit,
@@ -107,6 +326,7 @@ export const LimitsProvider = ({ children }: { children: ReactNode }) => {
         patrimonioAtual,
         lucroPrejuizo,
         rentabilidadeMedia,
+        refetch,
       }}
     >
       {children}
@@ -120,13 +340,6 @@ export const useLimits = () => {
   return ctx;
 };
 
-/**
- * Calcula o gasto de uma categoria dentro do período de um limite.
- * Considera apenas despesas. Janela:
- *  - Semanal: últimos 7 dias a partir de data_inicial (rolling forward até hoje)
- *  - Mensal: mesmo mês/ano da data atual, a partir de data_inicial
- *  - Anual: ano corrente a partir de data_inicial
- */
 export const calcularGastoLimite = (
   limit: Limit,
   transactions: Array<{ tipo: string; categoria: string; valor: number; data: string }>,
@@ -149,11 +362,11 @@ export const calcularGastoLimite = (
 
   return transactions
     .filter(
-      (t) =>
-        t.tipo === "despesa" &&
-        t.categoria === limit.categoria &&
-        new Date(t.data) >= janelaInicio &&
-        new Date(t.data) <= hoje,
+      (transaction) =>
+        transaction.tipo === "despesa" &&
+        transaction.categoria === limit.categoria &&
+        new Date(transaction.data) >= janelaInicio &&
+        new Date(transaction.data) <= hoje,
     )
-    .reduce((s, t) => s + t.valor, 0);
+    .reduce((sum, transaction) => sum + transaction.valor, 0);
 };

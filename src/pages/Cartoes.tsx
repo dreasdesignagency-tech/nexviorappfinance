@@ -25,7 +25,7 @@ import { formatBRL } from "@/store/transactions";
 const TIPOS: TipoCartao[] = ["Crédito", "Débito", "Múltiplo"];
 
 const Cartoes = () => {
-  const { cards, addCard, removeCard } = useCards();
+  const { cards, loading, addCard, removeCard } = useCards();
   const [open, setOpen] = useState(false);
 
   const [nome, setNome] = useState("");
@@ -40,7 +40,7 @@ const Cartoes = () => {
     setLimite(""); setDiaVenc(""); setDiaFech("");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!nome.trim()) return toast.error("Informe o nome do cartão");
     if (!banco.trim()) return toast.error("Informe o banco");
     if (!tipo) return toast.error("Selecione o tipo");
@@ -50,7 +50,7 @@ const Cartoes = () => {
     if (dv && (dv < 1 || dv > 31)) return toast.error("Dia vencimento inválido");
     if (df && (df < 1 || df > 31)) return toast.error("Dia fechamento inválido");
 
-    addCard({
+    const ok = await addCard({
       nome: nome.trim(),
       banco: banco.trim(),
       tipo,
@@ -58,6 +58,7 @@ const Cartoes = () => {
       dia_vencimento: dv,
       dia_fechamento: df,
     });
+    if (!ok) return;
     toast.success("Cartão cadastrado", { description: nome });
     reset();
     setOpen(false);
@@ -82,7 +83,9 @@ const Cartoes = () => {
           </Button>
         </header>
 
-        {cards.length === 0 ? (
+        {loading ? (
+          <div className="glass-card py-20 px-6 text-center text-sm text-muted-foreground">Carregando cartões...</div>
+        ) : cards.length === 0 ? (
           <div className="glass-card py-20 px-6 text-center">
             <div className="w-14 h-14 rounded-2xl mx-auto bg-surface-elevated/60 border border-border/50 flex items-center justify-center mb-4">
               <CreditCard className="w-6 h-6 text-muted-foreground" />
@@ -101,7 +104,7 @@ const Cartoes = () => {
                     <CreditCard className="w-5 h-5 text-primary" />
                   </div>
                   <button
-                    onClick={() => { removeCard(c.id); toast.success("Cartão removido"); }}
+                    onClick={async () => { const ok = await removeCard(c.id); if (ok) toast.success("Cartão removido"); }}
                     className="opacity-0 group-hover:opacity-100 transition w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     title="Excluir"
                   >
