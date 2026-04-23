@@ -43,6 +43,9 @@ export const Sidebar = () => {
         <MobileSidebar />
       </div>
 
+      {/* Mobile bottom navbar */}
+      <MobileBottomNav />
+
       <aside className="hidden md:flex w-60 shrink-0">
         <div className="sticky top-0 h-screen max-h-screen w-60 flex flex-col py-6 px-3 gap-2 glass-sidebar">
           <div className="flex items-center gap-2.5 px-2 mb-6">
