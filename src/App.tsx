@@ -25,6 +25,7 @@ import { LimitsProvider } from "@/store/limits";
 import { ProfileProvider } from "@/store/profile";
 import { ThemeProvider } from "@/store/theme";
 import { AuthProvider } from "@/store/auth";
+import { NotificationsProvider } from "@/store/notifications";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -46,7 +47,8 @@ const App = () => (
                 <CardsProvider>
                   <RecurrentsProvider>
                     <LimitsProvider>
-                      <Routes>
+                      <NotificationsProvider>
+                        <Routes>
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/" element={<Protected><Index /></Protected>} />
                         <Route path="/transacoes" element={<Protected><Transacoes /></Protected>} />
@@ -60,7 +62,8 @@ const App = () => (
                         <Route path="/admin/membros" element={<Protected><AdminRoute><AdminPasswordGate><AdminMembros /></AdminPasswordGate></AdminRoute></Protected>} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
-                      </Routes>
+                        </Routes>
+                      </NotificationsProvider>
                     </LimitsProvider>
                   </RecurrentsProvider>
                 </CardsProvider>

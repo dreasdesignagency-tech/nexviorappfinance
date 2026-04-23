@@ -29,7 +29,7 @@ const Recorrentes = () => {
     parcelas, assinaturas,
     addParcela, removeParcela,
     addAssinatura, removeAssinatura, updateAssinaturaStatus,
-    totalMensalParcelas, totalMensalAssinaturas,
+    totalMensalParcelas, totalMensalAssinaturas, loading,
   } = useRecurrents();
   const { cards } = useCards();
 
@@ -65,7 +65,7 @@ const Recorrentes = () => {
     setACategoria(""); setAForma(""); setACartao("");
   };
 
-  const salvarParcela = () => {
+  const salvarParcela = async () => {
     if (!pNome.trim()) return toast.error("Informe o nome da compra");
     const vt = Number(pValorTotal);
     const tp = Number(pTotalParc);
@@ -73,7 +73,7 @@ const Recorrentes = () => {
     if (!tp || tp < 1) return toast.error("Número de parcelas inválido");
     if (!pDataInicio) return toast.error("Informe a data da primeira parcela");
 
-    addParcela({
+    const ok = await addParcela({
       nome: pNome.trim(),
       valor_total: vt,
       total_parcelas: tp,
@@ -82,18 +82,19 @@ const Recorrentes = () => {
       categoria: pCategoria || undefined,
       cartao_id: pCartao || undefined,
     });
+    if (!ok) return;
     toast.success("Parcela cadastrada", { description: pNome });
     resetParcela();
     setOpenP(false);
   };
 
-  const salvarAssinatura = () => {
+  const salvarAssinatura = async () => {
     if (!aNome.trim()) return toast.error("Informe o nome da assinatura");
     const v = Number(aValor);
     if (!v || v <= 0) return toast.error("Valor inválido");
     if (!aData) return toast.error("Informe a data de cobrança");
 
-    addAssinatura({
+    const ok = await addAssinatura({
       nome: aNome.trim(),
       valor: v,
       frequencia: aFreq,
@@ -102,6 +103,7 @@ const Recorrentes = () => {
       forma_pagamento: aForma || undefined,
       cartao_id: aCartao || undefined,
     });
+    if (!ok) return;
     toast.success("Assinatura cadastrada", { description: aNome });
     resetAssinatura();
     setOpenA(false);
