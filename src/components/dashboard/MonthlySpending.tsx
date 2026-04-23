@@ -74,7 +74,10 @@ export const MonthlySpending = () => {
   }));
 
   const max = Math.max(...windowData.map((d) => d.value), 0);
-  const maxIdx = max > 0 ? windowData.findIndex((d) => d.value === max) : -1;
+  // Índice do mês atual dentro da janela (sempre o último)
+  const currentIdx = windowData.length - 1;
+  const currentValue = windowData[currentIdx]?.value ?? 0;
+  const currentPct = max > 0 ? Math.round((currentValue / max) * 100) : 0;
 
   // Trigger de animação ao montar / mudar dados
   const [animateKey, setAnimateKey] = useState(0);
