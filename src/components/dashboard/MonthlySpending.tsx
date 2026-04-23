@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTransactions } from "@/store/transactions";
 import {
@@ -9,6 +9,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const MONTHS_SHORT = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+// Janela visível: SET, OUT, NOV, DEZ, JAN (do ano seguinte)
+const WINDOW = [
+  { idx: 8, label: "SET", yearOffset: 0 },
+  { idx: 9, label: "OUT", yearOffset: 0 },
+  { idx: 10, label: "NOV", yearOffset: 0 },
+  { idx: 11, label: "DEZ", yearOffset: 0 },
+  { idx: 0, label: "JAN", yearOffset: 1 },
+];
 
 const formatCompact = (v: number) => {
   if (v >= 1000) {
@@ -24,37 +32,17 @@ const formatFull = (v: number) =>
 export const MonthlySpending = () => {
   const { transactions } = useTransactions();
 
-  const currentYear = new Date().getFullYear();
-
   const availableYears = useMemo(() => {
     const set = new Set<number>();
     for (const t of transactions) {
       const y = Number(t.data.split("-")[0]);
       if (!Number.isNaN(y)) set.add(y);
     }
-    set.add(currentYear);
+    if (set.size === 0) set.add(new Date().getFullYear());
     return Array.from(set).sort((a, b) => b - a);
-  }, [transactions, currentYear]);
+  }, [transactions]);
 
-  const [year, setYear] = useState<number>(currentYear);
-
-  // Janela rolante: últimos 5 meses até o mês atual (ou DEZ se for ano passado)
-  const windowMonths = useMemo(() => {
-    const now = new Date();
-    const isCurrentYear = year === now.getFullYear();
-    const endMonth = isCurrentYear ? now.getMonth() : 11; // 0-11
-    const months: { idx: number; label: string; year: number }[] = [];
-    for (let i = 4; i >= 0; i--) {
-      let m = endMonth - i;
-      let y = year;
-      if (m < 0) {
-        m += 12;
-        y -= 1;
-      }
-      months.push({ idx: m, label: MONTHS_SHORT[m], year: y });
-    }
-    return months;
-  }, [year]);
+  const [year, setYear] = useState<number>(availableYears[0]);
 
   // Totaliza despesas por (ano, mês)
   const totalsByKey = useMemo(() => {
@@ -68,29 +56,14 @@ export const MonthlySpending = () => {
     return map;
   }, [transactions]);
 
-  const windowData = windowMonths.map(({ idx, label, year: y }) => ({
+  const windowData = WINDOW.map(({ idx, label, yearOffset }) => ({
     label,
-    value: totalsByKey.get(`${y}-${idx}`) ?? 0,
+    value: totalsByKey.get(`${year + yearOffset}-${idx}`) ?? 0,
   }));
 
   const max = Math.max(...windowData.map((d) => d.value), 0);
-  // Índice do mês atual dentro da janela (sempre o último)
-  const currentIdx = windowData.length - 1;
-  const currentValue = windowData[currentIdx]?.value ?? 0;
-  const currentPct = max > 0 ? Math.round((currentValue / max) * 100) : 0;
-
-  // Trigger de animação ao montar / mudar dados
-  const [animateKey, setAnimateKey] = useState(0);
-  const [animated, setAnimated] = useState(false);
-  useEffect(() => {
-    setAnimated(false);
-    const t = setTimeout(() => setAnimated(true), 50);
-    return () => clearTimeout(t);
-  }, [animateKey, year, transactions.length]);
-
-  useEffect(() => {
-    setAnimateKey((k) => k + 1);
-  }, []);
+  const hasData = max > 0;
+  const maxIdx = windowData.findIndex((d) => d.value === max && d.value > 0);
 
   return (
     <div className="glass-card p-4 sm:p-6 md:p-7 h-full flex flex-col">
@@ -110,53 +83,46 @@ export const MonthlySpending = () => {
         </DropdownMenu>
       </div>
 
-      <div className="flex-1 flex items-end justify-between gap-2 md:gap-3 px-1 min-h-[160px] pt-6 md:pt-8 overflow-hidden">
-        {windowData.map((d, i) => {
-          const pct = max > 0 ? (d.value / max) * 100 : 0;
-          const isCurrent = i === currentIdx;
-          const isHighlighted = isCurrent && d.value > 0;
-          // Altura final: mín 8% para barras vazias (estado elegante), mín 12% para barras com valor
-          const targetHeight = max > 0
-            ? Math.max(pct, d.value > 0 ? 12 : 8)
-            : 8;
-          const renderHeight = animated ? targetHeight : 0;
-
-          return (
-            <div
-              key={`${d.label}-${animateKey}`}
-              className="flex flex-col items-center gap-2.5 md:gap-3 flex-1 min-w-0 group"
-              title={`${d.label} · ${formatFull(d.value)}`}
-            >
-              <div className="relative w-full flex items-end justify-center" style={{ height: 140 }}>
-                {isHighlighted && (
-                  <span
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shadow-[0_4px_12px_hsl(var(--primary)/0.4)] transition-opacity duration-500"
-                    style={{ opacity: animated ? 1 : 0 }}
-                  >
-                    {currentPct}%
-                  </span>
-                )}
-                <div
-                  className={`w-full max-w-[38px] rounded-full transition-all duration-700 ease-out ${
-                    isHighlighted
-                      ? "bg-gradient-to-t from-primary to-primary-glow shadow-[0_0_24px_hsl(var(--primary)/0.5)] group-hover:shadow-[0_0_32px_hsl(var(--primary)/0.7)]"
-                      : d.value > 0
-                      ? "bg-gradient-to-t from-primary/30 to-primary/15 border border-primary/20 group-hover:from-primary/45 group-hover:to-primary/25 group-hover:shadow-[0_0_18px_hsl(var(--primary)/0.35)]"
-                      : "bg-surface-elevated/40 border border-border/30 group-hover:bg-surface-elevated/60"
-                  }`}
-                  style={{
-                    height: `${renderHeight}%`,
-                    transitionDelay: `${i * 80}ms`,
-                  }}
-                />
+      {hasData ? (
+        <div className="flex-1 flex items-end justify-between gap-2 md:gap-3 px-1 min-h-[160px] pt-4 md:pt-6 overflow-hidden">
+          {windowData.map((d, i) => {
+            const pct = max > 0 ? (d.value / max) * 100 : 0;
+            const isMax = i === maxIdx;
+            return (
+              <div
+                key={d.label}
+                className="flex flex-col items-center gap-2.5 md:gap-3 flex-1 min-w-0 group"
+                title={`${d.label} · ${formatFull(d.value)}`}
+              >
+                <div className="relative w-full flex items-end justify-center" style={{ height: 140 }}>
+                  {isMax && (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shadow-[0_4px_12px_hsl(var(--primary)/0.4)]">
+                      {formatCompact(d.value)}
+                    </span>
+                  )}
+                  <div
+                    className={`w-full max-w-[38px] rounded-full transition-all ${
+                      isMax
+                        ? "bg-gradient-to-t from-primary to-primary-glow shadow-[0_0_24px_hsl(var(--primary)/0.5)]"
+                        : d.value > 0
+                        ? "bg-primary/15 border border-primary/20 group-hover:bg-primary/25"
+                        : "bg-surface-elevated/40 border border-border/30"
+                    }`}
+                    style={{ height: `${Math.max(pct, d.value > 0 ? 10 : 6)}%` }}
+                  />
+                </div>
+                <span className="text-[10px] font-medium text-muted-foreground tracking-[0.15em]">
+                  {d.label}
+                </span>
               </div>
-              <span className="text-[10px] font-medium text-muted-foreground tracking-[0.15em]">
-                {d.label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center min-h-[160px] text-xs text-muted-foreground text-center px-4">
+          Nenhuma despesa registrada neste ano.
+        </div>
+      )}
     </div>
   );
 };
