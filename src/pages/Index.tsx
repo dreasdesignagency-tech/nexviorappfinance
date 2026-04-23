@@ -45,7 +45,7 @@ const Index = () => {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Nova Transação"
-          className="md:hidden fixed bottom-5 right-4 z-30 h-14 px-5 rounded-full bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-[0_18px_40px_hsl(var(--primary)/0.35)] flex items-center gap-2 font-semibold"
+          className="md:hidden fixed bottom-20 right-4 z-30 h-14 px-5 rounded-full bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-[0_18px_40px_hsl(var(--primary)/0.35)] flex items-center gap-2 font-semibold"
         >
           <Plus className="w-5 h-5" />
           <span className="text-sm">Nova Transação</span>
