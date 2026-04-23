@@ -74,7 +74,10 @@ export const MonthlySpending = () => {
   }));
 
   const max = Math.max(...windowData.map((d) => d.value), 0);
-  const maxIdx = max > 0 ? windowData.findIndex((d) => d.value === max) : -1;
+  // Índice do mês atual dentro da janela (sempre o último)
+  const currentIdx = windowData.length - 1;
+  const currentValue = windowData[currentIdx]?.value ?? 0;
+  const currentPct = max > 0 ? Math.round((currentValue / max) * 100) : 0;
 
   // Trigger de animação ao montar / mudar dados
   const [animateKey, setAnimateKey] = useState(0);
@@ -110,7 +113,8 @@ export const MonthlySpending = () => {
       <div className="flex-1 flex items-end justify-between gap-2 md:gap-3 px-1 min-h-[160px] pt-6 md:pt-8 overflow-hidden">
         {windowData.map((d, i) => {
           const pct = max > 0 ? (d.value / max) * 100 : 0;
-          const isMax = i === maxIdx;
+          const isCurrent = i === currentIdx;
+          const isHighlighted = isCurrent && d.value > 0;
           // Altura final: mín 8% para barras vazias (estado elegante), mín 12% para barras com valor
           const targetHeight = max > 0
             ? Math.max(pct, d.value > 0 ? 12 : 8)
@@ -124,17 +128,17 @@ export const MonthlySpending = () => {
               title={`${d.label} · ${formatFull(d.value)}`}
             >
               <div className="relative w-full flex items-end justify-center" style={{ height: 140 }}>
-                {isMax && (
+                {isHighlighted && (
                   <span
                     className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shadow-[0_4px_12px_hsl(var(--primary)/0.4)] transition-opacity duration-500"
                     style={{ opacity: animated ? 1 : 0 }}
                   >
-                    {formatCompact(d.value)}
+                    {currentPct}%
                   </span>
                 )}
                 <div
                   className={`w-full max-w-[38px] rounded-full transition-all duration-700 ease-out ${
-                    isMax
+                    isHighlighted
                       ? "bg-gradient-to-t from-primary to-primary-glow shadow-[0_0_24px_hsl(var(--primary)/0.5)] group-hover:shadow-[0_0_32px_hsl(var(--primary)/0.7)]"
                       : d.value > 0
                       ? "bg-gradient-to-t from-primary/30 to-primary/15 border border-primary/20 group-hover:from-primary/45 group-hover:to-primary/25 group-hover:shadow-[0_0_18px_hsl(var(--primary)/0.35)]"
