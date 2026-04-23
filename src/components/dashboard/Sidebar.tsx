@@ -5,6 +5,7 @@ import { useProfile } from "@/store/profile";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
 import { MobileSidebar } from "@/components/dashboard/MobileSidebar";
+import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { Logo } from "@/components/Logo";
 
 const items = [
@@ -41,6 +42,9 @@ export const Sidebar = () => {
       <div className="md:hidden fixed top-3 left-3 z-40">
         <MobileSidebar />
       </div>
+
+      {/* Mobile bottom navbar */}
+      <MobileBottomNav />
 
       <aside className="hidden md:flex w-60 shrink-0">
         <div className="sticky top-0 h-screen max-h-screen w-60 flex flex-col py-6 px-3 gap-2 glass-sidebar">
