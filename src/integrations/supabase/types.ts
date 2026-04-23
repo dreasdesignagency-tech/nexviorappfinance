@@ -14,6 +14,183 @@ export type Database = {
   }
   public: {
     Tables: {
+      cards: {
+        Row: {
+          ativo: boolean
+          banco: string
+          bandeira: string | null
+          cor: string | null
+          created_at: string
+          dia_fechamento: number | null
+          dia_vencimento: number | null
+          id: string
+          limite: number | null
+          nome: string
+          tipo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          banco: string
+          bandeira?: string | null
+          cor?: string | null
+          created_at?: string
+          dia_fechamento?: number | null
+          dia_vencimento?: number | null
+          id?: string
+          limite?: number | null
+          nome: string
+          tipo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          banco?: string
+          bandeira?: string | null
+          cor?: string | null
+          created_at?: string
+          dia_fechamento?: number | null
+          dia_vencimento?: number | null
+          id?: string
+          limite?: number | null
+          nome?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      installments: {
+        Row: {
+          cartao_id: string | null
+          categoria: string | null
+          created_at: string
+          data_inicio: string
+          id: string
+          nome: string
+          parcela_atual: number
+          proxima_cobranca: string
+          status: string
+          total_parcelas: number
+          updated_at: string
+          user_id: string
+          valor_parcela: number
+          valor_total: number
+        }
+        Insert: {
+          cartao_id?: string | null
+          categoria?: string | null
+          created_at?: string
+          data_inicio: string
+          id?: string
+          nome: string
+          parcela_atual?: number
+          proxima_cobranca: string
+          status: string
+          total_parcelas: number
+          updated_at?: string
+          user_id: string
+          valor_parcela: number
+          valor_total: number
+        }
+        Update: {
+          cartao_id?: string | null
+          categoria?: string | null
+          created_at?: string
+          data_inicio?: string
+          id?: string
+          nome?: string
+          parcela_atual?: number
+          proxima_cobranca?: string
+          status?: string
+          total_parcelas?: number
+          updated_at?: string
+          user_id?: string
+          valor_parcela?: number
+          valor_total?: number
+        }
+        Relationships: []
+      }
+      investments: {
+        Row: {
+          created_at: string
+          data_investimento: string
+          id: string
+          nome: string
+          observacao: string | null
+          rentabilidade: number | null
+          tipo: string
+          updated_at: string
+          user_id: string
+          valor_atual: number | null
+          valor_investido: number
+        }
+        Insert: {
+          created_at?: string
+          data_investimento: string
+          id?: string
+          nome: string
+          observacao?: string | null
+          rentabilidade?: number | null
+          tipo: string
+          updated_at?: string
+          user_id: string
+          valor_atual?: number | null
+          valor_investido: number
+        }
+        Update: {
+          created_at?: string
+          data_investimento?: string
+          id?: string
+          nome?: string
+          observacao?: string | null
+          rentabilidade?: number | null
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          valor_atual?: number | null
+          valor_investido?: number
+        }
+        Relationships: []
+      }
+      limits: {
+        Row: {
+          categoria: string
+          created_at: string
+          data_inicial: string
+          id: string
+          observacao: string | null
+          periodo: string
+          updated_at: string
+          user_id: string
+          valor_limite: number
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          data_inicial: string
+          id?: string
+          observacao?: string | null
+          periodo: string
+          updated_at?: string
+          user_id: string
+          valor_limite: number
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          data_inicial?: string
+          id?: string
+          observacao?: string | null
+          periodo?: string
+          updated_at?: string
+          user_id?: string
+          valor_limite?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -38,6 +215,138 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          data: string
+          descricao: string | null
+          frequencia: string | null
+          hora: string | null
+          id: string
+          prioridade: string
+          recorrente: boolean
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          descricao?: string | null
+          frequencia?: string | null
+          hora?: string | null
+          id?: string
+          prioridade: string
+          recorrente?: boolean
+          status?: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          frequencia?: string | null
+          hora?: string | null
+          id?: string
+          prioridade?: string
+          recorrente?: boolean
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cartao_id: string | null
+          categoria: string | null
+          created_at: string
+          data_cobranca: string
+          forma_pagamento: string | null
+          frequencia: string
+          id: string
+          nome: string
+          status: string
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          cartao_id?: string | null
+          categoria?: string | null
+          created_at?: string
+          data_cobranca: string
+          forma_pagamento?: string | null
+          frequencia: string
+          id?: string
+          nome: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          cartao_id?: string | null
+          categoria?: string | null
+          created_at?: string
+          data_cobranca?: string
+          forma_pagamento?: string | null
+          frequencia?: string
+          id?: string
+          nome?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          prazo: string | null
+          prioridade: string
+          status: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          prazo?: string | null
+          prioridade: string
+          status?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          prazo?: string | null
+          prioridade?: string
+          status?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
