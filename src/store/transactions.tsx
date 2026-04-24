@@ -20,6 +20,7 @@ export interface Transaction {
   parcela_atual?: number;
   recorrente?: boolean;
   observacao?: string;
+  cartao_id?: string | null;
   created_at: string;
 }
 
@@ -63,6 +64,7 @@ type DbRow = {
   numero_parcelas: number | null;
   parcela_atual: number | null;
   recorrente: boolean | null;
+  cartao_id: string | null;
   created_at: string;
 };
 
@@ -79,10 +81,11 @@ const fromDb = (r: DbRow): Transaction => ({
   numero_parcelas: r.numero_parcelas ?? undefined,
   parcela_atual: r.parcela_atual ?? undefined,
   recorrente: r.recorrente ?? false,
+  cartao_id: r.cartao_id ?? null,
   created_at: r.created_at,
 });
 
-const toInsertPayload = (userId: string, t: NewTransactionInput): TablesInsert<"transactions"> => ({
+const toInsertPayload = (userId: string, t: NewTransactionInput) => ({
   user_id: userId,
   tipo: t.tipo,
   descricao: t.titulo,
@@ -95,7 +98,8 @@ const toInsertPayload = (userId: string, t: NewTransactionInput): TablesInsert<"
   numero_parcelas: t.parcelado ? t.numero_parcelas ?? null : null,
   parcela_atual: t.parcelado ? t.parcela_atual ?? null : null,
   recorrente: !!t.recorrente,
-});
+  cartao_id: t.cartao_id ?? null,
+} as TablesInsert<"transactions">);
 
 export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -175,6 +179,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     if (patch.numero_parcelas !== undefined) dbPatch.numero_parcelas = patch.numero_parcelas ?? null;
     if (patch.parcela_atual !== undefined) dbPatch.parcela_atual = patch.parcela_atual ?? null;
     if (patch.recorrente !== undefined) dbPatch.recorrente = patch.recorrente;
+    if (patch.cartao_id !== undefined) (dbPatch as Record<string, unknown>).cartao_id = patch.cartao_id ?? null;
 
     const { data, error } = await supabase
       .from("transactions")

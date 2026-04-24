@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { CATEGORIAS, FormaPagamento, TipoTransacao, useTransactions } from "@/store/transactions";
+import { useCards } from "@/store/cards";
 import { cn } from "@/lib/utils";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
@@ -34,6 +35,7 @@ interface Props {
     parcela_atual?: number;
     recorrente?: boolean;
     observacao?: string;
+    cartao_id?: string | null;
   } | null;
 }
 
@@ -41,6 +43,7 @@ const formasPagamento: FormaPagamento[] = ["PIX", "Débito", "Crédito", "Dinhei
 
 export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despesa", initialValues = null }: Props) => {
   const { addTransaction, updateTransaction } = useTransactions();
+  const { cards } = useCards();
 
   const [tipo, setTipo] = useState<TipoTransacao>(defaultType);
   const [titulo, setTitulo] = useState("");
@@ -48,11 +51,19 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
   const [categoria, setCategoria] = useState("");
   const [data, setData] = useState(new Date().toISOString().slice(0, 10));
   const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>("PIX");
+  const [cartaoId, setCartaoId] = useState<string>("");
   const [parcelado, setParcelado] = useState(false);
   const [numParcelas, setNumParcelas] = useState("2");
   const [parcelaAtual, setParcelaAtual] = useState("1");
   const [recorrente, setRecorrente] = useState(false);
   const [observacao, setObservacao] = useState("");
+
+  const requiresCard = formaPagamento === "Crédito" || formaPagamento === "Débito";
+  const availableCards = cards.filter((c) => {
+    if (formaPagamento === "Crédito") return c.tipo === "Crédito" || c.tipo === "Múltiplo";
+    if (formaPagamento === "Débito") return c.tipo === "Débito" || c.tipo === "Múltiplo";
+    return false;
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -64,6 +75,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
       setCategoria(initialValues.categoria);
       setData(initialValues.data);
       setFormaPagamento(initialValues.forma_pagamento ?? "PIX");
+      setCartaoId(initialValues.cartao_id ?? "");
       setParcelado(initialValues.parcelado ?? false);
       setNumParcelas(String(initialValues.numero_parcelas ?? 2));
       setParcelaAtual(String(initialValues.parcela_atual ?? 1));
@@ -81,6 +93,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
     setTitulo(""); setValor(""); setCategoria("");
     setParcelado(false); setRecorrente(false); setObservacao("");
     setNumParcelas("2"); setParcelaAtual("1"); setFormaPagamento("PIX");
+    setCartaoId("");
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -90,6 +103,12 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
     if (!valor || isNaN(v) || v <= 0) return toast.error("Informe um valor válido.");
     if (!categoria) return toast.error("Selecione uma categoria.");
     if (!data) return toast.error("Informe a data.");
+    if (requiresCard && !cartaoId) {
+      if (availableCards.length === 0) {
+        return toast.error("Cadastre um cartão antes de registrar despesas no crédito ou débito.");
+      }
+      return toast.error("Selecione o cartão utilizado.");
+    }
 
     const payload = {
       tipo,
@@ -103,6 +122,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
       parcela_atual: parcelado ? Number(parcelaAtual) : undefined,
       recorrente,
       observacao: observacao.trim() || undefined,
+      cartao_id: requiresCard ? cartaoId : null,
     };
 
     if (initialValues) {
@@ -200,6 +220,26 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
               </Select>
             </div>
           </div>
+
+          {requiresCard && (
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label>Cartão utilizado</Label>
+              {availableCards.length === 0 ? (
+                <p className="text-xs text-muted-foreground glass-inner p-3">
+                  Nenhum cartão de {formaPagamento.toLowerCase()} cadastrado. Vá em <span className="text-foreground font-medium">Cartões</span> e cadastre um para vincular esta despesa.
+                </p>
+              ) : (
+                <Select value={cartaoId} onValueChange={setCartaoId}>
+                  <SelectTrigger className="h-9 sm:h-10"><SelectValue placeholder="Selecione o cartão" /></SelectTrigger>
+                  <SelectContent>
+                    {availableCards.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.nome} · {c.banco}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
 
           <div className="glass-inner p-2.5 sm:p-3 space-y-2 sm:space-y-3">
             <div className="flex items-center justify-between">
