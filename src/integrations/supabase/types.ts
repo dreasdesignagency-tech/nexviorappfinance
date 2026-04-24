@@ -442,9 +442,11 @@ export type Database = {
     }
     Functions: {
       admin_delete_user: { Args: { _user_id: string }; Returns: undefined }
+      admin_get_user_details: { Args: { _user_id: string }; Returns: Json }
       admin_list_members: {
         Args: never
         Returns: {
+          banned_until: string
           created_at: string
           email: string
           full_name: string
@@ -453,6 +455,10 @@ export type Database = {
           phone: string
           role: Database["public"]["Enums"]["app_role"]
         }[]
+      }
+      admin_set_user_banned: {
+        Args: { _banned: boolean; _user_id: string }
+        Returns: undefined
       }
       has_role: {
         Args: {
