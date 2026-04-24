@@ -7,6 +7,9 @@ import { Logo } from "@/components/Logo";
 
 type Status = "loading" | "error";
 
+const OFFICIAL_APP_URL = "https://nexviorappfinance.vercel.app";
+const AUTH_CALLBACK_URL = `${OFFICIAL_APP_URL}/auth/callback`;
+
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<Status>("loading");
@@ -15,10 +18,14 @@ const AuthCallback = () => {
   useEffect(() => {
     const finalize = async () => {
       try {
-        const url = new URL(window.location.href);
-        const search = url.searchParams;
+        if (window.location.hostname.includes("lovable.app")) {
+          window.location.replace(`${AUTH_CALLBACK_URL}${window.location.search}${window.location.hash}`);
+          return;
+        }
+
+        const search = new URLSearchParams(window.location.search);
         // Supabase pode retornar parâmetros no hash (#access_token=...) ou na query (?code=... / ?token_hash=...)
-        const hash = url.hash.startsWith("#") ? url.hash.slice(1) : url.hash;
+        const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
         const hashParams = new URLSearchParams(hash);
 
         const errorDescription =
@@ -30,7 +37,7 @@ const AuthCallback = () => {
         // 1) Fluxo PKCE / OAuth: ?code=...
         const code = search.get("code");
         if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
           navigate("/", { replace: true });
           return;

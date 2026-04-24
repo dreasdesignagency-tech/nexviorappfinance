@@ -8,19 +8,15 @@ import "./index.css";
 // visually sees the wrong domain.
 if (typeof window !== "undefined") {
   const OFFICIAL_ORIGIN = "https://nexviorappfinance.vercel.app";
-  const officialHost = new URL(OFFICIAL_ORIGIN).hostname;
   const currentHost = window.location.hostname;
 
-  // Skip local dev (localhost / 127.0.0.1 / *.local) and the official host.
   const isLocal =
     currentHost === "localhost" ||
     currentHost === "127.0.0.1" ||
     currentHost.endsWith(".local");
 
-  if (!isLocal && currentHost !== officialHost) {
-    window.location.replace(
-      `${OFFICIAL_ORIGIN}${window.location.pathname}${window.location.search}${window.location.hash}`
-    );
+  if (!isLocal && currentHost.includes("lovable.app")) {
+    window.location.replace(OFFICIAL_ORIGIN);
   }
 }
 

@@ -3,7 +3,6 @@ import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/store/auth";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -146,10 +145,13 @@ const Auth = () => {
 
   const handleGoogle = async () => {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: AUTH_CALLBACK_URL,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: AUTH_CALLBACK_URL,
+      },
     });
-    if (result.error) {
+    if (error) {
       setBusy(false);
       toast.error("Não foi possível entrar com o Google.");
     }
