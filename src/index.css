@@ -6,6 +6,10 @@
 
 @layer base {
   :root, .dark {
+    /* Altura total da bottom nav mobile (4rem) + safe area do dispositivo.
+       Usado para posicionar FABs e inputs fixos acima da navbar de forma
+       consistente entre navegador e modo standalone (PWA na tela inicial). */
+    --mobile-nav-h: calc(4rem + env(safe-area-inset-bottom, 0px));
     --background: 222 47% 6%;
     --foreground: 210 40% 98%;
 
