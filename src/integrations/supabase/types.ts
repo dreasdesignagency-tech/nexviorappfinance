@@ -352,6 +352,7 @@ export type Database = {
       }
       transactions: {
         Row: {
+          cartao_id: string | null
           categoria: string
           created_at: string
           data: string
@@ -369,6 +370,7 @@ export type Database = {
           valor: number
         }
         Insert: {
+          cartao_id?: string | null
           categoria: string
           created_at?: string
           data: string
@@ -386,6 +388,7 @@ export type Database = {
           valor: number
         }
         Update: {
+          cartao_id?: string | null
           categoria?: string
           created_at?: string
           data?: string
@@ -402,7 +405,15 @@ export type Database = {
           user_id?: string
           valor?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transactions_cartao_id_fkey"
+            columns: ["cartao_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
