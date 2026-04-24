@@ -16,7 +16,8 @@ import { toast } from "sonner";
 import { CATEGORIAS, FormaPagamento, TipoTransacao, useTransactions } from "@/store/transactions";
 import { useCards } from "@/store/cards";
 import { cn } from "@/lib/utils";
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, CreditCard } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface Props {
   open: boolean;
