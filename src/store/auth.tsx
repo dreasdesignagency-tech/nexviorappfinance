@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import {
@@ -6,6 +6,8 @@ import {
   redirectToOfficialLocation,
   shouldForceOfficialDomain,
 } from "@/lib/auth-urls";
+import { startSyncDaemon } from "@/lib/offline/sync";
+import { clearUserData } from "@/lib/offline/db";
 
 const isOnOfficialDomain = () => {
   if (typeof window === "undefined") return true;
@@ -33,6 +35,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const userIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    // Daemon de sincronização offline (uma única vez)
+    startSyncDaemon(() => userIdRef.current);
+  }, []);
+
+  useEffect(() => {
+    userIdRef.current = user?.id ?? null;
+  }, [user]);
 
   useEffect(() => {
     // If we somehow ended up on a non-official domain, bounce immediately.
@@ -58,7 +70,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = async () => {
+    const uid = userIdRef.current;
     await supabase.auth.signOut();
+    if (uid) await clearUserData(uid);
   };
 
   return (
