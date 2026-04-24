@@ -40,7 +40,7 @@ interface Props {
   } | null;
 }
 
-const formasPagamento: FormaPagamento[] = ["PIX", "Cartão", "Dinheiro", "Transferência", "Boleto", "Outro"];
+const formasPagamento: FormaPagamento[] = ["PIX", "Dinheiro", "Cartão"];
 
 export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despesa", initialValues = null }: Props) => {
   const { addTransaction, updateTransaction } = useTransactions();
