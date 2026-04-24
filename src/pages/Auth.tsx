@@ -94,7 +94,7 @@ const Auth = () => {
       return;
     }
     setBusy(true);
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = "https://nexviorappfinance.vercel.app/";
     const { error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
@@ -124,7 +124,7 @@ const Auth = () => {
   const handleGoogle = async () => {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: "https://nexviorappfinance.vercel.app",
     });
     if (result.error) {
       setBusy(false);
