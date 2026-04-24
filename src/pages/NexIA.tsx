@@ -253,7 +253,7 @@ const NexIA = () => {
         </div>
 
         {/* Conteúdo central */}
-        <div className="flex-1 flex flex-col items-center justify-center px-3 sm:px-4 md:px-8 overflow-hidden min-h-0">
+        <div className="flex-1 flex flex-col items-center justify-center px-3 sm:px-4 md:px-8 overflow-hidden min-h-0 pb-32 md:pb-0">
           {isEmpty ? (
             <div className="w-full max-w-2xl flex flex-col items-center text-center animate-fade-in">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center border border-primary/20 mb-6 glow-primary">
