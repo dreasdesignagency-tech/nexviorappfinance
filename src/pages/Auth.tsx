@@ -31,6 +31,8 @@ const signInSchema = z.object({
 
 type Mode = "signin" | "signup";
 
+const OFFICIAL_APP_URL = "https://nexviorappfinance.vercel.app";
+
 const Auth = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -81,6 +83,7 @@ const Auth = () => {
       return;
     }
     toast.success("Bem-vindo de volta!");
+    navigate("/", { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -94,12 +97,11 @@ const Auth = () => {
       return;
     }
     setBusy(true);
-    const redirectUrl = "https://nexviorappfinance.vercel.app/";
     const { error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: redirectUrl,
+        emailRedirectTo: OFFICIAL_APP_URL,
         data: {
           full_name: parsed.data.full_name,
           phone: parsed.data.phone,
@@ -124,7 +126,7 @@ const Auth = () => {
   const handleGoogle = async () => {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: "https://nexviorappfinance.vercel.app",
+      redirect_uri: OFFICIAL_APP_URL,
     });
     if (result.error) {
       setBusy(false);
