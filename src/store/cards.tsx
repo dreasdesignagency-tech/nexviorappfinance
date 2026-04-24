@@ -1,7 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
+import {
+  enqueue,
+  readCache,
+  replaceCache,
+  removeFromCache,
+  upsertCache,
+} from "@/lib/offline/db";
+import { isOnline, useOnlineStatus } from "@/lib/offline/network";
+import { onSynced } from "@/lib/offline/sync";
 
 export type TipoCartao = "Crédito" | "Débito" | "Múltiplo";
 
@@ -17,9 +27,10 @@ export interface Card {
   cor?: string;
   ativo?: boolean;
   created_at: string;
+  _pending?: boolean;
 }
 
-type CardInput = Omit<Card, "id" | "created_at">;
+type CardInput = Omit<Card, "id" | "created_at" | "_pending">;
 
 export const BANCOS = [
   "Nubank",
@@ -58,7 +69,7 @@ type CardRow = {
 const CardsContext = createContext<CardsContextValue | null>(null);
 const db = supabase as any;
 
-const fromDb = (row: CardRow): Card => ({
+const fromDb = (row: CardRow, pending = false): Card => ({
   id: row.id,
   nome: row.nome,
   banco: row.banco,
@@ -70,16 +81,44 @@ const fromDb = (row: CardRow): Card => ({
   cor: row.cor ?? undefined,
   ativo: row.ativo ?? true,
   created_at: row.created_at,
+  _pending: pending || undefined,
+});
+
+const buildInsert = (userId: string, id: string, c: CardInput) => ({
+  id,
+  user_id: userId,
+  nome: c.nome,
+  banco: c.banco,
+  tipo: c.tipo,
+  limite: c.limite ?? null,
+  dia_vencimento: c.dia_vencimento ?? null,
+  dia_fechamento: c.dia_fechamento ?? null,
+  bandeira: c.bandeira ?? null,
+  cor: c.cor ?? null,
+  ativo: c.ativo ?? true,
 });
 
 export const CardsProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(false);
+  useOnlineStatus();
 
   const refetch = useCallback(async () => {
     if (!user) {
       setCards([]);
+      return;
+    }
+    const cached = await readCache<CardRow>(user.id, "cards");
+    if (cached.length > 0) {
+      setCards(
+        cached
+          .map((c) => fromDb(c.data as CardRow, !!c.pending))
+          .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      );
+    }
+    if (!isOnline()) {
+      if (cached.length === 0) setCards([]);
       return;
     }
 
@@ -90,48 +129,54 @@ export const CardsProvider = ({ children }: { children: ReactNode }) => {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
     setLoading(false);
-
-    if (error) {
-      toast.error("Erro ao carregar cartões.");
-      return;
-    }
-
-    setCards(((data ?? []) as CardRow[]).map(fromDb));
+    if (error) return;
+    const rows = ((data ?? []) as CardRow[]);
+    setCards(rows.map((r) => fromDb(r)));
+    await replaceCache(user.id, "cards", rows, (r) => r.id);
   }, [user]);
 
   useEffect(() => {
     refetch();
   }, [refetch]);
 
+  useEffect(() => {
+    if (!user) return;
+    const off = onSynced((t) => {
+      if (t === "cards") refetch();
+    });
+    return () => {
+      off();
+    };
+  }, [user, refetch]);
+
   const addCard = async (card: CardInput) => {
     if (!user) {
       toast.error("Faça login para cadastrar cartões.");
       return false;
     }
+    const id = uuidv4();
+    const created_at = new Date().toISOString();
+    const payload = buildInsert(user.id, id, card);
+    const optimistic: Card = { ...card, id, created_at, _pending: !isOnline() };
+    setCards((prev) => [optimistic, ...prev]);
+    await upsertCache(user.id, "cards", id, { ...payload, created_at }, !isOnline());
 
-    const { data, error } = await db
-      .from("cards")
-      .insert({
-        user_id: user.id,
-        nome: card.nome,
-        banco: card.banco,
-        tipo: card.tipo,
-        limite: card.limite ?? null,
-        dia_vencimento: card.dia_vencimento ?? null,
-        dia_fechamento: card.dia_fechamento ?? null,
-        bandeira: card.bandeira ?? null,
-        cor: card.cor ?? null,
-        ativo: card.ativo ?? true,
-      })
-      .select("*")
-      .single();
-
-    if (error) {
-      toast.error("Erro ao salvar cartão.");
-      return false;
+    if (!isOnline()) {
+      await enqueue({ id: uuidv4(), userId: user.id, table: "cards", op: "insert", payload });
+      toast.info("Cartão salvo offline. Sincroniza ao voltar a conexão.");
+      return true;
     }
 
-    setCards((prev) => [fromDb(data as CardRow), ...prev]);
+    const { data, error } = await db.from("cards").insert(payload).select("*").single();
+    if (error) {
+      await enqueue({ id: uuidv4(), userId: user.id, table: "cards", op: "insert", payload });
+      setCards((prev) => prev.map((x) => (x.id === id ? { ...x, _pending: true } : x)));
+      toast.warning("Erro ao salvar. Tentaremos novamente.");
+      return true;
+    }
+    const row = fromDb(data as CardRow);
+    setCards((prev) => prev.map((x) => (x.id === id ? row : x)));
+    await upsertCache(user.id, "cards", row.id, data, false);
     return true;
   };
 
@@ -140,20 +185,27 @@ export const CardsProvider = ({ children }: { children: ReactNode }) => {
       toast.error("Faça login para remover cartões.");
       return false;
     }
-
+    if (!isOnline()) {
+      toast.info("Essa ação estará disponível quando você estiver online.");
+      return false;
+    }
     const { error } = await db.from("cards").delete().eq("id", id).eq("user_id", user.id);
     if (error) {
       toast.error("Erro ao remover cartão.");
       return false;
     }
-
     setCards((prev) => prev.filter((card) => card.id !== id));
+    await removeFromCache(user.id, "cards", id);
     return true;
   };
 
   const updateCard = async (id: string, patch: Partial<Card>) => {
     if (!user) {
       toast.error("Faça login para atualizar cartões.");
+      return false;
+    }
+    if (!isOnline()) {
+      toast.info("Essa ação estará disponível quando você estiver online.");
       return false;
     }
 
@@ -175,13 +227,13 @@ export const CardsProvider = ({ children }: { children: ReactNode }) => {
       .eq("user_id", user.id)
       .select("*")
       .single();
-
     if (error) {
       toast.error("Erro ao atualizar cartão.");
       return false;
     }
-
-    setCards((prev) => prev.map((card) => (card.id === id ? fromDb(data as CardRow) : card)));
+    const row = fromDb(data as CardRow);
+    setCards((prev) => prev.map((card) => (card.id === id ? row : card)));
+    await upsertCache(user.id, "cards", row.id, data, false);
     return true;
   };
 

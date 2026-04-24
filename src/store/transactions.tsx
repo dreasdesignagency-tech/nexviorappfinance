@@ -1,8 +1,18 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/lib/supabase";
-import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
+import {
+  enqueue,
+  readCache,
+  replaceCache,
+  upsertCache,
+  removeFromCache,
+} from "@/lib/offline/db";
+import { isOnline, useOnlineStatus } from "@/lib/offline/network";
+import { onSynced } from "@/lib/offline/sync";
 
 export type TipoTransacao = "receita" | "despesa";
 export type FormaPagamento = "PIX" | "Dinheiro" | "Cartão";
@@ -22,9 +32,11 @@ export interface Transaction {
   observacao?: string;
   cartao_id?: string | null;
   created_at: string;
+  /** True quando criada offline e ainda não sincronizada. */
+  _pending?: boolean;
 }
 
-type NewTransactionInput = Omit<Transaction, "id" | "created_at">;
+type NewTransactionInput = Omit<Transaction, "id" | "created_at" | "_pending">;
 
 export const CATEGORIAS = [
   "Meus Mimos",
@@ -68,7 +80,7 @@ type DbRow = {
   created_at: string;
 };
 
-const fromDb = (r: DbRow): Transaction => ({
+const fromDb = (r: DbRow, pending = false): Transaction => ({
   id: r.id,
   tipo: r.tipo,
   titulo: r.descricao,
@@ -83,9 +95,11 @@ const fromDb = (r: DbRow): Transaction => ({
   recorrente: r.recorrente ?? false,
   cartao_id: r.cartao_id ?? null,
   created_at: r.created_at,
+  _pending: pending || undefined,
 });
 
-const toInsertPayload = (userId: string, t: NewTransactionInput) => ({
+const buildInsertPayload = (userId: string, id: string, t: NewTransactionInput) => ({
+  id,
   user_id: userId,
   tipo: t.tipo,
   descricao: t.titulo,
@@ -99,18 +113,37 @@ const toInsertPayload = (userId: string, t: NewTransactionInput) => ({
   parcela_atual: t.parcelado ? t.parcela_atual ?? null : null,
   recorrente: !!t.recorrente,
   cartao_id: t.cartao_id ?? null,
-} as TablesInsert<"transactions">);
+});
+
+const sortTx = (a: Transaction, b: Transaction) =>
+  a.data === b.data ? b.created_at.localeCompare(a.created_at) : b.data.localeCompare(a.data);
 
 export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
+  useOnlineStatus(); // re-render em mudança de rede
 
   const refetch = useCallback(async () => {
     if (!user) {
       setTransactions([]);
       return;
     }
+
+    // 1. Sempre tenta carregar do cache primeiro (UX instantânea + offline)
+    const cached = await readCache<DbRow & { _pending?: boolean }>(user.id, "transactions");
+    if (cached.length > 0) {
+      const mapped = cached
+        .map((c) => fromDb(c.data as DbRow, !!c.pending))
+        .sort(sortTx);
+      setTransactions(mapped);
+    }
+
+    if (!isOnline()) {
+      if (cached.length === 0) setTransactions([]);
+      return;
+    }
+
     setLoading(true);
     const { data, error } = await supabase
       .from("transactions")
@@ -120,36 +153,87 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
       .order("created_at", { ascending: false });
     setLoading(false);
     if (error) {
-      toast.error("Erro ao carregar transações.");
+      // Falha de rede — mantém cache
       return;
     }
-    setTransactions((data as DbRow[]).map(fromDb));
+    const rows = (data as DbRow[]) ?? [];
+    setTransactions(rows.map((r) => fromDb(r)));
+    // Espelha para cache
+    await replaceCache(user.id, "transactions", rows, (r) => r.id);
   }, [user]);
 
   useEffect(() => {
     refetch();
   }, [refetch]);
 
+  // Refresh ao receber sync
+  useEffect(() => {
+    if (!user) return;
+    const off = onSynced((table) => {
+      if (table === "transactions") refetch();
+    });
+    return () => {
+      off();
+    };
+  }, [user, refetch]);
+
   const addTransaction: Ctx["addTransaction"] = async (t) => {
     if (!user) {
       toast.error("Faça login para registrar transações.");
       return;
     }
+
+    const id = uuidv4();
+    const created_at = new Date().toISOString();
+    const payload = buildInsertPayload(user.id, id, t);
+    const optimistic: Transaction = { ...t, id, created_at, _pending: !isOnline() };
+
+    // Atualiza UI imediatamente
+    setTransactions((prev) => [optimistic, ...prev].sort(sortTx));
+    await upsertCache(user.id, "transactions", id, { ...payload, created_at }, !isOnline());
+
+    if (!isOnline()) {
+      await enqueue({
+        id: uuidv4(),
+        userId: user.id,
+        table: "transactions",
+        op: "insert",
+        payload,
+      });
+      toast.info("Salvo offline. Sincroniza ao voltar a conexão.");
+      return;
+    }
+
     const { data, error } = await supabase
       .from("transactions")
-      .insert(toInsertPayload(user.id, t))
+      .insert(payload)
       .select()
       .single();
     if (error) {
-      toast.error("Erro ao salvar transação.");
+      // Online mas erro — enfileira como pending
+      await enqueue({
+        id: uuidv4(),
+        userId: user.id,
+        table: "transactions",
+        op: "insert",
+        payload,
+      });
+      setTransactions((prev) => prev.map((x) => (x.id === id ? { ...x, _pending: true } : x)));
+      toast.warning("Erro ao salvar. Tentaremos novamente.");
       return;
     }
-    setTransactions((prev) => [fromDb(data as DbRow), ...prev]);
+    const row = fromDb(data as DbRow);
+    setTransactions((prev) => prev.map((x) => (x.id === id ? row : x)).sort(sortTx));
+    await upsertCache(user.id, "transactions", row.id, data, false);
   };
 
   const removeTransaction = async (id: string) => {
     if (!user) {
       toast.error("Faça login para remover transações.");
+      return;
+    }
+    if (!isOnline()) {
+      toast.info("Essa ação estará disponível quando você estiver online.");
       return;
     }
 
@@ -159,11 +243,16 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     setTransactions((prev) => prev.filter((t) => t.id !== id));
+    await removeFromCache(user.id, "transactions", id);
   };
 
   const updateTransaction: Ctx["updateTransaction"] = async (id, patch) => {
     if (!user) {
       toast.error("Faça login para atualizar transações.");
+      return;
+    }
+    if (!isOnline()) {
+      toast.info("Essa ação estará disponível quando você estiver online.");
       return;
     }
 
@@ -192,7 +281,9 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
       toast.error("Erro ao atualizar transação.");
       return;
     }
-    setTransactions((prev) => prev.map((t) => (t.id === id ? fromDb(data as DbRow) : t)));
+    const row = fromDb(data as DbRow);
+    setTransactions((prev) => prev.map((t) => (t.id === id ? row : t)));
+    await upsertCache(user.id, "transactions", row.id, data, false);
   };
 
   const { totalReceitas, totalDespesas } = useMemo(() => {
