@@ -222,7 +222,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
               <Label>Cartão utilizado</Label>
               {availableCards.length === 0 ? (
                 <p className="text-xs text-muted-foreground glass-inner p-3">
-                  Nenhum cartão de {formaPagamento.toLowerCase()} cadastrado. Vá em <span className="text-foreground font-medium">Cartões</span> e cadastre um para vincular esta despesa.
+                  Nenhum cartão cadastrado. Vá em <span className="text-foreground font-medium">Cartões</span> e cadastre um para vincular esta despesa.
                 </p>
               ) : (
                 <Select value={cartaoId} onValueChange={setCartaoId}>
