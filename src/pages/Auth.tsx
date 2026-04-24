@@ -32,6 +32,7 @@ const signInSchema = z.object({
 type Mode = "signin" | "signup";
 
 const OFFICIAL_APP_URL = "https://nexviorappfinance.vercel.app";
+const AUTH_CALLBACK_URL = `${OFFICIAL_APP_URL}/auth/callback`;
 
 const Auth = () => {
   const { user, loading } = useAuth();
@@ -101,7 +102,7 @@ const Auth = () => {
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: OFFICIAL_APP_URL,
+        emailRedirectTo: AUTH_CALLBACK_URL,
         data: {
           full_name: parsed.data.full_name,
           phone: parsed.data.phone,
@@ -126,7 +127,7 @@ const Auth = () => {
   const handleGoogle = async () => {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: OFFICIAL_APP_URL,
+      redirect_uri: AUTH_CALLBACK_URL,
     });
     if (result.error) {
       setBusy(false);
