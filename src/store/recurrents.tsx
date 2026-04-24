@@ -1,7 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
+import {
+  enqueue,
+  readCache,
+  removeFromCache,
+  replaceCache,
+  upsertCache,
+} from "@/lib/offline/db";
+import { isOnline, useOnlineStatus } from "@/lib/offline/network";
+import { onSynced } from "@/lib/offline/sync";
 
 export type ParcelaStatus = "Em andamento" | "Finalizado";
 export type AssinaturaStatus = "ativa" | "pausada" | "cancelada";
@@ -20,6 +30,7 @@ export interface Parcela {
   categoria?: string;
   cartao_id?: string;
   created_at: string;
+  _pending?: boolean;
 }
 
 export interface Assinatura {
@@ -33,12 +44,13 @@ export interface Assinatura {
   forma_pagamento?: string;
   cartao_id?: string;
   created_at: string;
+  _pending?: boolean;
 }
 
-type ParcelaInput = Omit<Parcela, "id" | "created_at" | "parcela_atual" | "proxima_cobranca" | "status" | "valor_parcela"> & {
+type ParcelaInput = Omit<Parcela, "id" | "created_at" | "parcela_atual" | "proxima_cobranca" | "status" | "valor_parcela" | "_pending"> & {
   valor_parcela?: number;
 };
-type AssinaturaInput = Omit<Assinatura, "id" | "created_at" | "status">;
+type AssinaturaInput = Omit<Assinatura, "id" | "created_at" | "status" | "_pending">;
 
 const addMonths = (iso: string, months: number) => {
   const [y, m, d] = iso.split("-").map(Number);
@@ -93,7 +105,7 @@ type AssinaturaRow = {
 const RecurrentsContext = createContext<RecurrentsContextValue | null>(null);
 const db = supabase as any;
 
-const fromInstallment = (row: ParcelaRow): Parcela => ({
+const fromInstallment = (row: ParcelaRow, pending = false): Parcela => ({
   id: row.id,
   nome: row.nome,
   valor_total: Number(row.valor_total),
@@ -106,9 +118,10 @@ const fromInstallment = (row: ParcelaRow): Parcela => ({
   categoria: row.categoria ?? undefined,
   cartao_id: row.cartao_id ?? undefined,
   created_at: row.created_at,
+  _pending: pending || undefined,
 });
 
-const fromSubscription = (row: AssinaturaRow): Assinatura => ({
+const fromSubscription = (row: AssinaturaRow, pending = false): Assinatura => ({
   id: row.id,
   nome: row.nome,
   valor: Number(row.valor),
@@ -119,6 +132,7 @@ const fromSubscription = (row: AssinaturaRow): Assinatura => ({
   forma_pagamento: row.forma_pagamento ?? undefined,
   cartao_id: row.cartao_id ?? undefined,
   created_at: row.created_at,
+  _pending: pending || undefined,
 });
 
 export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
@@ -126,11 +140,30 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
   const [parcelas, setParcelas] = useState<Parcela[]>([]);
   const [assinaturas, setAssinaturas] = useState<Assinatura[]>([]);
   const [loading, setLoading] = useState(false);
+  useOnlineStatus();
 
   const refetch = useCallback(async () => {
     if (!user) {
       setParcelas([]);
       setAssinaturas([]);
+      return;
+    }
+
+    // Hidrata do cache
+    const [cachedP, cachedS] = await Promise.all([
+      readCache<ParcelaRow>(user.id, "installments"),
+      readCache<AssinaturaRow>(user.id, "subscriptions"),
+    ]);
+    if (cachedP.length > 0) {
+      setParcelas(cachedP.map((c) => fromInstallment(c.data as ParcelaRow, !!c.pending)));
+    }
+    if (cachedS.length > 0) {
+      setAssinaturas(cachedS.map((c) => fromSubscription(c.data as AssinaturaRow, !!c.pending)));
+    }
+
+    if (!isOnline()) {
+      if (cachedP.length === 0) setParcelas([]);
+      if (cachedS.length === 0) setAssinaturas([]);
       return;
     }
 
@@ -141,22 +174,31 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
     ]);
     setLoading(false);
 
-    if (parcelasResult.error) {
-      toast.error("Erro ao carregar parcelas.");
-    } else {
-      setParcelas(((parcelasResult.data ?? []) as ParcelaRow[]).map(fromInstallment));
+    if (!parcelasResult.error) {
+      const rows = ((parcelasResult.data ?? []) as ParcelaRow[]);
+      setParcelas(rows.map((r) => fromInstallment(r)));
+      await replaceCache(user.id, "installments", rows, (r) => r.id);
     }
-
-    if (assinaturasResult.error) {
-      toast.error("Erro ao carregar assinaturas.");
-    } else {
-      setAssinaturas(((assinaturasResult.data ?? []) as AssinaturaRow[]).map(fromSubscription));
+    if (!assinaturasResult.error) {
+      const rows = ((assinaturasResult.data ?? []) as AssinaturaRow[]);
+      setAssinaturas(rows.map((r) => fromSubscription(r)));
+      await replaceCache(user.id, "subscriptions", rows, (r) => r.id);
     }
   }, [user]);
 
   useEffect(() => {
     refetch();
   }, [refetch]);
+
+  useEffect(() => {
+    if (!user) return;
+    const off = onSynced((t) => {
+      if (t === "installments" || t === "subscriptions") refetch();
+    });
+    return () => {
+      off();
+    };
+  }, [user, refetch]);
 
   const addParcela = async (parcela: ParcelaInput) => {
     if (!user) {
@@ -168,36 +210,53 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
       ? parcela.valor_parcela
       : Number((parcela.valor_total / parcela.total_parcelas).toFixed(2));
 
-    const { data, error } = await db
-      .from("installments")
-      .insert({
-        user_id: user.id,
-        nome: parcela.nome,
-        valor_total: parcela.valor_total,
-        valor_parcela: valorParcela,
-        total_parcelas: parcela.total_parcelas,
-        parcela_atual: 1,
-        data_inicio: parcela.data_inicio,
-        proxima_cobranca: parcela.data_inicio,
-        status: "Em andamento",
-        categoria: parcela.categoria ?? null,
-        cartao_id: parcela.cartao_id ?? null,
-      })
-      .select("*")
-      .single();
+    const id = uuidv4();
+    const created_at = new Date().toISOString();
+    const payload = {
+      id,
+      user_id: user.id,
+      nome: parcela.nome,
+      valor_total: parcela.valor_total,
+      valor_parcela: valorParcela,
+      total_parcelas: parcela.total_parcelas,
+      parcela_atual: 1,
+      data_inicio: parcela.data_inicio,
+      proxima_cobranca: parcela.data_inicio,
+      status: "Em andamento" as ParcelaStatus,
+      categoria: parcela.categoria ?? null,
+      cartao_id: parcela.cartao_id ?? null,
+    };
 
-    if (error) {
-      toast.error("Erro ao salvar parcela.");
-      return false;
+    const optimistic: Parcela = fromInstallment({ ...payload, created_at } as ParcelaRow, !isOnline());
+    setParcelas((prev) => [optimistic, ...prev]);
+    await upsertCache(user.id, "installments", id, { ...payload, created_at }, !isOnline());
+
+    if (!isOnline()) {
+      await enqueue({ id: uuidv4(), userId: user.id, table: "installments", op: "insert", payload });
+      toast.info("Parcela salva offline. Sincroniza ao voltar a conexão.");
+      return true;
     }
 
-    setParcelas((prev) => [fromInstallment(data as ParcelaRow), ...prev]);
+    const { data, error } = await db.from("installments").insert(payload).select("*").single();
+    if (error) {
+      await enqueue({ id: uuidv4(), userId: user.id, table: "installments", op: "insert", payload });
+      setParcelas((prev) => prev.map((x) => (x.id === id ? { ...x, _pending: true } : x)));
+      toast.warning("Erro ao salvar. Tentaremos novamente.");
+      return true;
+    }
+    const row = fromInstallment(data as ParcelaRow);
+    setParcelas((prev) => prev.map((x) => (x.id === id ? row : x)));
+    await upsertCache(user.id, "installments", row.id, data, false);
     return true;
   };
 
   const updateParcela = async (id: string, patch: Partial<Parcela>) => {
     if (!user) {
       toast.error("Faça login para atualizar parcelas.");
+      return false;
+    }
+    if (!isOnline()) {
+      toast.info("Essa ação estará disponível quando você estiver online.");
       return false;
     }
 
@@ -220,13 +279,13 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
       .eq("user_id", user.id)
       .select("*")
       .single();
-
     if (error) {
       toast.error("Erro ao atualizar parcela.");
       return false;
     }
-
-    setParcelas((prev) => prev.map((item) => (item.id === id ? fromInstallment(data as ParcelaRow) : item)));
+    const row = fromInstallment(data as ParcelaRow);
+    setParcelas((prev) => prev.map((item) => (item.id === id ? row : item)));
+    await upsertCache(user.id, "installments", row.id, data, false);
     return true;
   };
 
@@ -235,14 +294,17 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
       toast.error("Faça login para remover parcelas.");
       return false;
     }
-
+    if (!isOnline()) {
+      toast.info("Essa ação estará disponível quando você estiver online.");
+      return false;
+    }
     const { error } = await db.from("installments").delete().eq("id", id).eq("user_id", user.id);
     if (error) {
       toast.error("Erro ao remover parcela.");
       return false;
     }
-
     setParcelas((prev) => prev.filter((item) => item.id !== id));
+    await removeFromCache(user.id, "installments", id);
     return true;
   };
 
@@ -251,35 +313,51 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
       toast.error("Faça login para cadastrar assinaturas.");
       return false;
     }
+    const id = uuidv4();
+    const created_at = new Date().toISOString();
+    const payload = {
+      id,
+      user_id: user.id,
+      nome: assinatura.nome,
+      valor: assinatura.valor,
+      frequencia: assinatura.frequencia,
+      data_cobranca: assinatura.data_cobranca,
+      status: "ativa" as AssinaturaStatus,
+      categoria: assinatura.categoria ?? null,
+      forma_pagamento: assinatura.forma_pagamento ?? null,
+      cartao_id: assinatura.cartao_id ?? null,
+    };
 
-    const { data, error } = await db
-      .from("subscriptions")
-      .insert({
-        user_id: user.id,
-        nome: assinatura.nome,
-        valor: assinatura.valor,
-        frequencia: assinatura.frequencia,
-        data_cobranca: assinatura.data_cobranca,
-        status: "ativa",
-        categoria: assinatura.categoria ?? null,
-        forma_pagamento: assinatura.forma_pagamento ?? null,
-        cartao_id: assinatura.cartao_id ?? null,
-      })
-      .select("*")
-      .single();
+    const optimistic: Assinatura = fromSubscription({ ...payload, created_at } as AssinaturaRow, !isOnline());
+    setAssinaturas((prev) => [optimistic, ...prev]);
+    await upsertCache(user.id, "subscriptions", id, { ...payload, created_at }, !isOnline());
 
-    if (error) {
-      toast.error("Erro ao salvar assinatura.");
-      return false;
+    if (!isOnline()) {
+      await enqueue({ id: uuidv4(), userId: user.id, table: "subscriptions", op: "insert", payload });
+      toast.info("Assinatura salva offline. Sincroniza ao voltar a conexão.");
+      return true;
     }
 
-    setAssinaturas((prev) => [fromSubscription(data as AssinaturaRow), ...prev]);
+    const { data, error } = await db.from("subscriptions").insert(payload).select("*").single();
+    if (error) {
+      await enqueue({ id: uuidv4(), userId: user.id, table: "subscriptions", op: "insert", payload });
+      setAssinaturas((prev) => prev.map((x) => (x.id === id ? { ...x, _pending: true } : x)));
+      toast.warning("Erro ao salvar. Tentaremos novamente.");
+      return true;
+    }
+    const row = fromSubscription(data as AssinaturaRow);
+    setAssinaturas((prev) => prev.map((x) => (x.id === id ? row : x)));
+    await upsertCache(user.id, "subscriptions", row.id, data, false);
     return true;
   };
 
   const updateAssinatura = async (id: string, patch: Partial<Assinatura>) => {
     if (!user) {
       toast.error("Faça login para atualizar assinaturas.");
+      return false;
+    }
+    if (!isOnline()) {
+      toast.info("Essa ação estará disponível quando você estiver online.");
       return false;
     }
 
@@ -300,13 +378,13 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
       .eq("user_id", user.id)
       .select("*")
       .single();
-
     if (error) {
       toast.error("Erro ao atualizar assinatura.");
       return false;
     }
-
-    setAssinaturas((prev) => prev.map((item) => (item.id === id ? fromSubscription(data as AssinaturaRow) : item)));
+    const row = fromSubscription(data as AssinaturaRow);
+    setAssinaturas((prev) => prev.map((item) => (item.id === id ? row : item)));
+    await upsertCache(user.id, "subscriptions", row.id, data, false);
     return true;
   };
 
@@ -315,14 +393,17 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
       toast.error("Faça login para remover assinaturas.");
       return false;
     }
-
+    if (!isOnline()) {
+      toast.info("Essa ação estará disponível quando você estiver online.");
+      return false;
+    }
     const { error } = await db.from("subscriptions").delete().eq("id", id).eq("user_id", user.id);
     if (error) {
       toast.error("Erro ao remover assinatura.");
       return false;
     }
-
     setAssinaturas((prev) => prev.filter((item) => item.id !== id));
+    await removeFromCache(user.id, "subscriptions", id);
     return true;
   };
 

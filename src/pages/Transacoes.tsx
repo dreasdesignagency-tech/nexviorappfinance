@@ -148,7 +148,14 @@ const Transacoes = () => {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{t.titulo}</p>
+                      <p className="text-sm font-medium truncate">
+                        {t.titulo}
+                        {t._pending && (
+                          <span className="ml-1.5 inline-block align-middle text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25">
+                            Aguardando sincronização
+                          </span>
+                        )}
+                      </p>
                       <p className="text-[11px] text-muted-foreground">
                         {t.categoria} · {formatDateBR(t.data)}
                         {t.forma_pagamento && <> · {t.forma_pagamento}</>}
