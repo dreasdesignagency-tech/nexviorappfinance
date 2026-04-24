@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { getAuthCallbackUrl } from "@/lib/auth-urls";
 import { useAuth } from "@/store/auth";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,9 +30,6 @@ const signInSchema = z.object({
 });
 
 type Mode = "signin" | "signup";
-
-const OFFICIAL_APP_URL = "https://nexviorappfinance.vercel.app";
-const AUTH_CALLBACK_URL = `${OFFICIAL_APP_URL}/auth/callback`;
 
 const Auth = () => {
   const { user, loading } = useAuth();
@@ -97,11 +95,12 @@ const Auth = () => {
       return;
     }
     setBusy(true);
+    const authCallbackUrl = getAuthCallbackUrl();
     const { data, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: AUTH_CALLBACK_URL,
+        emailRedirectTo: authCallbackUrl,
         data: {
           full_name: parsed.data.full_name,
           phone: parsed.data.phone,
@@ -126,10 +125,11 @@ const Auth = () => {
 
   const handleGoogle = async () => {
     setBusy(true);
+    const authCallbackUrl = getAuthCallbackUrl();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: AUTH_CALLBACK_URL,
+        redirectTo: authCallbackUrl,
       },
     });
     if (error) {
