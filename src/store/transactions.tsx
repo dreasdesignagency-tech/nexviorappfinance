@@ -5,7 +5,7 @@ import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
 
 export type TipoTransacao = "receita" | "despesa";
-export type FormaPagamento = "PIX" | "Débito" | "Crédito" | "Dinheiro" | "Transferência" | "Boleto" | "Outro";
+export type FormaPagamento = "PIX" | "Cartão" | "Débito" | "Crédito" | "Dinheiro" | "Transferência" | "Boleto" | "Outro";
 
 export interface Transaction {
   id: string;
