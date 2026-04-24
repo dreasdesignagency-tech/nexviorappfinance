@@ -310,7 +310,10 @@ const NexIA = () => {
         </div>
 
         {/* Input fixo embaixo */}
-        <div className="px-3 sm:px-4 md:px-8 pb-20 md:pb-8 pt-2">
+        <div
+          className="px-3 sm:px-4 md:px-8 md:pb-8 pt-2"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
+        >
           <form
             onSubmit={(e) => {
               e.preventDefault();
