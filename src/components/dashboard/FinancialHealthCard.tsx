@@ -14,11 +14,11 @@ const classify = (score: number): Classificacao => {
   return "Excelente";
 };
 
-const resumoPorClass: Record<Classificacao, string> = {
-  "Crítica": "Seus gastos estão comprometendo sua renda",
-  "Atenção": "Há pontos importantes para ajustar",
-  "Boa": "Há espaço para melhorar sua reserva e limites",
-  "Excelente": "Sua organização financeira está saudável",
+const resumoPorClass: Record<Classificacao, { line1: string; line2: string }> = {
+  "Crítica": { line1: "Seus gastos estão", line2: "comprometendo sua renda" },
+  "Atenção": { line1: "Há pontos importantes", line2: "para ajustar" },
+  "Boa": { line1: "Há espaço para melhorar", line2: "sua reserva e limites" },
+  "Excelente": { line1: "Sua organização financeira", line2: "está saudável" },
 };
 
 export const FinancialHealthCard = () => {
