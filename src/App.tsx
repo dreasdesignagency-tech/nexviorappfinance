@@ -14,6 +14,7 @@ import NexIA from "./pages/NexIA.tsx";
 import LimitesInvestimentos from "./pages/LimitesInvestimentos.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
+import AuthCallback from "./pages/AuthCallback.tsx";
 
 import AdminMembros from "./pages/AdminMembros.tsx";
 import { AdminRoute } from "@/components/AdminRoute";
@@ -50,6 +51,7 @@ const App = () => (
                       <NotificationsProvider>
                         <Routes>
                         <Route path="/auth" element={<Auth />} />
+                        <Route path="/auth/callback" element={<AuthCallback />} />
                         <Route path="/" element={<Protected><Index /></Protected>} />
                         <Route path="/transacoes" element={<Protected><Transacoes /></Protected>} />
                         <Route path="/cartoes" element={<Protected><Cartoes /></Protected>} />
