@@ -39,7 +39,7 @@ interface Props {
   } | null;
 }
 
-const formasPagamento: FormaPagamento[] = ["PIX", "Débito", "Crédito", "Dinheiro", "Transferência", "Boleto", "Outro"];
+const formasPagamento: FormaPagamento[] = ["PIX", "Cartão", "Dinheiro", "Transferência", "Boleto", "Outro"];
 
 export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despesa", initialValues = null }: Props) => {
   const { addTransaction, updateTransaction } = useTransactions();
@@ -58,12 +58,8 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
   const [recorrente, setRecorrente] = useState(false);
   const [observacao, setObservacao] = useState("");
 
-  const requiresCard = formaPagamento === "Crédito" || formaPagamento === "Débito";
-  const availableCards = cards.filter((c) => {
-    if (formaPagamento === "Crédito") return c.tipo === "Crédito" || c.tipo === "Múltiplo";
-    if (formaPagamento === "Débito") return c.tipo === "Débito" || c.tipo === "Múltiplo";
-    return false;
-  });
+  const requiresCard = formaPagamento === "Cartão";
+  const availableCards = cards.filter((c) => c.ativo !== false);
 
   useEffect(() => {
     if (!open) return;
@@ -105,7 +101,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
     if (!data) return toast.error("Informe a data.");
     if (requiresCard && !cartaoId) {
       if (availableCards.length === 0) {
-        return toast.error("Cadastre um cartão antes de registrar despesas no crédito ou débito.");
+        return toast.error("Cadastre um cartão antes de registrar despesas no cartão.");
       }
       return toast.error("Selecione o cartão utilizado.");
     }
@@ -226,7 +222,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
               <Label>Cartão utilizado</Label>
               {availableCards.length === 0 ? (
                 <p className="text-xs text-muted-foreground glass-inner p-3">
-                  Nenhum cartão de {formaPagamento.toLowerCase()} cadastrado. Vá em <span className="text-foreground font-medium">Cartões</span> e cadastre um para vincular esta despesa.
+                  Nenhum cartão cadastrado. Vá em <span className="text-foreground font-medium">Cartões</span> e cadastre um para vincular esta despesa.
                 </p>
               ) : (
                 <Select value={cartaoId} onValueChange={setCartaoId}>
