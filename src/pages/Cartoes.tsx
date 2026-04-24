@@ -20,12 +20,28 @@ import {
 import { CreditCard, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { BANCOS, TipoCartao, useCards } from "@/store/cards";
-import { formatBRL } from "@/store/transactions";
+import { formatBRL, useTransactions, formatDateShort } from "@/store/transactions";
+import { Progress } from "@/components/ui/progress";
 
 const TIPOS: TipoCartao[] = ["Crédito", "Débito", "Múltiplo"];
 
 const Cartoes = () => {
   const { cards, loading, addCard, removeCard } = useCards();
+  const { transactions } = useTransactions();
+
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  const cardStats = (cardId: string) => {
+    const txs = transactions.filter((t) => t.cartao_id === cardId && t.tipo === "despesa");
+    const monthTxs = txs.filter((t) => {
+      const [y, m] = t.data.split("-").map(Number);
+      return y === currentYear && m - 1 === currentMonth;
+    });
+    const gastoMes = monthTxs.reduce((sum, t) => sum + t.valor, 0);
+    return { gastoMes, monthTxs, allTxs: txs };
+  };
   const [open, setOpen] = useState(false);
 
   const [nome, setNome] = useState("");
