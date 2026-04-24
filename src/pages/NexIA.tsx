@@ -112,6 +112,15 @@ const NexIA = () => {
 
   const enviarMensagem = async (texto: string) => {
     if (!texto.trim() || isLoading) return;
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: texto.trim() },
+        { role: "assistant", content: "A nex.ia precisa de internet para gerar respostas. Reconecte-se e tente novamente." },
+      ]);
+      setInput("");
+      return;
+    }
     const userMsg: Msg = { role: "user", content: texto.trim() };
     const novasMsgs = [...messages, userMsg];
     setMessages(novasMsgs);
