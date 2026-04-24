@@ -113,49 +113,93 @@ const Cartoes = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cards.map((c) => (
-              <div key={c.id} className="glass-card p-5 relative group">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/30 to-accent/20 border border-primary/30 flex items-center justify-center">
-                    <CreditCard className="w-5 h-5 text-primary" />
-                  </div>
-                  <button
-                    onClick={async () => { const ok = await removeCard(c.id); if (ok) toast.success("Cartão removido"); }}
-                    className="opacity-0 group-hover:opacity-100 transition w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    title="Excluir"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="text-base font-semibold truncate">{c.nome}</p>
-                <p className="text-xs text-muted-foreground">{c.banco} · {c.tipo}</p>
+            {cards.map((c) => {
+              const { gastoMes, monthTxs } = cardStats(c.id);
+              const temLimite = !!c.limite && c.limite > 0;
+              const disponivel = temLimite ? Math.max(0, (c.limite ?? 0) - gastoMes) : 0;
+              const pct = temLimite ? Math.min(100, (gastoMes / (c.limite ?? 1)) * 100) : 0;
+              const recentes = [...monthTxs]
+                .sort((a, b) => b.data.localeCompare(a.data))
+                .slice(0, 3);
 
-                <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-border/40">
-                  <div>
-                    <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Limite</p>
-                    <p className="text-sm font-medium tabular-nums">
-                      {c.limite ? formatBRL(c.limite) : "—"}
-                    </p>
+              return (
+                <div key={c.id} className="glass-card p-5 relative group">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/30 to-accent/20 border border-primary/30 flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-primary" />
+                    </div>
+                    <button
+                      onClick={async () => { const ok = await removeCard(c.id); if (ok) toast.success("Cartão removido"); }}
+                      className="opacity-0 group-hover:opacity-100 transition w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      title="Excluir"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
-                  <div>
-                    <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Vencimento</p>
-                    <p className="text-sm font-medium tabular-nums">
-                      {c.dia_vencimento ? `Dia ${c.dia_vencimento}` : "—"}
-                    </p>
+                  <p className="text-base font-semibold truncate">{c.nome}</p>
+                  <p className="text-xs text-muted-foreground">{c.banco} · {c.tipo}</p>
+
+                  {temLimite && (
+                    <div className="mt-4 pt-4 border-t border-border/40 space-y-2">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-[10px] uppercase text-muted-foreground tracking-wider">Disponível</span>
+                        <span className="text-sm font-semibold tabular-nums text-success">{formatBRL(disponivel)}</span>
+                      </div>
+                      <Progress value={pct} className="h-1.5" />
+                      <div className="flex items-baseline justify-between text-xs text-muted-foreground tabular-nums">
+                        <span>Gasto: <span className="text-foreground font-medium">{formatBRL(gastoMes)}</span></span>
+                        <span>Limite: {formatBRL(c.limite ?? 0)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {!temLimite && (
+                    <div className="mt-4 pt-4 border-t border-border/40">
+                      <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Gasto no mês</p>
+                      <p className="text-sm font-semibold tabular-nums">{formatBRL(gastoMes)}</p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-border/40">
+                    <div>
+                      <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Vencimento</p>
+                      <p className="text-sm font-medium tabular-nums">
+                        {c.dia_vencimento ? `Dia ${c.dia_vencimento}` : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Fechamento</p>
+                      <p className="text-sm font-medium tabular-nums">
+                        {c.dia_fechamento ? `Dia ${c.dia_fechamento}` : "—"}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Fechamento</p>
-                    <p className="text-sm font-medium tabular-nums">
-                      {c.dia_fechamento ? `Dia ${c.dia_fechamento}` : "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Status</p>
-                    <p className="text-sm font-medium text-success">Ativo</p>
+
+                  <div className="mt-4 pt-4 border-t border-border/40">
+                    <p className="text-[10px] uppercase text-muted-foreground tracking-wider mb-2">Despesas do mês</p>
+                    {recentes.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">Nenhuma despesa registrada neste mês.</p>
+                    ) : (
+                      <ul className="space-y-1.5">
+                        {recentes.map((t) => (
+                          <li key={t.id} className="flex items-center justify-between text-xs">
+                            <span className="truncate text-foreground/90">{t.titulo}</span>
+                            <span className="tabular-nums text-muted-foreground ml-2 shrink-0">
+                              {formatDateShort(t.data)} · {formatBRL(t.valor)}
+                            </span>
+                          </li>
+                        ))}
+                        {monthTxs.length > recentes.length && (
+                          <li className="text-[11px] text-muted-foreground pt-1">
+                            +{monthTxs.length - recentes.length} outras
+                          </li>
+                        )}
+                      </ul>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
