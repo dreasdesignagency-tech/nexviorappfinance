@@ -253,7 +253,7 @@ const NexIA = () => {
         </div>
 
         {/* Conteúdo central */}
-        <div className="flex-1 flex flex-col items-center justify-center px-3 sm:px-4 md:px-8 overflow-hidden min-h-0">
+        <div className="flex-1 flex flex-col items-center justify-center px-3 sm:px-4 md:px-8 overflow-hidden min-h-0 pb-32 md:pb-0">
           {isEmpty ? (
             <div className="w-full max-w-2xl flex flex-col items-center text-center animate-fade-in">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center border border-primary/20 mb-6 glow-primary">
@@ -311,8 +311,8 @@ const NexIA = () => {
 
         {/* Input fixo embaixo */}
         <div
-          className="px-3 sm:px-4 md:px-8 md:pb-8 pt-2"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
+          className="px-3 sm:px-4 md:px-8 md:pb-8 pt-2 fixed left-0 right-0 z-30 bg-background/85 backdrop-blur-xl md:static md:bg-transparent md:backdrop-blur-none"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 4rem)", paddingBottom: "0.75rem" }}
         >
           <form
             onSubmit={(e) => {
