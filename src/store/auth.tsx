@@ -12,13 +12,15 @@ const isOnOfficialDomain = () => {
   if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".local")) {
     return true;
   }
+  if (host.includes("lovable.app")) {
+    return false;
+  }
   return host === OFFICIAL_HOST;
 };
 
 const redirectToOfficialDomain = () => {
   if (typeof window === "undefined") return;
-  const targetUrl = `${OFFICIAL_APP_URL}${window.location.pathname}${window.location.search}${window.location.hash}`;
-  window.location.replace(targetUrl);
+  window.location.replace(OFFICIAL_APP_URL);
 };
 
 interface AuthCtx {
