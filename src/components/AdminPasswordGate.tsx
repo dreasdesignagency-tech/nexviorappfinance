@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 
 // SHA-256 hash of the master password — the plaintext is NEVER in the bundle.
-const PASSWORD_HASH = "1c26f3d9d7c1a5c357b6e98acc1a86e4ff63b4ea841330422191c906679fc0e6";
+const PASSWORD_HASH = "6f6fed04ae9cce57e9c8b64e9f0afc1874b73957777679771e900e56d87f0d21";
 const STORAGE_KEY = "admin_gate_unlocked_until";
 const TTL_MS = 30 * 60 * 1000; // 30 min
 
