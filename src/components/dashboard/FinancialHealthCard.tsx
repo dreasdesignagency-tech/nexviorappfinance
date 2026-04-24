@@ -14,11 +14,11 @@ const classify = (score: number): Classificacao => {
   return "Excelente";
 };
 
-const resumoPorClass: Record<Classificacao, string> = {
-  "Crítica": "Seus gastos estão comprometendo sua renda",
-  "Atenção": "Há pontos importantes para ajustar",
-  "Boa": "Há espaço para melhorar sua reserva e limites",
-  "Excelente": "Sua organização financeira está saudável",
+const resumoPorClass: Record<Classificacao, { line1: string; line2: string }> = {
+  "Crítica": { line1: "Seus gastos estão", line2: "comprometendo sua renda" },
+  "Atenção": { line1: "Há pontos importantes", line2: "para ajustar" },
+  "Boa": { line1: "Há espaço para melhorar", line2: "sua reserva e limites" },
+  "Excelente": { line1: "Sua organização financeira", line2: "está saudável" },
 };
 
 export const FinancialHealthCard = () => {
@@ -104,7 +104,8 @@ export const FinancialHealthCard = () => {
           </div>
 
           <p className="relative text-[13px] sm:text-[11px] text-foreground/60 mt-3 w-full max-w-full sm:max-w-[75%] pr-[120px] sm:pr-0 leading-[1.45] [overflow-wrap:break-word] [word-break:break-word] overflow-hidden">
-            {resumoPorClass[classificacao]}
+            <span className="block sm:inline">{resumoPorClass[classificacao].line1}</span>
+            <span className="block sm:inline sm:ml-1">{resumoPorClass[classificacao].line2}</span>
           </p>
 
           {/* Arco semicircular */}
