@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { CATEGORIAS, FormaPagamento, TipoTransacao, useTransactions } from "@/store/transactions";
+import { useCards } from "@/store/cards";
 import { cn } from "@/lib/utils";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
@@ -34,6 +35,7 @@ interface Props {
     parcela_atual?: number;
     recorrente?: boolean;
     observacao?: string;
+    cartao_id?: string | null;
   } | null;
 }
 
@@ -41,6 +43,7 @@ const formasPagamento: FormaPagamento[] = ["PIX", "Débito", "Crédito", "Dinhei
 
 export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despesa", initialValues = null }: Props) => {
   const { addTransaction, updateTransaction } = useTransactions();
+  const { cards } = useCards();
 
   const [tipo, setTipo] = useState<TipoTransacao>(defaultType);
   const [titulo, setTitulo] = useState("");
@@ -48,11 +51,19 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
   const [categoria, setCategoria] = useState("");
   const [data, setData] = useState(new Date().toISOString().slice(0, 10));
   const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>("PIX");
+  const [cartaoId, setCartaoId] = useState<string>("");
   const [parcelado, setParcelado] = useState(false);
   const [numParcelas, setNumParcelas] = useState("2");
   const [parcelaAtual, setParcelaAtual] = useState("1");
   const [recorrente, setRecorrente] = useState(false);
   const [observacao, setObservacao] = useState("");
+
+  const requiresCard = formaPagamento === "Crédito" || formaPagamento === "Débito";
+  const availableCards = cards.filter((c) => {
+    if (formaPagamento === "Crédito") return c.tipo === "Crédito" || c.tipo === "Múltiplo";
+    if (formaPagamento === "Débito") return c.tipo === "Débito" || c.tipo === "Múltiplo";
+    return false;
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -64,6 +75,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
       setCategoria(initialValues.categoria);
       setData(initialValues.data);
       setFormaPagamento(initialValues.forma_pagamento ?? "PIX");
+      setCartaoId(initialValues.cartao_id ?? "");
       setParcelado(initialValues.parcelado ?? false);
       setNumParcelas(String(initialValues.numero_parcelas ?? 2));
       setParcelaAtual(String(initialValues.parcela_atual ?? 1));
@@ -81,6 +93,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
     setTitulo(""); setValor(""); setCategoria("");
     setParcelado(false); setRecorrente(false); setObservacao("");
     setNumParcelas("2"); setParcelaAtual("1"); setFormaPagamento("PIX");
+    setCartaoId("");
   };
 
   const submit = async (e: React.FormEvent) => {
