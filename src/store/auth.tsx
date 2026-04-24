@@ -3,18 +3,16 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 const OFFICIAL_APP_URL = "https://nexviorappfinance.vercel.app";
+const OFFICIAL_HOST = new URL(OFFICIAL_APP_URL).hostname;
 
-const shouldForceOfficialRedirect = () => {
-  if (typeof window === "undefined") return false;
-
-  const hasAuthParams = Boolean(
-    window.location.hash.includes("access_token") ||
-      window.location.hash.includes("refresh_token") ||
-      window.location.search.includes("code=") ||
-      window.location.search.includes("type=")
-  );
-
-  return window.location.hostname.includes("lovable.app") && hasAuthParams;
+const isOnOfficialDomain = () => {
+  if (typeof window === "undefined") return true;
+  const host = window.location.hostname;
+  // Allow local dev hosts to behave normally.
+  if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".local")) {
+    return true;
+  }
+  return host === OFFICIAL_HOST;
 };
 
 const redirectToOfficialDomain = () => {
@@ -38,40 +36,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (shouldForceOfficialRedirect()) {
+    // If we somehow ended up on a non-official domain, bounce immediately.
+    if (!isOnOfficialDomain()) {
       redirectToOfficialDomain();
       return;
     }
 
     // Listener FIRST
-    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
-
-      if (
-        s?.user &&
-        ["SIGNED_IN", "TOKEN_REFRESHED", "USER_UPDATED", "PASSWORD_RECOVERY"].includes(event) &&
-        typeof window !== "undefined" &&
-        window.location.hostname !== new URL(OFFICIAL_APP_URL).hostname
-      ) {
-        redirectToOfficialDomain();
-      }
     });
 
     // Then existing session
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
-
-      if (
-        s?.user &&
-        typeof window !== "undefined" &&
-        window.location.hostname !== new URL(OFFICIAL_APP_URL).hostname
-      ) {
-        redirectToOfficialDomain();
-        return;
-      }
-
       setLoading(false);
     });
 
