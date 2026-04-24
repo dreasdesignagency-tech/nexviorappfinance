@@ -45,7 +45,7 @@ const Index = () => {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Nova Transação"
-          style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
+          style={{ bottom: "calc(var(--mobile-nav-h) + 1rem)" }}
           className="md:hidden fixed right-4 z-50 h-14 px-5 rounded-full bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-[0_18px_40px_hsl(var(--primary)/0.35)] flex items-center gap-2 font-semibold"
         >
           <Plus className="w-5 h-5" />
