@@ -215,7 +215,7 @@ const Auth = () => {
 
         <p className="text-center text-[11px] text-muted-foreground mt-4 flex items-center justify-center gap-1.5">
           <Mail className="w-3 h-3" />
-          Confirmação por e-mail é necessária para novos cadastros
+          Acesso imediato após o cadastro
         </p>
       </main>
     </div>
