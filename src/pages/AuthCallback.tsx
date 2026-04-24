@@ -4,11 +4,9 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { redirectToOfficialLocation, shouldForceOfficialDomain } from "@/lib/auth-urls";
 
 type Status = "loading" | "error";
-
-const OFFICIAL_APP_URL = "https://nexviorappfinance.vercel.app";
-const AUTH_CALLBACK_URL = `${OFFICIAL_APP_URL}/auth/callback`;
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -18,8 +16,8 @@ const AuthCallback = () => {
   useEffect(() => {
     const finalize = async () => {
       try {
-        if (window.location.hostname.includes("lovable.app")) {
-          window.location.replace(`${AUTH_CALLBACK_URL}${window.location.search}${window.location.hash}`);
+        if (shouldForceOfficialDomain()) {
+          redirectToOfficialLocation("/auth/callback", window.location.search, window.location.hash);
           return;
         }
 
