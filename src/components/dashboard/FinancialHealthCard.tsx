@@ -104,7 +104,8 @@ export const FinancialHealthCard = () => {
           </div>
 
           <p className="relative text-[13px] sm:text-[11px] text-foreground/60 mt-3 w-full max-w-full sm:max-w-[75%] pr-[120px] sm:pr-0 leading-[1.45] [overflow-wrap:break-word] [word-break:break-word] overflow-hidden">
-            {resumoPorClass[classificacao]}
+            <span className="block sm:inline">{resumoPorClass[classificacao].line1}</span>
+            <span className="block sm:inline sm:ml-1">{resumoPorClass[classificacao].line2}</span>
           </p>
 
           {/* Arco semicircular */}
