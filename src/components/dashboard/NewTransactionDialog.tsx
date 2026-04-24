@@ -102,9 +102,9 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
     if (!data) return toast.error("Informe a data.");
     if (requiresCard && !cartaoId) {
       if (availableCards.length === 0) {
-        return toast.error("Cadastre um cartão antes de registrar despesas no cartão.");
+        return toast.error("Cadastre um cartão antes de lançar uma despesa no cartão.");
       }
-      return toast.error("Selecione o cartão utilizado.");
+      return toast.error("Selecione um cartão para esta despesa.");
     }
 
     const payload = {
