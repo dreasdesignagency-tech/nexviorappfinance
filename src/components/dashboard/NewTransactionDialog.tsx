@@ -220,11 +220,18 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
 
           {requiresCard && (
             <div className="space-y-1.5 sm:space-y-2">
-              <Label>Cartão utilizado</Label>
+              <Label>Selecionar cartão</Label>
               {availableCards.length === 0 ? (
-                <p className="text-xs text-muted-foreground glass-inner p-3">
-                  Nenhum cartão cadastrado. Vá em <span className="text-foreground font-medium">Cartões</span> e cadastre um para vincular esta despesa.
-                </p>
+                <div className="glass-inner p-3 flex items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">
+                    Cadastre um cartão antes de lançar uma despesa no cartão.
+                  </p>
+                  <Button asChild type="button" size="sm" variant="outline" onClick={() => onOpenChange(false)}>
+                    <Link to="/cartoes">
+                      <CreditCard className="w-3.5 h-3.5" /> Cartões
+                    </Link>
+                  </Button>
+                </div>
               ) : (
                 <Select value={cartaoId} onValueChange={setCartaoId}>
                   <SelectTrigger className="h-9 sm:h-10"><SelectValue placeholder="Selecione o cartão" /></SelectTrigger>
