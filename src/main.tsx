@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { redirectToOfficialLocation, shouldForceOfficialDomain } from "@/lib/auth-urls";
+import { registerPWA } from "@/lib/pwa";
 
 // Hard guard: if the user lands on any non-official domain (e.g. legacy
 // .lovable.app preview/published URLs) we immediately bounce to the
@@ -14,3 +15,5 @@ if (typeof window !== "undefined") {
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
+
+registerPWA();

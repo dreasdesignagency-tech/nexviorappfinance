@@ -28,6 +28,7 @@ import { ThemeProvider } from "@/store/theme";
 import { AuthProvider } from "@/store/auth";
 import { NotificationsProvider } from "@/store/notifications";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <OfflineIndicator />
         <BrowserRouter>
           <AuthProvider>
             <ProfileProvider>
