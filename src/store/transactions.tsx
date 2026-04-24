@@ -85,7 +85,7 @@ const fromDb = (r: DbRow): Transaction => ({
   created_at: r.created_at,
 });
 
-const toInsertPayload = (userId: string, t: NewTransactionInput): TablesInsert<"transactions"> => ({
+const toInsertPayload = (userId: string, t: NewTransactionInput) => ({
   user_id: userId,
   tipo: t.tipo,
   descricao: t.titulo,
