@@ -103,6 +103,12 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
     if (!valor || isNaN(v) || v <= 0) return toast.error("Informe um valor válido.");
     if (!categoria) return toast.error("Selecione uma categoria.");
     if (!data) return toast.error("Informe a data.");
+    if (requiresCard && !cartaoId) {
+      if (availableCards.length === 0) {
+        return toast.error("Cadastre um cartão antes de registrar despesas no crédito ou débito.");
+      }
+      return toast.error("Selecione o cartão utilizado.");
+    }
 
     const payload = {
       tipo,
@@ -116,6 +122,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
       parcela_atual: parcelado ? Number(parcelaAtual) : undefined,
       recorrente,
       observacao: observacao.trim() || undefined,
+      cartao_id: requiresCard ? cartaoId : null,
     };
 
     if (initialValues) {
