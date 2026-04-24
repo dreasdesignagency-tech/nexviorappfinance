@@ -221,6 +221,26 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
             </div>
           </div>
 
+          {requiresCard && (
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label>Cartão utilizado</Label>
+              {availableCards.length === 0 ? (
+                <p className="text-xs text-muted-foreground glass-inner p-3">
+                  Nenhum cartão de {formaPagamento.toLowerCase()} cadastrado. Vá em <span className="text-foreground font-medium">Cartões</span> e cadastre um para vincular esta despesa.
+                </p>
+              ) : (
+                <Select value={cartaoId} onValueChange={setCartaoId}>
+                  <SelectTrigger className="h-9 sm:h-10"><SelectValue placeholder="Selecione o cartão" /></SelectTrigger>
+                  <SelectContent>
+                    {availableCards.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.nome} · {c.banco}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
+
           <div className="glass-inner p-2.5 sm:p-3 space-y-2 sm:space-y-3">
             <div className="flex items-center justify-between">
               <Label htmlFor="parcelado" className="cursor-pointer text-sm">Parcelamento</Label>
