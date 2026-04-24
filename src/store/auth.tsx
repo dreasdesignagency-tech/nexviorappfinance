@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-
-const OFFICIAL_APP_URL = "https://nexviorappfinance.vercel.app";
-const OFFICIAL_HOST = new URL(OFFICIAL_APP_URL).hostname;
+import {
+  OFFICIAL_HOST,
+  redirectToOfficialLocation,
+  shouldForceOfficialDomain,
+} from "@/lib/auth-urls";
 
 const isOnOfficialDomain = () => {
   if (typeof window === "undefined") return true;
@@ -16,11 +18,6 @@ const isOnOfficialDomain = () => {
     return false;
   }
   return host === OFFICIAL_HOST;
-};
-
-const redirectToOfficialDomain = () => {
-  if (typeof window === "undefined") return;
-  window.location.replace(OFFICIAL_APP_URL);
 };
 
 interface AuthCtx {
@@ -39,8 +36,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // If we somehow ended up on a non-official domain, bounce immediately.
-    if (!isOnOfficialDomain()) {
-      redirectToOfficialDomain();
+    if (shouldForceOfficialDomain() || !isOnOfficialDomain()) {
+      redirectToOfficialLocation();
       return;
     }
 
