@@ -98,7 +98,7 @@ const Auth = () => {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
@@ -109,8 +109,8 @@ const Auth = () => {
         },
       },
     });
-    setBusy(false);
     if (error) {
+      setBusy(false);
       if (error.message.toLowerCase().includes("already registered") || error.message.toLowerCase().includes("user already")) {
         toast.error("Este e-mail já está cadastrado.");
       } else {
@@ -118,10 +118,30 @@ const Auth = () => {
       }
       return;
     }
-    toast.success("Conta criada!", {
-      description: "Enviamos um e-mail de confirmação. Verifique sua caixa de entrada.",
+
+    // Se a sessão já veio (auto-confirm habilitado), entra direto
+    if (data.session) {
+      setBusy(false);
+      toast.success("Conta criada! Bem-vindo.");
+      navigate("/", { replace: true });
+      return;
+    }
+
+    // Fallback: tenta logar imediatamente com as credenciais
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: parsed.data.email,
+      password: parsed.data.password,
     });
-    setMode("signin");
+    setBusy(false);
+    if (signInError) {
+      toast.success("Conta criada!", {
+        description: "Faça login para continuar.",
+      });
+      setMode("signin");
+      return;
+    }
+    toast.success("Conta criada! Bem-vindo.");
+    navigate("/", { replace: true });
   };
 
   const handleGoogle = async () => {
