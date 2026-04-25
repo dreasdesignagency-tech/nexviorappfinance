@@ -24,14 +24,10 @@ const getFirstName = (name?: string) => {
 
 export const Header = ({ userName, onNewTransaction }: HeaderProps) => {
   const { theme, toggleTheme } = useTheme();
-  const { profile, loading: profileLoading } = useProfile();
-  const { user, loading: authLoading } = useAuth();
+  const { profile } = useProfile();
+  const { user } = useAuth();
 
-  const isLoading = authLoading || profileLoading;
-  const resolvedName =
-    userName ??
-    profile.nome ??
-    "";
+  const resolvedName = userName ?? profile.nome ?? "";
   const fallbackFromEmail = user?.email?.split("@")[0] ?? "";
   const displayName = resolvedName || fallbackFromEmail || "Usuário";
   const firstName = getFirstName(displayName) || "Usuário";
