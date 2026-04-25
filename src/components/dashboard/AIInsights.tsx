@@ -102,6 +102,38 @@ export const AIInsights = () => {
       });
     }
 
+    // Comparação com mês anterior
+    const now = new Date();
+    const curMonth = now.getMonth();
+    const curYear = now.getFullYear();
+    const prevDate = new Date(curYear, curMonth - 1, 1);
+    const prevMonth = prevDate.getMonth();
+    const prevYear = prevDate.getFullYear();
+    let despesasAtual = 0;
+    let despesasAnterior = 0;
+    for (const t of transactions) {
+      if (t.tipo !== "despesa") continue;
+      const d = new Date(t.data);
+      if (d.getMonth() === curMonth && d.getFullYear() === curYear) despesasAtual += t.valor;
+      else if (d.getMonth() === prevMonth && d.getFullYear() === prevYear) despesasAnterior += t.valor;
+    }
+    if (despesasAnterior > 0 && despesasAtual > 0) {
+      const diff = ((despesasAtual - despesasAnterior) / despesasAnterior) * 100;
+      if (diff >= 15) {
+        list.push({
+          priority: 9,
+          title: `Seus gastos aumentaram ${diff.toFixed(0)}% em relação ao mês anterior.`,
+          recommendation: "Revise as categorias que mais cresceram para conter o avanço.",
+        });
+      } else if (diff <= -15) {
+        list.push({
+          priority: 6,
+          title: `Você reduziu seus gastos em ${Math.abs(diff).toFixed(0)}% em relação ao mês anterior.`,
+          recommendation: "Ótimo controle — mantenha o ritmo e direcione a sobra para investimentos.",
+        });
+      }
+    }
+
     // 8. Saldo positivo
     if (saldo > 0 && totalReceitas > 0) {
       const taxa = saldo / totalReceitas;
