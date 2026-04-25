@@ -154,12 +154,29 @@ export const Activity = () => {
     return items.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   }, [transactions, cards, parcelas, assinaturas, limits, investments]);
 
-  const visible = showAll ? activities : activities.slice(0, 6);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return activities;
+    return activities.filter((a) => {
+      const amountStr = a.amount !== undefined ? String(a.amount) : "";
+      return (
+        a.title.toLowerCase().includes(q) ||
+        a.subtitle.toLowerCase().includes(q) ||
+        a.type.toLowerCase().includes(q) ||
+        amountStr.includes(q)
+      );
+    });
+  }, [activities, query]);
+
+  const visible = showAll ? filtered : filtered.slice(0, 6);
 
   return (
     <div className="glass-card p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-5">
-        <div>
+      <div className="flex items-center justify-between mb-5 gap-3">
+        <div className="min-w-0">
           <h3 className="text-sm font-semibold">Atividade</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             {activities.length > 0
@@ -167,15 +184,23 @@ export const Activity = () => {
               : "Sem eventos recentes"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            className="w-8 h-8 rounded-full glass-inner flex items-center justify-center text-muted-foreground"
-            aria-label="Buscar"
+            onClick={() => {
+              setSearchOpen((v) => {
+                if (v) setQuery("");
+                return !v;
+              });
+            }}
+            className={`w-8 h-8 rounded-full glass-inner flex items-center justify-center transition ${
+              searchOpen ? "text-foreground bg-surface-elevated" : "text-muted-foreground hover:text-foreground"
+            }`}
+            aria-label="Buscar atividade"
           >
             <Search className="w-3.5 h-3.5" />
           </button>
-          {activities.length > 6 && (
+          {filtered.length > 6 && (
             <button
               type="button"
               onClick={() => setShowAll((v) => !v)}
@@ -186,6 +211,30 @@ export const Activity = () => {
           )}
         </div>
       </div>
+
+      {searchOpen && (
+        <div className="mb-4 relative">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <input
+            autoFocus
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar atividade..."
+            className="w-full h-9 pl-9 pr-9 rounded-full glass-inner bg-surface-elevated/40 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full hover:bg-surface-elevated flex items-center justify-center text-muted-foreground hover:text-foreground"
+              aria-label="Limpar busca"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      )}
 
       {activities.length === 0 ? (
         <div className="py-10 text-center">
@@ -198,6 +247,10 @@ export const Activity = () => {
           >
             Adicionar transação
           </Link>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="py-10 text-center">
+          <p className="text-sm text-muted-foreground">Nenhuma atividade encontrada</p>
         </div>
       ) : (
         <div className="space-y-1 max-h-[420px] overflow-y-auto pr-1">
