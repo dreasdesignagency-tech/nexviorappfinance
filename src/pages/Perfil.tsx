@@ -40,7 +40,7 @@ const Perfil = () => {
     toast.success("Perfil atualizado!");
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -51,17 +51,13 @@ const Perfil = () => {
       toast.error("Imagem muito grande. Máximo 2MB.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      updateProfile({ avatar: reader.result as string });
-      toast.success("Foto atualizada!");
-    };
-    reader.onerror = () => toast.error("Erro ao carregar imagem.");
-    reader.readAsDataURL(file);
+    await updateProfile({ avatarFile: file });
+    toast.success("Foto atualizada!");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const removeAvatar = () => {
-    updateProfile({ avatar: "" });
+  const removeAvatar = async () => {
+    await updateProfile({ avatar: "" });
     toast.success("Foto removida.");
   };
 
