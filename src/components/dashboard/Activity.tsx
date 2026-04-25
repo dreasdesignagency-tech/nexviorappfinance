@@ -10,6 +10,7 @@ import {
   TrendingUp,
   Search,
   Sparkles,
+  X,
 } from "lucide-react";
 import { formatBRL, useTransactions } from "@/store/transactions";
 import { useCards } from "@/store/cards";
