@@ -3,10 +3,10 @@ import { Home, ArrowLeftRight, CreditCard, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { icon: Home, label: "Dashboard", to: "/" },
-  { icon: ArrowLeftRight, label: "Transações", to: "/transacoes" },
-  { icon: CreditCard, label: "Cartões", to: "/cartoes" },
-  { icon: Sparkles, label: "nex.ia", to: "/nex-ia" },
+  { icon: Home, label: "Dashboard", to: "/", tour: "nav-dashboard" },
+  { icon: ArrowLeftRight, label: "Transações", to: "/transacoes", tour: "nav-transacoes" },
+  { icon: CreditCard, label: "Cartões", to: "/cartoes", tour: "nav-cartoes" },
+  { icon: Sparkles, label: "nex.ia", to: "/nex-ia", tour: "nav-nexia" },
 ];
 
 export const MobileBottomNav = () => {
@@ -20,7 +20,7 @@ export const MobileBottomNav = () => {
         {items.map((item) => {
           const Icon = item.icon;
           return (
-            <li key={item.to} className="flex">
+            <li key={item.to} className="flex" data-tour={item.tour}>
               <NavLink
                 to={item.to}
                 end={item.to === "/"}
