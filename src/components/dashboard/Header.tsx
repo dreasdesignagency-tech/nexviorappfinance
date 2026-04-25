@@ -37,16 +37,10 @@ export const Header = ({ userName, onNewTransaction }: HeaderProps) => {
     <header className="flex items-center justify-between mb-4 md:mb-6 gap-2 md:gap-4 flex-nowrap px-0 pl-11 md:pl-0 md:px-0 min-w-0">
       <div className="min-w-0 flex-1">
         <h1 className="text-[15px] xs:text-base sm:text-xl md:text-3xl font-bold tracking-tight text-foreground truncate leading-tight">
-          {isLoading ? (
-            <Skeleton className="h-5 md:h-8 w-40 md:w-64 inline-block align-middle" />
-          ) : (
-            <>
-              {getGreeting()},{" "}
-              <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                {firstName}
-              </span>
-            </>
-          )}
+          {getGreeting()},{" "}
+          <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            {firstName}
+          </span>
         </h1>
         <p className="hidden md:block text-sm text-muted-foreground/80 mt-1 truncate">Clareza total sobre seu dinheiro</p>
       </div>
