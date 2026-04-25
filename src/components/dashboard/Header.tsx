@@ -2,6 +2,8 @@ import { Plus, Sun, Moon, Bell } from "lucide-react";
 import { useTheme } from "@/store/theme";
 import { NavLink } from "react-router-dom";
 import { useProfile } from "@/store/profile";
+import { useAuth } from "@/store/auth";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface HeaderProps {
   userName?: string;
@@ -22,8 +24,17 @@ const getFirstName = (name?: string) => {
 
 export const Header = ({ userName, onNewTransaction }: HeaderProps) => {
   const { theme, toggleTheme } = useTheme();
-  const { profile } = useProfile();
-  const firstName = getFirstName(userName ?? profile.nome) || "Alex";
+  const { profile, loading: profileLoading } = useProfile();
+  const { user, loading: authLoading } = useAuth();
+
+  const isLoading = authLoading || profileLoading;
+  const resolvedName =
+    userName ??
+    profile.nome ??
+    "";
+  const fallbackFromEmail = user?.email?.split("@")[0] ?? "";
+  const displayName = resolvedName || fallbackFromEmail || "Usuário";
+  const firstName = getFirstName(displayName) || "Usuário";
   const initial = firstName.charAt(0).toUpperCase() || "U";
 
   return (
