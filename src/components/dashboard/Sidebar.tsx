@@ -9,13 +9,13 @@ import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { Logo } from "@/components/Logo";
 
 const items = [
-  { icon: Home, label: "Dashboard", to: "/" },
-  { icon: ArrowLeftRight, label: "Transações", to: "/transacoes" },
-  { icon: CreditCard, label: "Cartões", to: "/cartoes" },
+  { icon: Home, label: "Dashboard", to: "/", tour: "nav-dashboard" },
+  { icon: ArrowLeftRight, label: "Transações", to: "/transacoes", tour: "nav-transacoes" },
+  { icon: CreditCard, label: "Cartões", to: "/cartoes", tour: "nav-cartoes" },
   { icon: Repeat, label: "Parcelas & Assinaturas", to: "/recorrentes" },
   { icon: Target, label: "Limites & Investimentos", to: "/limites-investimentos" },
   { icon: HeartPulse, label: "Saúde Financeira", to: "/saude-financeira" },
-  { icon: Sparkles, label: "Nex.ia", to: "/nex-ia" },
+  { icon: Sparkles, label: "Nex.ia", to: "/nex-ia", tour: "nav-nexia" },
 ];
 
 export const Sidebar = () => {
@@ -65,7 +65,7 @@ export const Sidebar = () => {
             {items.map((item, i) => {
               const Icon = item.icon;
               return (
-                <NavLink key={i} to={item.to} end={item.to === "/"} className={navClass}>
+                <NavLink key={i} to={item.to} end={item.to === "/"} className={navClass} data-tour={item.tour}>
                   <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.8} />
                   <span className="truncate">{item.label}</span>
                 </NavLink>

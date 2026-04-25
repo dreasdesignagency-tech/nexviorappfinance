@@ -5,7 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/store/profile";
 import { toast } from "sonner";
-import { Mail, Phone, User, Lock, Camera, Trash2 } from "lucide-react";
+import { Mail, Phone, User, Lock, Camera, Trash2, Sparkles } from "lucide-react";
+import { resetOnboarding } from "@/components/onboarding/OnboardingTour";
+import { useNavigate } from "react-router-dom";
 
 const formatPhone = (raw: string) => {
   const d = raw.replace(/\D/g, "").slice(0, 11);
@@ -20,6 +22,16 @@ const Perfil = () => {
   const [nome, setNome] = useState(profile.nome);
   const [telefone, setTelefone] = useState(profile.telefone);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  const replayTour = () => {
+    resetOnboarding();
+    navigate("/");
+    // Index escuta este evento para abrir o tour
+    window.setTimeout(() => {
+      window.dispatchEvent(new Event("nexvior:open-tour"));
+    }, 50);
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,6 +180,26 @@ const Perfil = () => {
             </Button>
           </div>
         </form>
+
+        <div className="glass-card p-5 mt-5 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" /> Tutorial inicial
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Reveja o passo a passo de como usar o Nexvior.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={replayTour}
+            className="shrink-0"
+          >
+            Ver tutorial novamente
+          </Button>
+        </div>
       </main>
     </div>
   );

@@ -59,6 +59,7 @@ export const Header = ({ userName, onNewTransaction }: HeaderProps) => {
 
         <button
           onClick={onNewTransaction}
+          data-tour="new-transaction-desktop"
           className="hidden md:flex h-10 rounded-full bg-gradient-to-r from-primary to-primary-glow text-primary-foreground text-sm font-semibold items-center gap-2 glow-primary hover:opacity-95 transition px-4"
         >
           <Plus className="w-4 h-4" />
