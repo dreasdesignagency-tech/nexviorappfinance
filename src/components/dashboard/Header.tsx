@@ -60,9 +60,7 @@ export const Header = ({ userName, onNewTransaction }: HeaderProps) => {
           aria-label="Perfil"
           className="md:hidden w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent ring-2 ring-border hover:ring-primary/50 transition-all flex items-center justify-center text-xs font-bold text-primary-foreground overflow-hidden shrink-0"
         >
-          {isLoading ? (
-            <Skeleton className="w-full h-full rounded-full" />
-          ) : profile.avatar ? (
+          {profile.avatar ? (
             <img src={profile.avatar} alt={firstName} className="w-full h-full object-cover" />
           ) : (
             initial
