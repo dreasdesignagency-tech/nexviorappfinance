@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
@@ -11,10 +11,27 @@ import { AIInsights } from "@/components/dashboard/AIInsights";
 import { FinancialCalendar } from "@/components/dashboard/FinancialCalendar";
 import { NewTransactionDialog } from "@/components/dashboard/NewTransactionDialog";
 import { useProfile } from "@/store/profile";
+import { OnboardingTour, hasSeenOnboarding } from "@/components/onboarding/OnboardingTour";
 
 const Index = () => {
   const [open, setOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
   const { profile } = useProfile();
+
+  // Auto abrir tutorial no primeiro acesso
+  useEffect(() => {
+    if (!hasSeenOnboarding()) {
+      const t = window.setTimeout(() => setTourOpen(true), 600);
+      return () => window.clearTimeout(t);
+    }
+  }, []);
+
+  // Reabrir via configurações: ?tour=1
+  useEffect(() => {
+    const handler = () => setTourOpen(true);
+    window.addEventListener("nexvior:open-tour", handler);
+    return () => window.removeEventListener("nexvior:open-tour", handler);
+  }, []);
 
   return (
     <div className="min-h-screen flex">
@@ -25,7 +42,7 @@ const Index = () => {
       >
         <Header userName={profile.nome} onNewTransaction={() => setOpen(true)} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
+        <div data-tour="dashboard-summary" className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
           {/* Coluna esquerda (2/3) */}
           <div className="lg:col-span-2 flex flex-col gap-5">
             <NetWorthCard />
@@ -39,7 +56,9 @@ const Index = () => {
           {/* Coluna direita (1/3) */}
           <div className="flex flex-col gap-5">
             <Activity />
-            <AIInsights />
+            <div data-tour="ai-insights">
+              <AIInsights />
+            </div>
             <FinancialCalendar />
           </div>
         </div>
@@ -48,6 +67,7 @@ const Index = () => {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Nova Transação"
+          data-tour="new-transaction"
           style={{ bottom: "calc(var(--mobile-nav-h) + 1rem)" }}
           className="md:hidden fixed right-4 z-50 h-14 px-5 rounded-full bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-[0_18px_40px_hsl(var(--primary)/0.35)] flex items-center gap-2 font-semibold"
         >
@@ -56,6 +76,7 @@ const Index = () => {
         </button>
 
         <NewTransactionDialog open={open} onOpenChange={setOpen} />
+        <OnboardingTour open={tourOpen} onClose={() => setTourOpen(false)} />
       </main>
     </div>
   );
