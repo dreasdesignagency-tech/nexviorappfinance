@@ -180,6 +180,26 @@ const Perfil = () => {
             </Button>
           </div>
         </form>
+
+        <div className="glass-card p-5 mt-5 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" /> Tutorial inicial
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Reveja o passo a passo de como usar o Nexvior.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={replayTour}
+            className="shrink-0"
+          >
+            Ver tutorial novamente
+          </Button>
+        </div>
       </main>
     </div>
   );
