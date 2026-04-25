@@ -10,6 +10,7 @@
        Usado para posicionar FABs e inputs fixos acima da navbar de forma
        consistente entre navegador e modo standalone (PWA na tela inicial). */
     --mobile-nav-h: calc(4rem + env(safe-area-inset-bottom, 0px));
+    --safe-top: env(safe-area-inset-top, 0px);
     --background: 222 47% 6%;
     --foreground: 210 40% 98%;
 

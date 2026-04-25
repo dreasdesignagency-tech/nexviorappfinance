@@ -48,11 +48,11 @@ export const MobileSidebar = ({ className }: MobileSidebarProps) => {
         <button
           aria-label="Abrir menu"
           className={cn(
-            "md:hidden w-10 h-10 rounded-full glass-inner flex items-center justify-center text-foreground shrink-0",
+            "md:hidden w-9 h-9 rounded-full glass-inner flex items-center justify-center text-foreground shrink-0",
             className
           )}
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-[18px] h-[18px]" />
         </button>
       </SheetTrigger>
       <SheetContent side="left" className="p-0 w-[280px] border-r border-border/50 bg-background shadow-2xl">

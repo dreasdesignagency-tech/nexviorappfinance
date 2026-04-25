@@ -39,7 +39,10 @@ export const Sidebar = () => {
   return (
     <>
       {/* Mobile floating menu trigger */}
-      <div className="md:hidden fixed top-3 left-3 z-40">
+      <div
+        className="md:hidden fixed left-3 z-40"
+        style={{ top: "calc(var(--safe-top) + 0.5rem)" }}
+      >
         <MobileSidebar />
       </div>
 
