@@ -24,14 +24,10 @@ const getFirstName = (name?: string) => {
 
 export const Header = ({ userName, onNewTransaction }: HeaderProps) => {
   const { theme, toggleTheme } = useTheme();
-  const { profile, loading: profileLoading } = useProfile();
-  const { user, loading: authLoading } = useAuth();
+  const { profile } = useProfile();
+  const { user } = useAuth();
 
-  const isLoading = authLoading || profileLoading;
-  const resolvedName =
-    userName ??
-    profile.nome ??
-    "";
+  const resolvedName = userName ?? profile.nome ?? "";
   const fallbackFromEmail = user?.email?.split("@")[0] ?? "";
   const displayName = resolvedName || fallbackFromEmail || "Usuário";
   const firstName = getFirstName(displayName) || "Usuário";
@@ -41,16 +37,10 @@ export const Header = ({ userName, onNewTransaction }: HeaderProps) => {
     <header className="flex items-center justify-between mb-4 md:mb-6 gap-2 md:gap-4 flex-nowrap px-0 pl-11 md:pl-0 md:px-0 min-w-0">
       <div className="min-w-0 flex-1">
         <h1 className="text-[15px] xs:text-base sm:text-xl md:text-3xl font-bold tracking-tight text-foreground truncate leading-tight">
-          {isLoading ? (
-            <Skeleton className="h-5 md:h-8 w-40 md:w-64 inline-block align-middle" />
-          ) : (
-            <>
-              {getGreeting()},{" "}
-              <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                {firstName}
-              </span>
-            </>
-          )}
+          {getGreeting()},{" "}
+          <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            {firstName}
+          </span>
         </h1>
         <p className="hidden md:block text-sm text-muted-foreground/80 mt-1 truncate">Clareza total sobre seu dinheiro</p>
       </div>
@@ -70,9 +60,7 @@ export const Header = ({ userName, onNewTransaction }: HeaderProps) => {
           aria-label="Perfil"
           className="md:hidden w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent ring-2 ring-border hover:ring-primary/50 transition-all flex items-center justify-center text-xs font-bold text-primary-foreground overflow-hidden shrink-0"
         >
-          {isLoading ? (
-            <Skeleton className="w-full h-full rounded-full" />
-          ) : profile.avatar ? (
+          {profile.avatar ? (
             <img src={profile.avatar} alt={firstName} className="w-full h-full object-cover" />
           ) : (
             initial
