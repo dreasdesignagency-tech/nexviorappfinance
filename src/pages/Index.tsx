@@ -19,7 +19,10 @@ const Index = () => {
   return (
     <div className="min-h-screen flex">
       <Sidebar />
-      <main className="flex-1 min-w-0 px-4 py-4 pb-24 sm:p-4 md:p-6 md:pb-6 lg:p-8 max-w-[1500px] mx-auto w-full overflow-x-hidden">
+      <main
+        className="flex-1 min-w-0 px-4 py-4 pb-24 sm:p-4 md:p-6 md:pb-6 lg:p-8 max-w-[1500px] mx-auto w-full overflow-x-hidden"
+        style={{ paddingTop: "calc(var(--safe-top) + 1rem)" }}
+      >
         <Header userName={profile.nome} onNewTransaction={() => setOpen(true)} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
