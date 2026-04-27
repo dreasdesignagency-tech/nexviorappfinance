@@ -231,7 +231,7 @@ const NexIA = () => {
       <Sidebar />
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-x-hidden">
         {/* Top bar minimalista */}
-        <div className="flex items-center justify-between px-4 sm:px-6 md:px-10 py-4 md:py-5 pl-16 md:pl-10">
+        <div className="flex items-center justify-between px-4 sm:px-6 md:px-10 py-4 md:py-5 pl-16 md:pl-10 pt-safe">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center border border-primary/20 shrink-0">
               <Sparkles className="w-5 h-5 text-primary-glow" />
