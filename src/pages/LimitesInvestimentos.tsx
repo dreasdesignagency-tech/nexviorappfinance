@@ -145,7 +145,7 @@ const LimitesInvestimentos = () => {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
-      <main className="flex-1 min-w-0 p-3 sm:p-6 md:p-10 max-w-[1400px] mx-auto overflow-x-hidden">
+      <main className="flex-1 min-w-0 p-3 sm:p-6 md:p-10 max-w-[1400px] mx-auto overflow-x-hidden pt-safe">
         <header className="mb-8 pl-12 md:pl-0">
           <h1 className="text-3xl font-bold tracking-tight">Limites & Investimentos</h1>
           <p className="text-sm text-muted-foreground mt-1">

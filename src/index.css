@@ -9,8 +9,15 @@
     /* Altura total da bottom nav mobile (4rem) + safe area do dispositivo.
        Usado para posicionar FABs e inputs fixos acima da navbar de forma
        consistente entre navegador e modo standalone (PWA na tela inicial). */
-    --mobile-nav-h: calc(4rem + env(safe-area-inset-bottom, 0px));
+    /* iOS < 11.2 usa constant(), iOS >= 11.2 usa env(). Declarar ambos
+       garante compatibilidade total em PWA standalone. */
+    --safe-top: constant(safe-area-inset-top, 0px);
     --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: constant(safe-area-inset-bottom, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --mobile-nav-h: calc(4rem + var(--safe-bottom));
     --background: 222 47% 6%;
     --foreground: 210 40% 98%;
 
@@ -134,6 +141,9 @@
     background: var(--gradient-bg);
     background-attachment: fixed;
     min-height: 100vh;
+    /* Respeita safe areas laterais (landscape em iPhones com notch) */
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
   }
 
   button, a {
@@ -142,6 +152,27 @@
 
   button:not(:disabled):hover {
     filter: brightness(1.08);
+  }
+}
+
+@layer utilities {
+  /* Padding superior que respeita o notch / barra de status do dispositivo.
+     Use em containers <main> de páginas full-screen (PWA standalone). */
+  .pt-safe {
+    padding-top: calc(var(--safe-top) + 1rem);
+  }
+  .pt-safe-sm {
+    padding-top: calc(var(--safe-top) + 0.5rem);
+  }
+  .pb-safe {
+    padding-bottom: calc(var(--safe-bottom) + 1rem);
+  }
+  .top-safe {
+    top: calc(var(--safe-top) + 0.5rem);
+  }
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 }
 

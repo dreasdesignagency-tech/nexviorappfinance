@@ -71,7 +71,7 @@ const Perfil = () => {
   return (
     <div className="min-h-screen flex">
       <Sidebar />
-      <main className="flex-1 min-w-0 p-3 sm:p-4 md:p-6 lg:p-8 max-w-3xl mx-auto w-full overflow-x-hidden">
+      <main className="flex-1 min-w-0 p-3 sm:p-4 md:p-6 lg:p-8 max-w-3xl mx-auto w-full overflow-x-hidden pt-safe">
         <header className="mb-6 pl-12 md:pl-0">
           <p className="text-sm text-muted-foreground">Suas informações pessoais</p>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight mt-1">Perfil</h1>
