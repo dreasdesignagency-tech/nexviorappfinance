@@ -141,7 +141,30 @@
     background: var(--gradient-bg);
     background-attachment: fixed;
     min-height: 100vh;
+    /* Respeita safe areas laterais (landscape em iPhones com notch) */
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
   }
+}
+
+@layer utilities {
+  /* Padding superior que respeita o notch / barra de status do dispositivo.
+     Use em containers <main> de páginas full-screen (PWA standalone). */
+  .pt-safe {
+    padding-top: calc(var(--safe-top) + 1rem);
+  }
+  .pt-safe-sm {
+    padding-top: calc(var(--safe-top) + 0.5rem);
+  }
+  .pb-safe {
+    padding-bottom: calc(var(--safe-bottom) + 1rem);
+  }
+  .top-safe {
+    top: calc(var(--safe-top) + 0.5rem);
+  }
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100dvh;
 
   button, a {
     transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
