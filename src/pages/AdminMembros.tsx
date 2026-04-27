@@ -237,7 +237,7 @@ export default function AdminMembros() {
   return (
     <div className="min-h-screen flex bg-background">
       <Sidebar />
-      <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full">
+      <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pt-safe">
         <header className="mb-6 mt-12 md:mt-0">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
             <Shield className="w-6 h-6 text-primary" /> Membros
