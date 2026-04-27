@@ -5,8 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/store/profile";
 import { toast } from "sonner";
-import { Mail, Phone, User, Lock, Camera, Trash2, Sparkles } from "lucide-react";
+import { Mail, Phone, User, Lock, Camera, Trash2, Sparkles, Smartphone } from "lucide-react";
 import { resetOnboarding } from "@/components/onboarding/OnboardingTour";
+import { resetInstallTour, InstallAppTour } from "@/components/onboarding/InstallAppTour";
 import { useNavigate } from "react-router-dom";
 
 const formatPhone = (raw: string) => {
@@ -21,8 +22,14 @@ const Perfil = () => {
   const { profile, updateProfile } = useProfile();
   const [nome, setNome] = useState(profile.nome);
   const [telefone, setTelefone] = useState(profile.telefone);
+  const [installOpen, setInstallOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  const replayInstallTour = () => {
+    resetInstallTour();
+    setInstallOpen(true);
+  };
 
   const replayTour = () => {
     resetOnboarding();
@@ -196,6 +203,28 @@ const Perfil = () => {
             Ver tutorial novamente
           </Button>
         </div>
+
+        <div className="glass-card p-5 mt-5 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold flex items-center gap-2">
+              <Smartphone className="w-4 h-4 text-primary" /> Instalar app no celular
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Veja como adicionar o Nexvior à tela inicial do seu celular.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={replayInstallTour}
+            className="shrink-0"
+          >
+            Instalar app
+          </Button>
+        </div>
+
+        <InstallAppTour open={installOpen} onClose={() => setInstallOpen(false)} />
       </main>
     </div>
   );

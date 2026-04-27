@@ -12,10 +12,15 @@ import { FinancialCalendar } from "@/components/dashboard/FinancialCalendar";
 import { NewTransactionDialog } from "@/components/dashboard/NewTransactionDialog";
 import { useProfile } from "@/store/profile";
 import { OnboardingTour, hasSeenOnboarding } from "@/components/onboarding/OnboardingTour";
+import {
+  InstallAppTour,
+  shouldShowInstallTourAuto,
+} from "@/components/onboarding/InstallAppTour";
 
 const Index = () => {
   const [open, setOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  const [installOpen, setInstallOpen] = useState(false);
   const { profile } = useProfile();
 
   // Auto abrir tutorial no primeiro acesso
@@ -26,11 +31,24 @@ const Index = () => {
     }
   }, []);
 
+  // Auto abrir tutorial de instalação (apenas mobile, não instalado)
+  useEffect(() => {
+    if (shouldShowInstallTourAuto()) {
+      const t = window.setTimeout(() => setInstallOpen(true), 1800);
+      return () => window.clearTimeout(t);
+    }
+  }, []);
+
   // Reabrir via configurações: ?tour=1
   useEffect(() => {
     const handler = () => setTourOpen(true);
+    const installHandler = () => setInstallOpen(true);
     window.addEventListener("nexvior:open-tour", handler);
-    return () => window.removeEventListener("nexvior:open-tour", handler);
+    window.addEventListener("nexvior:open-install-tour", installHandler);
+    return () => {
+      window.removeEventListener("nexvior:open-tour", handler);
+      window.removeEventListener("nexvior:open-install-tour", installHandler);
+    };
   }, []);
 
   return (
@@ -77,6 +95,7 @@ const Index = () => {
 
         <NewTransactionDialog open={open} onOpenChange={setOpen} />
         <OnboardingTour open={tourOpen} onClose={() => setTourOpen(false)} />
+        <InstallAppTour open={installOpen} onClose={() => setInstallOpen(false)} />
       </main>
     </div>
   );
