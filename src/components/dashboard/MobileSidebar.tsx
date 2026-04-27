@@ -55,7 +55,11 @@ export const MobileSidebar = ({ className }: MobileSidebarProps) => {
           <Menu className="w-[18px] h-[18px]" />
         </button>
       </SheetTrigger>
-      <SheetContent side="left" className="p-0 w-[280px] border-r border-border/50 bg-background shadow-2xl">
+      <SheetContent
+        side="left"
+        className="p-0 w-[280px] border-r border-border/50 bg-background shadow-2xl"
+        style={{ paddingTop: "var(--safe-top)", paddingBottom: "var(--safe-bottom)" }}
+      >
         <div className="h-full w-full flex flex-col py-6 px-4 gap-2 bg-gradient-to-b from-surface/80 to-background">
           <div className="flex items-center gap-2.5 px-2 mb-6">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shrink-0 p-1.5">
