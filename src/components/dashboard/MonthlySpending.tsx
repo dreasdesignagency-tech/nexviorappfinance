@@ -9,14 +9,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const MONTHS_SHORT = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
-// Janela visível: SET, OUT, NOV, DEZ, JAN (do ano seguinte)
-const WINDOW = [
-  { idx: 8, label: "SET", yearOffset: 0 },
-  { idx: 9, label: "OUT", yearOffset: 0 },
-  { idx: 10, label: "NOV", yearOffset: 0 },
-  { idx: 11, label: "DEZ", yearOffset: 0 },
-  { idx: 0, label: "JAN", yearOffset: 1 },
-];
 
 const formatCompact = (v: number) => {
   if (v >= 1000) {
@@ -32,38 +24,56 @@ const formatFull = (v: number) =>
 export const MonthlySpending = () => {
   const { transactions } = useTransactions();
 
-  const availableYears = useMemo(() => {
-    const set = new Set<number>();
+  // Lista de meses disponíveis (ano-mês) com base nas transações + mês atual
+  const availableMonths = useMemo(() => {
+    const set = new Set<string>();
+    const now = new Date();
+    set.add(`${now.getFullYear()}-${now.getMonth()}`);
     for (const t of transactions) {
-      const y = Number(t.data.split("-")[0]);
-      if (!Number.isNaN(y)) set.add(y);
+      const [y, m] = t.data.split("-").map(Number);
+      if (!Number.isNaN(y) && !Number.isNaN(m)) {
+        set.add(`${y}-${m - 1}`);
+      }
     }
-    if (set.size === 0) set.add(new Date().getFullYear());
-    return Array.from(set).sort((a, b) => b - a);
+    return Array.from(set)
+      .map((k) => {
+        const [y, m] = k.split("-").map(Number);
+        return { year: y, month: m };
+      })
+      .sort((a, b) => (b.year - a.year) || (b.month - a.month));
   }, [transactions]);
 
-  const [year, setYear] = useState<number>(availableYears[0]);
+  const [selected, setSelected] = useState<{ year: number; month: number }>(
+    availableMonths[0] ?? { year: new Date().getFullYear(), month: new Date().getMonth() }
+  );
 
-  // Totaliza despesas por (ano, mês)
-  const totalsByKey = useMemo(() => {
-    const map = new Map<string, number>();
+  // Janela: 5 meses terminando no mês selecionado
+  const windowData = useMemo(() => {
+    const arr: { label: string; value: number; year: number; month: number }[] = [];
+    for (let i = 4; i >= 0; i--) {
+      const d = new Date(selected.year, selected.month - i, 1);
+      arr.push({
+        label: MONTHS_SHORT[d.getMonth()],
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        value: 0,
+      });
+    }
     for (const t of transactions) {
       if (t.tipo !== "despesa") continue;
       const [y, m] = t.data.split("-").map(Number);
-      const key = `${y}-${m - 1}`;
-      map.set(key, (map.get(key) ?? 0) + t.valor);
+      const idx = arr.findIndex((a) => a.year === y && a.month === m - 1);
+      if (idx >= 0) arr[idx].value += t.valor;
     }
-    return map;
-  }, [transactions]);
-
-  const windowData = WINDOW.map(({ idx, label, yearOffset }) => ({
-    label,
-    value: totalsByKey.get(`${year + yearOffset}-${idx}`) ?? 0,
-  }));
+    return arr;
+  }, [transactions, selected]);
 
   const max = Math.max(...windowData.map((d) => d.value), 0);
+  const currentMonthTotal = windowData[windowData.length - 1]?.value ?? 0;
   const hasData = max > 0;
   const maxIdx = windowData.findIndex((d) => d.value === max && d.value > 0);
+
+  const selectedLabel = `${MONTHS_SHORT[selected.month]} ${selected.year}`;
 
   return (
     <div className="glass-card p-4 sm:p-6 md:p-7 h-full flex flex-col">
@@ -71,12 +81,15 @@ export const MonthlySpending = () => {
         <h3 className="text-sm font-semibold">Gastos mensais</h3>
         <DropdownMenu>
           <DropdownMenuTrigger className="glass-inner px-3.5 py-1.5 rounded-full text-xs flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition border border-border/50">
-            {year} <ChevronDown className="w-3 h-3" />
+            {selectedLabel} <ChevronDown className="w-3 h-3" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {availableYears.map((y) => (
-              <DropdownMenuItem key={y} onClick={() => setYear(y)}>
-                {y}
+          <DropdownMenuContent align="end" className="max-h-64 overflow-auto">
+            {availableMonths.map((m) => (
+              <DropdownMenuItem
+                key={`${m.year}-${m.month}`}
+                onClick={() => setSelected(m)}
+              >
+                {MONTHS_SHORT[m.month]} {m.year}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -90,9 +103,9 @@ export const MonthlySpending = () => {
             const isMax = i === maxIdx;
             return (
               <div
-                key={d.label}
+                key={`${d.year}-${d.month}`}
                 className="flex flex-col items-center gap-2.5 md:gap-3 flex-1 min-w-0 group"
-                title={`${d.label} · ${formatFull(d.value)}`}
+                title={`${d.label}/${d.year} · ${formatFull(d.value)}`}
               >
                 <div className="relative w-full flex items-end justify-center" style={{ height: 140 }}>
                   {isMax && (
@@ -120,7 +133,7 @@ export const MonthlySpending = () => {
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center min-h-[160px] text-xs text-muted-foreground text-center px-4">
-          Nenhuma despesa registrada neste ano.
+          Nenhuma despesa registrada em {selectedLabel}.
         </div>
       )}
     </div>
