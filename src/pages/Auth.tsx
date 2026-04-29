@@ -81,7 +81,7 @@ const Auth = () => {
       return;
     }
     toast.success("Bem-vindo de volta!");
-    navigate("/", { replace: true });
+    navigate("/app", { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {

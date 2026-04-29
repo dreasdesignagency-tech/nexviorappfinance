@@ -37,7 +37,7 @@ const AuthCallback = () => {
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
-          navigate("/", { replace: true });
+          navigate("/app", { replace: true });
           return;
         }
 
@@ -58,7 +58,7 @@ const AuthCallback = () => {
             type: type as any,
           });
           if (error) throw error;
-          navigate("/", { replace: true });
+          navigate("/app", { replace: true });
           return;
         }
 
@@ -71,14 +71,14 @@ const AuthCallback = () => {
             refresh_token: refreshToken,
           });
           if (error) throw error;
-          navigate("/", { replace: true });
+          navigate("/app", { replace: true });
           return;
         }
 
         // 4) Sessão já existente
         const { data } = await supabase.auth.getSession();
         if (data.session) {
-          navigate("/", { replace: true });
+          navigate("/app", { replace: true });
           return;
         }
 
