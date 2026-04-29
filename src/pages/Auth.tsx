@@ -52,7 +52,7 @@ const Auth = () => {
 
   if (loading) return null;
   if (user) {
-    const from = (location.state as any)?.from || "/app";
+    const from = (location.state as any)?.from || "/";
     return <Navigate to={from} replace />;
   }
 
@@ -81,7 +81,7 @@ const Auth = () => {
       return;
     }
     toast.success("Bem-vindo de volta!");
-    navigate("/app", { replace: true });
+    navigate("/", { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {

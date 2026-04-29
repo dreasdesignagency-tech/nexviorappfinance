@@ -33,7 +33,7 @@ const Perfil = () => {
 
   const replayTour = () => {
     resetOnboarding();
-    navigate("/app");
+    navigate("/");
     // Index escuta este evento para abrir o tour
     window.setTimeout(() => {
       window.dispatchEvent(new Event("nexvior:open-tour"));

@@ -3,7 +3,7 @@ import { Home, ArrowLeftRight, CreditCard, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { icon: Home, label: "Dashboard", to: "/app", tour: "nav-dashboard" },
+  { icon: Home, label: "Dashboard", to: "/", tour: "nav-dashboard" },
   { icon: ArrowLeftRight, label: "Transações", to: "/transacoes", tour: "nav-transacoes" },
   { icon: CreditCard, label: "Cartões", to: "/cartoes", tour: "nav-cartoes" },
   { icon: Sparkles, label: "nex.ia", to: "/nex-ia", tour: "nav-nexia" },
@@ -23,7 +23,7 @@ export const MobileBottomNav = () => {
             <li key={item.to} className="flex" data-tour={item.tour}>
               <NavLink
                 to={item.to}
-                end={item.to === "/app"}
+                end={item.to === "/"}
                 className={({ isActive }) =>
                   cn(
                     "flex-1 flex flex-col items-center justify-center gap-1 px-2 transition-all duration-200 active:scale-95",

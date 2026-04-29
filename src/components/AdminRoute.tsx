@@ -14,7 +14,7 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!isAdmin) {
     // Silently redirect to dashboard — never reveal admin area exists
-    return <Navigate to="/app" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
