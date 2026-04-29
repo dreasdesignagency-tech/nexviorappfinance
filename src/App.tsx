@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
+import Landing from "./pages/Landing.tsx";
 import Transacoes from "./pages/Transacoes.tsx";
 import Cartoes from "./pages/Cartoes.tsx";
 import Recorrentes from "./pages/Recorrentes.tsx";
@@ -52,9 +53,10 @@ const App = () => (
                     <LimitsProvider>
                       <NotificationsProvider>
                         <Routes>
+                        <Route path="/" element={<Landing />} />
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/auth/callback" element={<AuthCallback />} />
-                        <Route path="/" element={<Protected><Index /></Protected>} />
+                        <Route path="/app" element={<Protected><Index /></Protected>} />
                         <Route path="/transacoes" element={<Protected><Transacoes /></Protected>} />
                         <Route path="/cartoes" element={<Protected><Cartoes /></Protected>} />
                         <Route path="/recorrentes" element={<Protected><Recorrentes /></Protected>} />
