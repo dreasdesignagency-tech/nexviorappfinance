@@ -52,7 +52,7 @@ const Auth = () => {
 
   if (loading) return null;
   if (user) {
-    const from = (location.state as any)?.from || "/";
+    const from = (location.state as any)?.from || "/app";
     return <Navigate to={from} replace />;
   }
 
