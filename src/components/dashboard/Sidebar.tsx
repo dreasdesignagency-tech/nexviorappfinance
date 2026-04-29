@@ -9,7 +9,7 @@ import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { Logo } from "@/components/Logo";
 
 const items = [
-  { icon: Home, label: "Dashboard", to: "/", tour: "nav-dashboard" },
+  { icon: Home, label: "Dashboard", to: "/app", tour: "nav-dashboard" },
   { icon: ArrowLeftRight, label: "Transações", to: "/transacoes", tour: "nav-transacoes" },
   { icon: CreditCard, label: "Cartões", to: "/cartoes", tour: "nav-cartoes" },
   { icon: Repeat, label: "Parcelas & Assinaturas", to: "/recorrentes" },

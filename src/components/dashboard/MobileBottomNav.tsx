@@ -3,7 +3,7 @@ import { Home, ArrowLeftRight, CreditCard, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { icon: Home, label: "Dashboard", to: "/", tour: "nav-dashboard" },
+  { icon: Home, label: "Dashboard", to: "/app", tour: "nav-dashboard" },
   { icon: ArrowLeftRight, label: "Transações", to: "/transacoes", tour: "nav-transacoes" },
   { icon: CreditCard, label: "Cartões", to: "/cartoes", tour: "nav-cartoes" },
   { icon: Sparkles, label: "nex.ia", to: "/nex-ia", tour: "nav-nexia" },
