@@ -78,7 +78,7 @@ export const MobileSidebar = ({ className }: MobileSidebarProps) => {
                 <NavLink
                   key={i}
                   to={item.to}
-                  end={item.to === "/"}
+                  end={item.to === "/app"}
                   className={navClass}
                   onClick={() => setOpen(false)}
                 >

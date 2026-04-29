@@ -65,7 +65,7 @@ export const Sidebar = () => {
             {items.map((item, i) => {
               const Icon = item.icon;
               return (
-                <NavLink key={i} to={item.to} end={item.to === "/"} className={navClass} data-tour={item.tour}>
+                <NavLink key={i} to={item.to} end={item.to === "/app"} className={navClass} data-tour={item.tour}>
                   <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.8} />
                   <span className="truncate">{item.label}</span>
                 </NavLink>

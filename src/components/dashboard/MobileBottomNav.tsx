@@ -23,7 +23,7 @@ export const MobileBottomNav = () => {
             <li key={item.to} className="flex" data-tour={item.tour}>
               <NavLink
                 to={item.to}
-                end={item.to === "/"}
+                end={item.to === "/app"}
                 className={({ isActive }) =>
                   cn(
                     "flex-1 flex flex-col items-center justify-center gap-1 px-2 transition-all duration-200 active:scale-95",
