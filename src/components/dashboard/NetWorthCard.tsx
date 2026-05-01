@@ -2,36 +2,46 @@ import { useMemo, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, Sparkles, Wallet } from "lucide-react";
 import { useTransactions, formatBRL } from "@/store/transactions";
 
-const MONTHS = [
-  { label: "Nov", month: 10 },
-  { label: "Dez", month: 11 },
-  { label: "Jan", month: 0 },
-  { label: "Fev", month: 1 },
-  { label: "Mar", month: 2 },
-  { label: "Abr", month: 3 },
-];
+const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+// Janela de 6 meses terminando no mês atual
+const buildMonths = () => {
+  const now = new Date();
+  const arr: { label: string; month: number; year: number; key: string }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    arr.push({
+      label: MONTH_LABELS[d.getMonth()],
+      month: d.getMonth(),
+      year: d.getFullYear(),
+      key: `${d.getFullYear()}-${d.getMonth()}`,
+    });
+  }
+  return arr;
+};
 
 export const NetWorthCard = () => {
   const { transactions } = useTransactions();
-  const [activeMonth, setActiveMonth] = useState("Abr");
+  const MONTHS = useMemo(() => buildMonths(), []);
+  const [activeKey, setActiveKey] = useState(MONTHS[MONTHS.length - 1].key);
 
   const { receitas, despesas, saldo, patrimonio } = useMemo(() => {
-    const m = MONTHS.find((x) => x.label === activeMonth)?.month ?? 3;
+    const active = MONTHS.find((x) => x.key === activeKey) ?? MONTHS[MONTHS.length - 1];
     let r = 0,
       d = 0,
       rAll = 0,
       dAll = 0;
     for (const t of transactions) {
-      const [, mo] = t.data.split("-").map(Number);
+      const [y, mo] = t.data.split("-").map(Number);
       if (t.tipo === "receita") rAll += t.valor;
       else dAll += t.valor;
-      if (mo - 1 === m) {
+      if (mo - 1 === active.month && y === active.year) {
         if (t.tipo === "receita") r += t.valor;
         else d += t.valor;
       }
     }
     return { receitas: r, despesas: d, saldo: r - d, patrimonio: rAll - dAll };
-  }, [transactions, activeMonth]);
+  }, [transactions, activeKey, MONTHS]);
 
   const metrics = [
     {
@@ -94,12 +104,12 @@ export const NetWorthCard = () => {
       {/* MEIO — Seletor de meses */}
       <div className="relative py-5 flex justify-start overflow-x-auto no-scrollbar -mx-1 px-1">
         <div className="glass-inner p-1.5 inline-flex items-center gap-1 rounded-full flex-nowrap min-w-max">
-          {MONTHS.map(({ label }) => {
-            const isActive = label === activeMonth;
+          {MONTHS.map(({ label, key }) => {
+            const isActive = key === activeKey;
             return (
               <button
-                key={label}
-                onClick={() => setActiveMonth(label)}
+                key={key}
+                onClick={() => setActiveKey(key)}
                 className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition ${
                   isActive
                     ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground glow-primary shadow-[0_0_18px_hsl(var(--primary)/0.45)]"
