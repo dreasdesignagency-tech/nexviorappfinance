@@ -31,7 +31,10 @@ export const FinancialCalendar = () => {
   const { cards } = useCards();
   const { parcelas, assinaturas } = useRecurrents();
 
-  const [cursor, setCursor] = useState(() => new Date(2026, 3, 1));
+  const [cursor, setCursor] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   const year = cursor.getFullYear();
