@@ -7,6 +7,7 @@ import { NexIASection } from "@/components/landing/NexIASection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { SectionDivider } from "@/components/landing/SectionDivider";
+import { HeroVideo } from "@/components/landing/HeroVideo";
 
 const Landing = () => {
   useEffect(() => {
