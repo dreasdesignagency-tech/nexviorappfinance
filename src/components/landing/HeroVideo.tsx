@@ -6,9 +6,25 @@ export const HeroVideo = () => {
   const [opacity, setOpacity] = useState(1);
 
   useEffect(() => {
+    const v = videoRef.current;
+    if (v) {
+      v.muted = true;
+      const tryPlay = () => v.play().catch((err) => console.warn("video autoplay bloqueado:", err));
+      tryPlay();
+      // tenta de novo se houver gesto do usuário
+      const onInteract = () => tryPlay();
+      window.addEventListener("click", onInteract, { once: true });
+      window.addEventListener("touchstart", onInteract, { once: true });
+      return () => {
+        window.removeEventListener("click", onInteract);
+        window.removeEventListener("touchstart", onInteract);
+      };
+    }
+  }, []);
+
+  useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
-      // fade out gradualmente até 600px de scroll
       const next = Math.max(0, 1 - y / 600);
       setOpacity(next);
     };
@@ -31,15 +47,19 @@ export const HeroVideo = () => {
         loop
         playsInline
         preload="auto"
+        disablePictureInPicture
+        controls={false}
+        onError={(e) => console.error("Video playback error:", e)}
+        onLoadedData={() => console.log("[HeroVideo] loaded")}
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ mixBlendMode: "hard-light" }}
+        style={{ mixBlendMode: "screen" }}
       />
       {/* vinheta para integrar o vídeo ao fundo preto */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at center, transparent 30%, hsl(0 0% 0% / 0.6) 75%, hsl(0 0% 0%) 100%)",
+            "radial-gradient(ellipse at center, transparent 35%, hsl(0 0% 0% / 0.55) 80%, hsl(0 0% 0%) 100%)",
         }}
       />
     </div>
