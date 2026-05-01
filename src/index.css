@@ -379,3 +379,109 @@
   }
 }
 
+
+/* ============================================================
+   LANDING PAGE — Sales page (scoped under .lp-root)
+   Tokens isolados para não afetar o app interno.
+   ============================================================ */
+.lp-root {
+  --lp-bg: 0 0% 0%;
+  --lp-fg: 0 0% 100%;
+  --lp-card: 0 0% 5%;
+  --lp-muted: 0 0% 10%;
+  --lp-muted-fg: 0 0% 60%;
+  --lp-border: 0 0% 15%;
+  --lp-neon: 225 67% 54%;
+  --lp-neon-glow: 225 78% 64%;
+
+  background-color: hsl(var(--lp-bg));
+  font-family: 'Inter', sans-serif;
+}
+
+.lp-root .lp-italic-gradient {
+  font-family: 'Playfair Display', serif;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--lp-neon-glow)) 0%,
+    hsl(var(--lp-fg)) 50%,
+    hsl(var(--lp-neon-glow)) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: lp-shine 6s ease-in-out infinite;
+}
+
+.lp-root .lp-card {
+  background: linear-gradient(145deg, hsl(var(--lp-card) / 0.9), hsl(var(--lp-bg) / 0.8));
+  border: 1px solid hsl(var(--lp-border));
+  border-radius: 1.25rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.lp-root .lp-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  color: hsl(var(--lp-fg));
+  background: linear-gradient(135deg, hsl(var(--lp-neon)), hsl(var(--lp-neon-glow)));
+  box-shadow: 0 0 24px hsl(var(--lp-neon) / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.lp-root .lp-btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 36px hsl(var(--lp-neon) / 0.7), inset 0 1px 0 hsl(0 0% 100% / 0.25);
+}
+
+.lp-root .lp-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  color: hsl(var(--lp-fg));
+  background: hsl(var(--lp-fg) / 0.04);
+  border: 1px solid hsl(var(--lp-border));
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.lp-root .lp-btn-outline:hover {
+  background: hsl(var(--lp-fg) / 0.08);
+  border-color: hsl(var(--lp-neon) / 0.5);
+}
+
+.lp-root .lp-glow {
+  box-shadow: 0 0 24px hsl(var(--lp-neon) / 0.4);
+}
+.lp-root .lp-glow-strong {
+  box-shadow: 0 0 60px hsl(var(--lp-neon) / 0.45), 0 0 120px hsl(var(--lp-neon) / 0.2);
+}
+
+.lp-root .lp-stars {
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, hsl(0 0% 100% / 0.5), transparent),
+    radial-gradient(1px 1px at 70% 60%, hsl(0 0% 100% / 0.4), transparent),
+    radial-gradient(1px 1px at 40% 80%, hsl(0 0% 100% / 0.5), transparent),
+    radial-gradient(1px 1px at 85% 20%, hsl(0 0% 100% / 0.3), transparent),
+    radial-gradient(1px 1px at 10% 70%, hsl(0 0% 100% / 0.4), transparent);
+  background-size: 800px 800px;
+  animation: lp-twinkle 3s ease-in-out infinite alternate;
+}
+
+@keyframes lp-shine {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes lp-twinkle {
+  from { opacity: 0.3; }
+  to { opacity: 0.55; }
+}
+@keyframes lp-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes lp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
