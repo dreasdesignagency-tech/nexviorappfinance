@@ -35,6 +35,8 @@ const Landing = () => {
       />
       {/* estrelas */}
       <div className="fixed inset-0 -z-10 opacity-40 pointer-events-none lp-stars" aria-hidden />
+      {/* vídeo de fundo da hero */}
+      <HeroVideo />
 
       <LandingNav />
 
