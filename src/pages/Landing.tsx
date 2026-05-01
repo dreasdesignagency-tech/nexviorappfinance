@@ -23,39 +23,35 @@ const Landing = () => {
   }, []);
 
   return (
-    <div className="lp-root relative isolate min-h-screen text-white">
-      {/* fundo radial sutil */}
-      <div
-        className="fixed inset-0 -z-10 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 50% 0%, hsl(var(--lp-neon) / 0.18), transparent 60%), hsl(var(--lp-bg))",
-        }}
-        aria-hidden
-      />
-      {/* estrelas */}
-      <div className="fixed inset-0 -z-10 opacity-40 pointer-events-none lp-stars" aria-hidden />
-      {/* vídeo de fundo da hero */}
+    <div className="lp-root relative min-h-screen text-foreground">
+      {/* Background video covers viewport behind content */}
       <HeroVideo />
 
-      <div className="relative z-10">
+      {/* Navbar overlays the video */}
+      <div className="relative" style={{ zIndex: 50 }}>
         <LandingNav />
+      </div>
 
-        <main>
-          <HeroSection />
-          <SectionDivider />
-          <TestimonialsSection />
-          <SectionDivider />
-          <FeaturesSection />
-          <SectionDivider />
-          <NexIASection />
-          <SectionDivider />
-          <PricingSection />
-          <SectionDivider />
-          <CTASection />
-        </main>
+      {/* Hero content (transparent over video) */}
+      <div className="relative" style={{ zIndex: 10 }}>
+        <HeroSection />
+      </div>
 
-        <footer className="px-4 md:px-6 py-10 border-t border-[hsl(var(--lp-border))] text-center text-white/40 text-xs">
+      <SectionDivider />
+
+      {/* Below-the-fold sections with solid background to cover the fixed video */}
+      <div className="relative bg-background" style={{ zIndex: 10 }}>
+        <TestimonialsSection />
+        <SectionDivider />
+        <FeaturesSection />
+        <SectionDivider />
+        <NexIASection />
+        <SectionDivider />
+        <PricingSection />
+        <SectionDivider />
+        <CTASection />
+
+        <footer className="px-4 md:px-6 py-10 border-t border-border/30 text-center text-muted-foreground text-xs">
           © {new Date().getFullYear()} Nexvior. Todos os direitos reservados.
         </footer>
       </div>

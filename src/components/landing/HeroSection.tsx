@@ -1,74 +1,121 @@
+import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Check } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
+import BlurText from "./BlurText";
+import GradientText from "./GradientText";
 import { CHECKOUT_MENSAL } from "@/config/checkout";
-import { BlurText } from "./BlurText";
+
+const smoothEase = [0.25, 0.1, 0.25, 1] as const;
 
 export const HeroSection = () => {
   return (
-    <section id="top" className="relative pt-28 md:pt-36 pb-20 md:pb-28 px-4 md:px-6">
-      <div className="max-w-5xl mx-auto text-center relative z-10">
+    <section className="min-h-screen flex items-center justify-center overflow-hidden pt-20 md:pt-24">
+      <div className="container mx-auto px-4 md:px-6 py-16 md:py-32 text-center flex flex-col items-center justify-center">
         <motion.a
           href="#planos"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[hsl(var(--lp-neon)/0.4)] bg-[hsl(var(--lp-neon)/0.08)] text-sm text-white/85 hover:bg-[hsl(var(--lp-neon)/0.15)] transition-colors mb-8"
+          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1, ease: smoothEase as any }}
+          className="relative top-0 mt-0 mb-3 md:mb-4 inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-full bg-neon/10 backdrop-blur-sm border border-neon/30 hover:bg-neon/15 transition-colors cursor-pointer max-w-[95%]"
         >
-          <Sparkles size={14} className="text-[hsl(var(--lp-neon-glow))]" />
-          Planos a partir de R$ 19,90/mês
-          <ArrowRight size={14} />
+          <Sparkles className="w-4 h-4 text-neon shrink-0" />
+          <span className="text-xs md:text-sm text-foreground text-left">
+            Planos a partir de <strong className="text-neon">R$ 19,90/mês</strong>
+          </span>
+          <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </motion.a>
 
-        <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tight text-white leading-[1.05]">
-          <BlurText text="Controle total das suas" />{" "}
-          <span className="lp-italic-gradient italic font-normal">finanças</span>{" "}
-          <BlurText text="sem complicação" delay={0.4} />
+        <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-foreground mb-2 leading-tight md:leading-snug flex flex-col items-center">
+          <span className="flex items-baseline gap-x-[0.3em]">
+            <BlurText
+              text="Controle total das suas"
+              delay={60}
+              className="inline"
+              animateBy="words"
+              direction="bottom"
+              stepDuration={0.5}
+              animationFrom={{ filter: "blur(12px)", opacity: 0, y: 30 }}
+              animationTo={[
+                { filter: "blur(4px)", opacity: 0.7, y: 8 },
+                { filter: "blur(0px)", opacity: 1, y: 0 },
+              ]}
+            />
+          </span>
+          <span className="flex items-baseline gap-x-[0.3em]">
+            <motion.span
+              initial={{ filter: "blur(12px)", opacity: 0, y: 30 }}
+              animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.18, ease: smoothEase as any }}
+              className="font-playfair italic font-medium"
+            >
+              <GradientText animationSpeed={5}>finanças</GradientText>
+            </motion.span>
+            <BlurText
+              text="sem complicação"
+              delay={60}
+              className="inline"
+              animateBy="words"
+              direction="bottom"
+              stepDuration={0.5}
+              animationFrom={{ filter: "blur(12px)", opacity: 0, y: 30 }}
+              animationTo={[
+                { filter: "blur(4px)", opacity: 0.7, y: 8 },
+                { filter: "blur(0px)", opacity: 1, y: 0 },
+              ]}
+            />
+          </span>
         </h1>
 
         <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.9 }}
-          className="mt-8 text-base md:text-xl text-white/65 max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1, delay: 0.5, ease: smoothEase as any }}
+          className="text-base md:text-xl text-muted-foreground max-w-3xl mx-auto mt-6 md:mt-0 mb-8 md:mb-12 leading-relaxed px-2"
         >
-          Organize seus gastos, cartões e investimentos em um só lugar com inteligência
-          artificial que realmente te ajuda a economizar.
+          Organize seus gastos, cartões e investimentos em um só lugar com
+          inteligência artificial que realmente te ajuda a economizar.
         </motion.p>
+
+        <motion.div
+          id="cta"
+          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1, delay: 0.7, ease: smoothEase as any }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <a href={CHECKOUT_MENSAL} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+            <Button
+              size="lg"
+              className="w-full sm:w-auto bg-neon text-white hover:bg-neon-glow hover:text-white font-semibold text-base md:text-lg px-6 md:px-8 py-5 md:py-6 rounded-full transition-all duration-300 shadow-[0_0_30px_hsl(var(--lp-neon)/0.4),0_0_60px_hsl(var(--lp-neon)/0.2)]"
+            >
+              <ArrowRight className="w-5 h-5 mr-2" />
+              Começar por R$ 19,90/mês
+            </Button>
+          </a>
+          <a href="#recursos" className="w-full sm:w-auto">
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full sm:w-auto border-foreground/20 hover:bg-neon hover:border-neon hover:text-white text-foreground font-semibold text-base md:text-lg px-6 md:px-8 py-5 md:py-6 rounded-full transition-all duration-300"
+            >
+              Ver como funciona
+            </Button>
+          </a>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 1.1 }}
-          className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3"
+          transition={{ duration: 0.8, delay: 0.95, ease: smoothEase as any }}
+          className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs md:text-sm text-muted-foreground"
         >
-          <a
-            href={CHECKOUT_MENSAL}
-            className="lp-btn-primary w-full sm:w-auto px-7 py-3.5 rounded-full text-sm md:text-base"
-          >
-            Começar por R$ 19,90/mês
-          </a>
-          <a
-            href="#recursos"
-            className="lp-btn-outline w-full sm:w-auto px-7 py-3.5 rounded-full text-sm md:text-base"
-          >
-            Ver como funciona
-          </a>
+          <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-neon" /> Sem fidelidade</span>
+          <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-neon" /> Cancele quando quiser</span>
+          <span className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-neon" /> Acesso imediato</span>
         </motion.div>
-
-        <motion.ul
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 1.4 }}
-          className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs md:text-sm text-white/55"
-        >
-          {["Sem fidelidade", "Cancele quando quiser", "Acesso imediato"].map((t) => (
-            <li key={t} className="inline-flex items-center gap-1.5">
-              <Check size={14} className="text-[hsl(var(--lp-neon-glow))]" />
-              {t}
-            </li>
-          ))}
-        </motion.ul>
       </div>
     </section>
   );
 };
+
+export default HeroSection;

@@ -1,82 +1,52 @@
-import { useEffect, useRef, useState } from "react";
-import heroVideo from "@/assets/landing-hero-uploaded.mp4";
+import { useEffect, useRef } from "react";
 
+/**
+ * Full-screen background video for the landing hero.
+ * Uses hard-light blend mode + reduced opacity on scroll.
+ */
 export const HeroVideo = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [opacity, setOpacity] = useState(1);
 
   useEffect(() => {
-    const v = videoRef.current;
-    if (v) {
-      v.defaultMuted = true;
-      v.muted = true;
-      v.autoplay = true;
-      v.loop = true;
-      v.playsInline = true;
-
-      const tryPlay = () =>
-        v.play().catch((err) => console.warn("video autoplay bloqueado:", err));
-
-      v.load();
-      tryPlay();
-
-      v.addEventListener("loadeddata", tryPlay);
-      v.addEventListener("canplay", tryPlay);
-
-      // tenta de novo se houver gesto do usuário
-      const onInteract = () => tryPlay();
-      window.addEventListener("click", onInteract, { once: true });
-      window.addEventListener("touchstart", onInteract, { once: true });
-
-      return () => {
-        v.removeEventListener("loadeddata", tryPlay);
-        v.removeEventListener("canplay", tryPlay);
-        window.removeEventListener("click", onInteract);
-        window.removeEventListener("touchstart", onInteract);
-      };
-    }
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      const next = Math.max(0, 1 - y / 600);
-      setOpacity(next);
+    const handleScroll = () => {
+      if (videoRef.current) {
+        const scrollPosition = window.scrollY;
+        const maxScroll = 300;
+        const opacity = Math.max(0.3, 1 - (scrollPosition / maxScroll) * 0.7);
+        videoRef.current.style.opacity = opacity.toString();
+      }
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <div
-      className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
-      style={{ opacity }}
+      className="fixed inset-0 w-screen h-screen overflow-hidden pointer-events-none"
+      style={{ isolation: "isolate", zIndex: 0 }}
       aria-hidden
     >
       <video
         ref={videoRef}
-        src={heroVideo}
         autoPlay
-        muted
         loop
+        muted
         playsInline
-        preload="auto"
-        disablePictureInPicture
-        controls={false}
-        onError={(e) => console.error("Video playback error:", e)}
-        onLoadedData={() => console.log("[HeroVideo] loaded")}
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{ filter: "brightness(0.72) saturate(0.95)" }}
-      />
-      {/* vinheta para integrar o vídeo ao fundo preto */}
-      <div
-        className="absolute inset-0"
+        className="w-full h-full object-cover transition-opacity duration-300"
         style={{
-          background:
-            "radial-gradient(ellipse at center, transparent 35%, hsl(0 0% 0% / 0.55) 80%, hsl(0 0% 0%) 100%)",
+          mixBlendMode: "hard-light",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          filter: "brightness(0.7) contrast(2)",
         }}
-      />
+      >
+        <source src="/videos/hero-background.mp4" type="video/mp4" />
+      </video>
     </div>
   );
 };
+
+export default HeroVideo;

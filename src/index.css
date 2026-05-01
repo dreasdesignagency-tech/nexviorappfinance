@@ -394,9 +394,24 @@
   --lp-neon: 225 67% 54%;
   --lp-neon-glow: 225 78% 64%;
 
+  /* Override semantic tokens inside the landing scope so legacy
+     classes (text-foreground, bg-card, border-border, etc.) look right
+     against the dark sales page background. */
+  --background: var(--lp-bg);
+  --foreground: var(--lp-fg);
+  --card: var(--lp-card);
+  --card-foreground: var(--lp-fg);
+  --muted: var(--lp-muted);
+  --muted-foreground: var(--lp-muted-fg);
+  --border: var(--lp-border);
+  --accent: var(--lp-neon);
+  --accent-foreground: 0 0% 100%;
+
   background-color: hsl(var(--lp-bg));
   font-family: 'Inter', sans-serif;
+  color: hsl(var(--lp-fg));
 }
+
 
 .lp-root .lp-italic-gradient {
   font-family: 'Playfair Display', serif;
