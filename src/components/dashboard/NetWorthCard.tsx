@@ -104,12 +104,12 @@ export const NetWorthCard = () => {
       {/* MEIO — Seletor de meses */}
       <div className="relative py-5 flex justify-start overflow-x-auto no-scrollbar -mx-1 px-1">
         <div className="glass-inner p-1.5 inline-flex items-center gap-1 rounded-full flex-nowrap min-w-max">
-          {MONTHS.map(({ label }) => {
-            const isActive = label === activeMonth;
+          {MONTHS.map(({ label, key }) => {
+            const isActive = key === activeKey;
             return (
               <button
-                key={label}
-                onClick={() => setActiveMonth(label)}
+                key={key}
+                onClick={() => setActiveKey(key)}
                 className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition ${
                   isActive
                     ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground glow-primary shadow-[0_0_18px_hsl(var(--primary)/0.45)]"
