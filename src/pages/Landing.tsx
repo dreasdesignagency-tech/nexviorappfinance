@@ -7,6 +7,7 @@ import { NexIASection } from "@/components/landing/NexIASection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { SectionDivider } from "@/components/landing/SectionDivider";
+import { HeroVideo } from "@/components/landing/HeroVideo";
 
 const Landing = () => {
   useEffect(() => {
@@ -34,6 +35,8 @@ const Landing = () => {
       />
       {/* estrelas */}
       <div className="fixed inset-0 -z-10 opacity-40 pointer-events-none lp-stars" aria-hidden />
+      {/* vídeo de fundo da hero */}
+      <HeroVideo />
 
       <LandingNav />
 
