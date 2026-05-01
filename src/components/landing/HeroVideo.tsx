@@ -61,7 +61,6 @@ export const HeroVideo = () => {
         muted
         loop
         playsInline
-        defaultMuted
         preload="auto"
         disablePictureInPicture
         controls={false}
