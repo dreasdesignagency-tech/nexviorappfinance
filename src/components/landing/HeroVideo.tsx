@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import heroVideo from "@/assets/landing-hero.mp4";
+import heroVideo from "@/assets/landing-hero-uploaded.mp4";
 
 export const HeroVideo = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -8,14 +8,29 @@ export const HeroVideo = () => {
   useEffect(() => {
     const v = videoRef.current;
     if (v) {
+      v.defaultMuted = true;
       v.muted = true;
-      const tryPlay = () => v.play().catch((err) => console.warn("video autoplay bloqueado:", err));
+      v.autoplay = true;
+      v.loop = true;
+      v.playsInline = true;
+
+      const tryPlay = () =>
+        v.play().catch((err) => console.warn("video autoplay bloqueado:", err));
+
+      v.load();
       tryPlay();
+
+      v.addEventListener("loadeddata", tryPlay);
+      v.addEventListener("canplay", tryPlay);
+
       // tenta de novo se houver gesto do usuário
       const onInteract = () => tryPlay();
       window.addEventListener("click", onInteract, { once: true });
       window.addEventListener("touchstart", onInteract, { once: true });
+
       return () => {
+        v.removeEventListener("loadeddata", tryPlay);
+        v.removeEventListener("canplay", tryPlay);
         window.removeEventListener("click", onInteract);
         window.removeEventListener("touchstart", onInteract);
       };
@@ -46,6 +61,7 @@ export const HeroVideo = () => {
         muted
         loop
         playsInline
+        defaultMuted
         preload="auto"
         disablePictureInPicture
         controls={false}
