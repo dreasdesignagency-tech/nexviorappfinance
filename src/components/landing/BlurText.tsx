@@ -1,26 +1,113 @@
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { motion } from 'motion/react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+
+const buildKeyframes = (from: Record<string, any>, steps: Record<string, any>[]) => {
+  const keys = new Set([...Object.keys(from), ...steps.flatMap(s => Object.keys(s))]);
+
+  const keyframes: Record<string, any[]> = {};
+  keys.forEach(k => {
+    keyframes[k] = [from[k], ...steps.map(s => s[k])];
+  });
+  return keyframes;
+};
 
 interface BlurTextProps {
-  text: string;
-  className?: string;
+  text?: string;
   delay?: number;
+  className?: string;
+  animateBy?: 'words' | 'characters';
+  direction?: 'top' | 'bottom';
+  threshold?: number;
+  rootMargin?: string;
+  animationFrom?: Record<string, any>;
+  animationTo?: Record<string, any>[];
+  easing?: (t: number) => number;
+  onAnimationComplete?: () => void;
+  stepDuration?: number;
 }
 
-export const BlurText = ({ text, className, delay = 0 }: BlurTextProps) => {
-  const words = text.split(" ");
+const BlurText = ({
+  text = '',
+  delay = 200,
+  className = '',
+  animateBy = 'words',
+  direction = 'top',
+  threshold = 0.1,
+  rootMargin = '0px',
+  animationFrom,
+  animationTo,
+  easing = t => t,
+  onAnimationComplete,
+  stepDuration = 0.35
+}: BlurTextProps) => {
+  const elements = animateBy === 'words' ? text.split(' ') : text.split('');
+  const [inView, setInView] = useState(false);
+  const ref = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          if (ref.current) observer.unobserve(ref.current);
+        }
+      },
+      { threshold, rootMargin }
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [threshold, rootMargin]);
+
+  const defaultFrom = useMemo(
+    () =>
+      direction === 'top' ? { filter: 'blur(12px)', opacity: 0, y: -30 } : { filter: 'blur(12px)', opacity: 0, y: 30 },
+    [direction]
+  );
+
+  const defaultTo = useMemo(
+    () => [
+      { filter: 'blur(4px)', opacity: 0.7, y: direction === 'top' ? 4 : -4 },
+      { filter: 'blur(0px)', opacity: 1, y: 0 }
+    ],
+    [direction]
+  );
+
+  const fromSnapshot = animationFrom ?? defaultFrom;
+  const toSnapshots = animationTo ?? defaultTo;
+
+  const stepCount = toSnapshots.length + 1;
+  const totalDuration = stepDuration * (stepCount - 1);
+  const times = Array.from({ length: stepCount }, (_, i) => (stepCount === 1 ? 0 : i / (stepCount - 1)));
+
   return (
-    <span className={cn("inline-flex flex-wrap gap-x-[0.3em] gap-y-2", className)}>
-      {words.map((w, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0, filter: "blur(12px)", y: 12 }}
-          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-          transition={{ duration: 0.6, delay: delay + i * 0.08, ease: [0.2, 0.7, 0.2, 1] }}
-          className="inline-block"
-          dangerouslySetInnerHTML={{ __html: w }}
-        />
-      ))}
-    </span>
+    <p ref={ref} className={className} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+      {elements.map((segment, index) => {
+        const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
+
+        const spanTransition = {
+          duration: totalDuration,
+          times,
+          delay: (index * delay) / 1000,
+          ease: easing
+        };
+
+        return (
+          <motion.span
+            className="inline-block will-change-[transform,filter,opacity]"
+            key={index}
+            initial={fromSnapshot}
+            animate={inView ? animateKeyframes : fromSnapshot}
+            transition={spanTransition as any}
+            onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
+          >
+            {segment === ' ' ? '\u00A0' : segment}
+            {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}
+          </motion.span>
+        );
+      })}
+    </p>
   );
 };
+
+export default BlurText;

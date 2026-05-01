@@ -1,95 +1,78 @@
-import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { Logo } from "@/components/Logo";
-import { CHECKOUT_MENSAL } from "@/config/checkout";
-import { cn } from "@/lib/utils";
-
-const links = [
-  { href: "#recursos", label: "Recursos" },
-  { href: "#nex-ia", label: "nex.ia" },
-  { href: "#planos", label: "Planos" },
-];
+import logo from "@/assets/logo-nexvior.png";
+import { APP_URL } from "@/config/checkout";
 
 export const LandingNav = () => {
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const close = () => setOpen(false);
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 inset-x-0 z-50 transition-colors",
-        "backdrop-blur-2xl border-b",
-        scrolled
-          ? "bg-[hsl(var(--lp-bg)/0.7)] border-[hsl(var(--lp-border))]"
-          : "bg-[hsl(var(--lp-bg)/0.3)] border-transparent"
-      )}
-    >
-      <nav className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-        <a href="#top" className="flex items-center gap-2 shrink-0">
-          <Logo variant="white" className="h-7 w-auto" />
-          <span className="text-white font-semibold tracking-tight text-lg">Nexvior</span>
-        </a>
-
-        <ul className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-          {links.map((l) => (
-            <li key={l.href}>
-              <a
-                href={l.href}
-                className="text-sm text-white/70 hover:text-white transition-colors"
-              >
-                {l.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        <div className="hidden md:flex">
-          <a
-            href={CHECKOUT_MENSAL}
-            className="lp-btn-primary px-5 py-2.5 text-sm rounded-full"
+    <nav className="fixed top-0 left-0 right-0 z-[100] border-b border-white/10 bg-white/5 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <div className="container mx-auto px-4 md:px-6 py-2 md:py-2.5">
+        <div className="relative flex items-center justify-between h-10 md:h-11">
+          <Link
+            to="/lp"
+            className="flex items-center gap-2 z-10"
+            onClick={(e) => {
+              close();
+              if (window.location.pathname === "/lp") {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            }}
           >
-            Começar agora
+            <img
+              src={logo}
+              alt="Nexvior"
+              className="h-5 md:h-6 w-auto object-contain [filter:brightness(0)_invert(1)]"
+            />
+            <span className="text-foreground font-semibold tracking-tight text-sm md:text-base">Nexvior</span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-10 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <a href="#recursos" className="text-sm text-foreground/80 hover:text-neon transition-colors">Recursos</a>
+            <a href="#nexia" className="text-sm text-foreground/80 hover:text-neon transition-colors">nex.ia</a>
+            <a href="#beneficios" className="text-sm text-foreground/80 hover:text-neon transition-colors">Benefícios</a>
+          </div>
+
+          <a href={APP_URL} target="_blank" rel="noopener noreferrer" className="z-10">
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden md:inline-flex h-8 px-4 text-xs font-medium border-foreground/15 bg-transparent hover:bg-neon hover:border-neon hover:text-white transition-all"
+            >
+              Acessar app
+            </Button>
           </a>
+
+          <button
+            className="md:hidden text-foreground p-1.5 -mr-1.5 z-10"
+            aria-label={open ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
 
-        <button
-          className="md:hidden text-white p-2"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Abrir menu"
-        >
-          {open ? <X size={22} /> : <Menu size={22} />}
-        </button>
-      </nav>
-
-      {open && (
-        <div className="md:hidden border-t border-[hsl(var(--lp-border))] bg-[hsl(var(--lp-bg)/0.95)] backdrop-blur-2xl">
-          <div className="px-4 py-4 flex flex-col gap-3">
-            {links.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="text-white/80 py-2"
-              >
-                {l.label}
-              </a>
-            ))}
-            <a
-              href={CHECKOUT_MENSAL}
-              className="lp-btn-primary px-5 py-3 rounded-full text-center"
-            >
-              Começar agora
+        {open && (
+          <div className="md:hidden mt-3 pt-4 pb-2 border-t border-border/10 flex flex-col gap-1">
+            <a href="#recursos" onClick={close} className="text-foreground hover:text-neon transition-colors py-3 px-2">Recursos</a>
+            <a href="#nexia" onClick={close} className="text-foreground hover:text-neon transition-colors py-3 px-2">nex.ia</a>
+            <a href="#beneficios" onClick={close} className="text-foreground hover:text-neon transition-colors py-3 px-2">Benefícios</a>
+            <a href={APP_URL} target="_blank" rel="noopener noreferrer" onClick={close} className="mt-2">
+              <Button variant="outline" className="w-full border-foreground/20 hover:bg-neon hover:border-neon hover:text-white transition-all">
+                Acessar app
+              </Button>
             </a>
           </div>
-        </div>
-      )}
-    </header>
+        )}
+      </div>
+    </nav>
   );
 };
+
+export default LandingNav;
