@@ -50,7 +50,7 @@ export const HeroVideo = () => {
 
   return (
     <div
-      className="fixed inset-0 -z-[5] pointer-events-none overflow-hidden"
+      className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
       style={{ opacity }}
       aria-hidden
     >
@@ -67,7 +67,7 @@ export const HeroVideo = () => {
         onError={(e) => console.error("Video playback error:", e)}
         onLoadedData={() => console.log("[HeroVideo] loaded")}
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ mixBlendMode: "screen" }}
+        style={{ filter: "brightness(0.72) saturate(0.95)" }}
       />
       {/* vinheta para integrar o vídeo ao fundo preto */}
       <div

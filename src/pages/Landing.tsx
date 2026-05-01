@@ -23,7 +23,7 @@ const Landing = () => {
   }, []);
 
   return (
-    <div className="lp-root min-h-screen text-white">
+    <div className="lp-root relative isolate min-h-screen text-white">
       {/* fundo radial sutil */}
       <div
         className="fixed inset-0 -z-10 pointer-events-none"
@@ -38,25 +38,27 @@ const Landing = () => {
       {/* vídeo de fundo da hero */}
       <HeroVideo />
 
-      <LandingNav />
+      <div className="relative z-10">
+        <LandingNav />
 
-      <main>
-        <HeroSection />
-        <SectionDivider />
-        <TestimonialsSection />
-        <SectionDivider />
-        <FeaturesSection />
-        <SectionDivider />
-        <NexIASection />
-        <SectionDivider />
-        <PricingSection />
-        <SectionDivider />
-        <CTASection />
-      </main>
+        <main>
+          <HeroSection />
+          <SectionDivider />
+          <TestimonialsSection />
+          <SectionDivider />
+          <FeaturesSection />
+          <SectionDivider />
+          <NexIASection />
+          <SectionDivider />
+          <PricingSection />
+          <SectionDivider />
+          <CTASection />
+        </main>
 
-      <footer className="px-4 md:px-6 py-10 border-t border-[hsl(var(--lp-border))] text-center text-white/40 text-xs">
-        © {new Date().getFullYear()} Nexvior. Todos os direitos reservados.
-      </footer>
+        <footer className="px-4 md:px-6 py-10 border-t border-[hsl(var(--lp-border))] text-center text-white/40 text-xs">
+          © {new Date().getFullYear()} Nexvior. Todos os direitos reservados.
+        </footer>
+      </div>
     </div>
   );
 };
