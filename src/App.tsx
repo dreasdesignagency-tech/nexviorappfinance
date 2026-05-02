@@ -16,6 +16,8 @@ import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
 import Landing from "./pages/Landing.tsx";
+import Planos from "./pages/Planos.tsx";
+import Sucesso from "./pages/Sucesso.tsx";
 
 import AdminMembros from "./pages/AdminMembros.tsx";
 import { AdminRoute } from "@/components/AdminRoute";
@@ -56,6 +58,8 @@ const App = () => (
                         <Route path="/lp" element={<Landing />} />
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/auth/callback" element={<AuthCallback />} />
+                        <Route path="/planos" element={<Planos />} />
+                        <Route path="/sucesso" element={<Sucesso />} />
                         <Route path="/" element={<Protected><Index /></Protected>} />
                         <Route path="/transacoes" element={<Protected><Transacoes /></Protected>} />
                         <Route path="/cartoes" element={<Protected><Cartoes /></Protected>} />
