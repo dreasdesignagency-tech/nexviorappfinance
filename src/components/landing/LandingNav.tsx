@@ -13,12 +13,25 @@ export const LandingNav = () => {
   const { user, loading: authLoading } = useAuth();
   const { hasAccess, loading: subLoading } = useSubscription();
 
-  const ctaLabel = !user ? "Entrar" : hasAccess ? "Acessar app" : "Ver planos";
-  const handleCta = () => {
+  const handleEntrar = () => {
     close();
     if (!user) navigate("/auth");
-    else if (hasAccess) navigate("/");
-    else navigate("/planos");
+    else if (hasAccess) navigate("/app");
+    else {
+      const el = document.getElementById("planos");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+      else navigate("/lp#planos");
+    }
+  };
+  const handleComecar = () => {
+    close();
+    if (!user) navigate("/auth");
+    else if (hasAccess) navigate("/app");
+    else {
+      const el = document.getElementById("planos");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+      else navigate("/lp#planos");
+    }
   };
   const disabled = authLoading || (!!user && subLoading);
 
@@ -51,15 +64,25 @@ export const LandingNav = () => {
             <a href="#beneficios" className="text-sm text-foreground/80 hover:text-neon transition-colors">Benefícios</a>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={disabled}
-            onClick={handleCta}
-            className="hidden md:inline-flex h-8 px-4 text-xs font-medium border-foreground/15 bg-transparent hover:bg-neon hover:border-neon hover:text-white transition-all z-10"
-          >
-            {ctaLabel}
-          </Button>
+          <div className="hidden md:flex items-center gap-2 z-10">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={disabled}
+              onClick={handleEntrar}
+              className="h-8 px-4 text-xs font-medium border-foreground/15 bg-transparent hover:bg-neon hover:border-neon hover:text-white transition-all"
+            >
+              {!user ? "Entrar" : hasAccess ? "Acessar app" : "Entrar"}
+            </Button>
+            <Button
+              size="sm"
+              disabled={disabled}
+              onClick={handleComecar}
+              className="h-8 px-4 text-xs font-semibold bg-neon text-white hover:bg-neon-glow hover:text-white transition-all shadow-[0_0_20px_hsl(var(--lp-neon)/0.4)]"
+            >
+              Começar
+            </Button>
+          </div>
 
           <button
             className="md:hidden text-foreground p-1.5 -mr-1.5 z-10"
@@ -79,10 +102,17 @@ export const LandingNav = () => {
             <Button
               variant="outline"
               disabled={disabled}
-              onClick={handleCta}
+              onClick={handleEntrar}
               className="w-full mt-2 border-foreground/20 hover:bg-neon hover:border-neon hover:text-white transition-all"
             >
-              {ctaLabel}
+              {!user ? "Entrar" : hasAccess ? "Acessar app" : "Entrar"}
+            </Button>
+            <Button
+              disabled={disabled}
+              onClick={handleComecar}
+              className="w-full bg-neon text-white hover:bg-neon-glow hover:text-white font-semibold transition-all"
+            >
+              Começar
             </Button>
           </div>
         )}

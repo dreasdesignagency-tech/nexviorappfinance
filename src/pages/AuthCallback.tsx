@@ -7,8 +7,10 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const finalize = async () => {
+      // After confirming email / OAuth, send user to landing planos section.
+      // ProtectedRoute / sign-in flows handle access checks elsewhere.
+      const goNext = () => navigate("/lp#planos", { replace: true });
       try {
-
         const search = new URLSearchParams(window.location.search);
         const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
         const hashParams = new URLSearchParams(hash);
@@ -17,7 +19,7 @@ const AuthCallback = () => {
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
-          navigate("/", { replace: true });
+          goNext();
           return;
         }
 
@@ -26,7 +28,7 @@ const AuthCallback = () => {
         if (tokenHash && type) {
           const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
           if (error) throw error;
-          navigate("/", { replace: true });
+          goNext();
           return;
         }
 
@@ -38,13 +40,13 @@ const AuthCallback = () => {
             refresh_token: refreshToken,
           });
           if (error) throw error;
-          navigate("/", { replace: true });
+          goNext();
           return;
         }
 
         const { data } = await supabase.auth.getSession();
         if (data.session) {
-          navigate("/", { replace: true });
+          goNext();
           return;
         }
 

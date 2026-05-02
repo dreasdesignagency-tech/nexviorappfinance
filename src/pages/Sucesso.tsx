@@ -60,7 +60,7 @@ const Sucesso = () => {
         <Button
           size="lg"
           disabled={polling && !hasAccess}
-          onClick={() => navigate(hasAccess ? "/" : "/planos")}
+          onClick={() => navigate(hasAccess ? "/app" : "/planos")}
           className="w-full bg-neon text-white hover:bg-neon-glow font-semibold rounded-full"
         >
           {polling && !hasAccess ? (

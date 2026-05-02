@@ -23,7 +23,7 @@ export const PricingSection = () => {
   const { hasAccess } = useSubscription();
   const goToPlan = () => {
     if (!user) navigate("/auth");
-    else if (hasAccess) navigate("/");
+    else if (hasAccess) navigate("/app");
     else navigate("/planos");
   };
   return (
