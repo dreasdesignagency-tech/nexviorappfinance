@@ -7,8 +7,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const PRICE_MENSAL = "price_1TRNmzFOt1xqRZ5erI2M5mbc";
-const PRICE_ANUAL = "price_1TRNrUF0t1xqRZ5erI2M5mbc";
+const PRICE_MENSAL = "price_1TSdsZ2asWCLjZqeOIwfhiOd";
+const PRICE_ANUAL = "price_1TSdx62asWCLjZqe7NuEeKff";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {

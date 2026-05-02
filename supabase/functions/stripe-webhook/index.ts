@@ -7,8 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, content-type, stripe-signature",
 };
 
-const PRICE_MENSAL = "price_1TRNmzFOt1xqRZ5erI2M5mbc";
-const PRICE_ANUAL = "price_1TRNrUF0t1xqRZ5erI2M5mbc";
+const PRICE_MENSAL = "price_1TSdsZ2asWCLjZqeOIwfhiOd";
+const PRICE_ANUAL = "price_1TSdx62asWCLjZqe7NuEeKff";
 
 function planFromPriceId(priceId?: string | null): string | null {
   if (priceId === PRICE_MENSAL) return "mensal";
