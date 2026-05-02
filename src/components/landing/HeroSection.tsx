@@ -3,7 +3,7 @@ import { ArrowRight, Sparkles, Check } from "lucide-react";
 import { motion } from "motion/react";
 import BlurText from "./BlurText";
 import GradientText from "./GradientText";
-import { CHECKOUT_MENSAL } from "@/config/checkout";
+import { Link } from "react-router-dom";
 
 const smoothEase = [0.25, 0.1, 0.25, 1] as const;
 
@@ -83,7 +83,7 @@ export const HeroSection = () => {
           transition={{ duration: 1, delay: 0.7, ease: smoothEase as any }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <a href={CHECKOUT_MENSAL} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+          <Link to="/auth" className="w-full sm:w-auto">
             <Button
               size="lg"
               className="w-full sm:w-auto bg-neon text-white hover:bg-neon-glow hover:text-white font-semibold text-base md:text-lg px-6 md:px-8 py-5 md:py-6 rounded-full transition-all duration-300 shadow-[0_0_30px_hsl(var(--lp-neon)/0.4),0_0_60px_hsl(var(--lp-neon)/0.2)]"
@@ -91,7 +91,7 @@ export const HeroSection = () => {
               <ArrowRight className="w-5 h-5 mr-2" />
               Começar por R$ 19,90/mês
             </Button>
-          </a>
+          </Link>
           <a href="#recursos" className="w-full sm:w-auto">
             <Button
               size="lg"
