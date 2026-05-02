@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { redirectToOfficialLocation, shouldForceOfficialDomain } from "@/lib/auth-urls";
+import { supabase } from "@/lib/supabase";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -9,10 +9,6 @@ const AuthCallback = () => {
   useEffect(() => {
     const finalize = async () => {
       try {
-        if (shouldForceOfficialDomain()) {
-          redirectToOfficialLocation("/auth/callback", window.location.search, window.location.hash);
-          return;
-        }
 
         const search = new URLSearchParams(window.location.search);
         const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
