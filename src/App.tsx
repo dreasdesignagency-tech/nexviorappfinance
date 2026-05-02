@@ -55,12 +55,13 @@ const App = () => (
                     <LimitsProvider>
                       <NotificationsProvider>
                         <Routes>
+                        <Route path="/" element={<Landing />} />
                         <Route path="/lp" element={<Landing />} />
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/auth/callback" element={<AuthCallback />} />
                         <Route path="/planos" element={<Planos />} />
                         <Route path="/sucesso" element={<Sucesso />} />
-                        <Route path="/" element={<Protected><Index /></Protected>} />
+                        <Route path="/app" element={<Protected><Index /></Protected>} />
                         <Route path="/transacoes" element={<Protected><Transacoes /></Protected>} />
                         <Route path="/cartoes" element={<Protected><Cartoes /></Protected>} />
                         <Route path="/recorrentes" element={<Protected><Recorrentes /></Protected>} />
