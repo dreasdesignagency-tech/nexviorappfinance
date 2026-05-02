@@ -102,10 +102,17 @@ export const LandingNav = () => {
             <Button
               variant="outline"
               disabled={disabled}
-              onClick={handleCta}
+              onClick={handleEntrar}
               className="w-full mt-2 border-foreground/20 hover:bg-neon hover:border-neon hover:text-white transition-all"
             >
-              {ctaLabel}
+              {!user ? "Entrar" : hasAccess ? "Acessar app" : "Entrar"}
+            </Button>
+            <Button
+              disabled={disabled}
+              onClick={handleComecar}
+              className="w-full bg-neon text-white hover:bg-neon-glow hover:text-white font-semibold transition-all"
+            >
+              Começar
             </Button>
           </div>
         )}
