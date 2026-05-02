@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingDown } from "lucide-react";
-import { CHECKOUT_MENSAL, CHECKOUT_ANUAL } from "@/config/checkout";
+import { Link } from "react-router-dom";
 
 export const CTASection = () => {
   return (
@@ -15,7 +15,7 @@ export const CTASection = () => {
             Crie sua conta em menos de um minuto e comece agora.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 max-w-2xl mx-auto">
-            <a href={CHECKOUT_MENSAL} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+            <Link to="/auth" className="w-full sm:w-auto">
               <Button
                 size="lg"
                 className="w-full sm:w-auto bg-neon text-white hover:bg-neon-glow hover:text-white font-semibold text-sm md:text-base px-5 md:px-7 py-4 md:py-5 rounded-full transition-all duration-300 shadow-[0_0_30px_hsl(var(--lp-neon)/0.4)]"
@@ -23,8 +23,8 @@ export const CTASection = () => {
                 <ArrowRight className="w-4 h-4 md:w-5 md:h-5 mr-2 shrink-0" />
                 Começar agora
               </Button>
-            </a>
-            <a href={CHECKOUT_ANUAL} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+            </Link>
+            <Link to="/auth" className="w-full sm:w-auto">
               <Button
                 size="lg"
                 variant="outline"
@@ -33,7 +33,7 @@ export const CTASection = () => {
                 <TrendingDown className="w-4 h-4 md:w-5 md:h-5 mr-2 shrink-0" />
                 Economizar no anual
               </Button>
-            </a>
+            </Link>
           </div>
           <p className="text-xs text-muted-foreground mt-6">
             Leva menos de 1 minuto para começar • Sem fidelidade • Acesso imediato

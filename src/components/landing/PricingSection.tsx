@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles } from "lucide-react";
-import { CHECKOUT_MENSAL, CHECKOUT_ANUAL } from "@/config/checkout";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/store/auth";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const monthlyBenefits = [
   "Controle total de finanças",
@@ -16,6 +18,14 @@ const annualBenefits = [
 ];
 
 export const PricingSection = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { hasAccess } = useSubscription();
+  const goToPlan = () => {
+    if (!user) navigate("/auth");
+    else if (hasAccess) navigate("/");
+    else navigate("/planos");
+  };
   return (
     <section id="planos" className="relative py-20 md:py-28 px-4 md:px-6 overflow-hidden">
       <div className="container mx-auto max-w-6xl">
@@ -50,15 +60,14 @@ export const PricingSection = () => {
               ))}
             </ul>
 
-            <a href={CHECKOUT_MENSAL} target="_blank" rel="noopener noreferrer" className="block">
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full border-white/20 bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 hover:border-white/40 hover:text-white font-semibold rounded-full transition-all duration-300"
-              >
-                Começar agora
-              </Button>
-            </a>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={goToPlan}
+              className="w-full border-white/20 bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 hover:border-white/40 hover:text-white font-semibold rounded-full transition-all duration-300"
+            >
+              Começar agora
+            </Button>
 
             <p className="mt-4 text-center text-xs text-muted-foreground">Cancele quando quiser. Sem fidelidade.</p>
             <p className="text-center text-xs text-muted-foreground">Acesso imediato após pagamento</p>
@@ -93,14 +102,13 @@ export const PricingSection = () => {
               ))}
             </ul>
 
-            <a href={CHECKOUT_ANUAL} target="_blank" rel="noopener noreferrer" className="block">
-              <Button
-                size="lg"
-                className="w-full bg-neon text-white hover:bg-neon-glow hover:text-white font-semibold rounded-full transition-all duration-300 shadow-[0_0_30px_hsl(var(--lp-neon)/0.5)] hover:shadow-[0_0_40px_hsl(var(--lp-neon)/0.7)]"
-              >
-                Quero economizar
-              </Button>
-            </a>
+            <Button
+              size="lg"
+              onClick={goToPlan}
+              className="w-full bg-neon text-white hover:bg-neon-glow hover:text-white font-semibold rounded-full transition-all duration-300 shadow-[0_0_30px_hsl(var(--lp-neon)/0.5)] hover:shadow-[0_0_40px_hsl(var(--lp-neon)/0.7)]"
+            >
+              Quero economizar
+            </Button>
 
             <p className="mt-4 text-center text-xs text-muted-foreground">Cancele quando quiser. Sem fidelidade.</p>
             <p className="text-center text-xs text-muted-foreground">Acesso imediato após pagamento</p>

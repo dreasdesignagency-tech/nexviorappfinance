@@ -1,13 +1,26 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import logo from "@/assets/logo-nexvior.png";
-import { APP_URL } from "@/config/checkout";
+import { useAuth } from "@/store/auth";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export const LandingNav = () => {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { hasAccess, loading: subLoading } = useSubscription();
+
+  const ctaLabel = !user ? "Entrar" : hasAccess ? "Acessar app" : "Ver planos";
+  const handleCta = () => {
+    close();
+    if (!user) navigate("/auth");
+    else if (hasAccess) navigate("/");
+    else navigate("/planos");
+  };
+  const disabled = authLoading || (!!user && subLoading);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-[100] border-b border-white/10 bg-white/5 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)]">
@@ -38,15 +51,15 @@ export const LandingNav = () => {
             <a href="#beneficios" className="text-sm text-foreground/80 hover:text-neon transition-colors">Benefícios</a>
           </div>
 
-          <a href={APP_URL} target="_blank" rel="noopener noreferrer" className="z-10">
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden md:inline-flex h-8 px-4 text-xs font-medium border-foreground/15 bg-transparent hover:bg-neon hover:border-neon hover:text-white transition-all"
-            >
-              Acessar app
-            </Button>
-          </a>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={disabled}
+            onClick={handleCta}
+            className="hidden md:inline-flex h-8 px-4 text-xs font-medium border-foreground/15 bg-transparent hover:bg-neon hover:border-neon hover:text-white transition-all z-10"
+          >
+            {ctaLabel}
+          </Button>
 
           <button
             className="md:hidden text-foreground p-1.5 -mr-1.5 z-10"
@@ -63,11 +76,14 @@ export const LandingNav = () => {
             <a href="#recursos" onClick={close} className="text-foreground hover:text-neon transition-colors py-3 px-2">Recursos</a>
             <a href="#nexia" onClick={close} className="text-foreground hover:text-neon transition-colors py-3 px-2">nex.ia</a>
             <a href="#beneficios" onClick={close} className="text-foreground hover:text-neon transition-colors py-3 px-2">Benefícios</a>
-            <a href={APP_URL} target="_blank" rel="noopener noreferrer" onClick={close} className="mt-2">
-              <Button variant="outline" className="w-full border-foreground/20 hover:bg-neon hover:border-neon hover:text-white transition-all">
-                Acessar app
-              </Button>
-            </a>
+            <Button
+              variant="outline"
+              disabled={disabled}
+              onClick={handleCta}
+              className="w-full mt-2 border-foreground/20 hover:bg-neon hover:border-neon hover:text-white transition-all"
+            >
+              {ctaLabel}
+            </Button>
           </div>
         )}
       </div>
