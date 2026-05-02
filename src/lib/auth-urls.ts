@@ -1,23 +1,25 @@
-// Same-domain auth: always operate on the current origin to avoid cross-domain
-// jumps between the Lovable preview/published domain and any external host.
-export const OFFICIAL_APP_URL =
-  typeof window !== "undefined"
-    ? window.location.origin
-    : "https://nexviorappfinance.lovable.app";
-
-export const OFFICIAL_HOST =
-  typeof window !== "undefined"
-    ? window.location.hostname
-    : "nexviorappfinance.lovable.app";
+// Official public domain (Vercel). All auth redirects and shareable links
+// must point here so confirmation emails never open the Lovable preview
+// (which shows a "Request Access" screen) or any other host.
+export const OFFICIAL_APP_URL = "https://nexviorappfinance.vercel.app";
+export const OFFICIAL_HOST = "nexviorappfinance.vercel.app";
 
 export const isLocalHostname = (hostname: string) =>
   hostname === "localhost" || hostname === "127.0.0.1" || hostname.endsWith(".local");
 
 export const isLovableHostname = (hostname: string) => hostname.includes("lovable.app");
 
+/**
+ * Returns the origin to use for auth redirects and public links.
+ * - In local dev: use the current origin (so callbacks work on localhost).
+ * - Everywhere else (Lovable preview, published .lovable.app, Vercel):
+ *   always use the official Vercel domain.
+ */
 export const getAppOrigin = () => {
   if (typeof window === "undefined") return OFFICIAL_APP_URL;
-  return window.location.origin;
+  const host = window.location.hostname;
+  if (isLocalHostname(host)) return window.location.origin;
+  return OFFICIAL_APP_URL;
 };
 
 export const getAuthCallbackUrl = () => `${getAppOrigin()}/auth/callback`;
@@ -29,9 +31,24 @@ export const buildOfficialUrl = (pathname = "/", search = "", hash = "") => {
   return url.toString();
 };
 
-// Same-domain mode: never force a cross-domain redirect.
-export const shouldForceOfficialDomain = () => false;
+/**
+ * If the user lands on a non-official, non-local host (e.g. the Lovable
+ * preview or published .lovable.app URL), bounce to the same path on the
+ * official Vercel domain.
+ */
+export const shouldForceOfficialDomain = () => {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  if (isLocalHostname(host)) return false;
+  return host !== OFFICIAL_HOST;
+};
 
 export const redirectToOfficialLocation = () => {
-  // no-op in same-domain mode
+  if (typeof window === "undefined") return;
+  const target = buildOfficialUrl(
+    window.location.pathname,
+    window.location.search,
+    window.location.hash,
+  );
+  window.location.replace(target);
 };
