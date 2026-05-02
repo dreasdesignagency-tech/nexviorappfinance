@@ -35,7 +35,7 @@ const Planos = () => {
 
   useEffect(() => {
     if (!subLoading && hasAccess) {
-      navigate("/", { replace: true });
+      navigate("/app", { replace: true });
     }
   }, [subLoading, hasAccess, navigate]);
 

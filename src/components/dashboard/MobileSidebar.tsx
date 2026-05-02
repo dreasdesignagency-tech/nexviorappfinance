@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/Logo";
 
 const items = [
-  { icon: Home, label: "Dashboard", to: "/" },
+  { icon: Home, label: "Dashboard", to: "/app" },
   { icon: ArrowLeftRight, label: "Transações", to: "/transacoes" },
   { icon: CreditCard, label: "Cartões", to: "/cartoes" },
   { icon: Repeat, label: "Parcelas & Assinaturas", to: "/recorrentes" },
@@ -78,7 +78,7 @@ export const MobileSidebar = ({ className }: MobileSidebarProps) => {
                 <NavLink
                   key={i}
                   to={item.to}
-                  end={item.to === "/"}
+                  end={item.to === "/app"}
                   className={navClass}
                   onClick={() => setOpen(false)}
                 >
