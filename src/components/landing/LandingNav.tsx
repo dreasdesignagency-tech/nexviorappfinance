@@ -13,12 +13,25 @@ export const LandingNav = () => {
   const { user, loading: authLoading } = useAuth();
   const { hasAccess, loading: subLoading } = useSubscription();
 
-  const ctaLabel = !user ? "Entrar" : hasAccess ? "Acessar app" : "Ver planos";
-  const handleCta = () => {
+  const handleEntrar = () => {
     close();
     if (!user) navigate("/auth");
-    else if (hasAccess) navigate("/");
-    else navigate("/planos");
+    else if (hasAccess) navigate("/app");
+    else {
+      const el = document.getElementById("planos");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+      else navigate("/lp#planos");
+    }
+  };
+  const handleComecar = () => {
+    close();
+    if (!user) navigate("/auth");
+    else if (hasAccess) navigate("/app");
+    else {
+      const el = document.getElementById("planos");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+      else navigate("/lp#planos");
+    }
   };
   const disabled = authLoading || (!!user && subLoading);
 
