@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
 import AuthCallback from "./pages/AuthCallback.tsx";
 import Landing from "./pages/Landing.tsx";
+import { LandingGate } from "@/components/LandingGate";
 import Planos from "./pages/Planos.tsx";
 import Sucesso from "./pages/Sucesso.tsx";
 
@@ -55,7 +56,7 @@ const App = () => (
                     <LimitsProvider>
                       <NotificationsProvider>
                         <Routes>
-                        <Route path="/" element={<Landing />} />
+                        <Route path="/" element={<LandingGate />} />
                         <Route path="/lp" element={<Landing />} />
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/login" element={<Auth />} />
