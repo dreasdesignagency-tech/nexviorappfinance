@@ -14,6 +14,8 @@ import { useAuth } from "@/store/auth";
 import { useSubscription } from "@/hooks/useSubscription";
 
 const Landing = () => {
+  const { user, loading: authLoading } = useAuth();
+  const { hasAccess, loading: subLoading } = useSubscription();
   useEffect(() => {
     document.title = "Nexvior — Controle total das suas finanças com IA";
     const meta =
