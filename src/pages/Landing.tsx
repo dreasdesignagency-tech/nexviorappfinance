@@ -41,7 +41,7 @@ const Landing = () => {
   }
 
   return (
-    <div className="lp-root relative min-h-screen text-foreground">
+    <div className="lp-root relative min-h-screen text-foreground font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Background video covers viewport behind content */}
       <HeroVideo />
 
