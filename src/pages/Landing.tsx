@@ -28,6 +28,18 @@ const Landing = () => {
     if (!meta.parentNode) document.head.appendChild(meta);
   }, []);
 
+  if (authLoading || (user && subLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground text-sm">
+        Carregando…
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to={hasAccess ? "/app" : "/planos"} replace />;
+  }
+
   return (
     <div className="lp-root relative min-h-screen text-foreground">
       {/* Background video covers viewport behind content */}
