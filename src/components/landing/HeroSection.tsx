@@ -25,45 +25,41 @@ export const HeroSection = () => {
           <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </motion.a>
 
-        <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-foreground mb-2 leading-tight md:leading-snug flex flex-col items-center">
-          <span className="flex items-baseline gap-x-[0.3em]">
-            <BlurText
-              text="Controle total das suas"
-              delay={60}
-              className="inline"
-              animateBy="words"
-              direction="bottom"
-              stepDuration={0.5}
-              animationFrom={{ filter: "blur(12px)", opacity: 0, y: 30 }}
-              animationTo={[
-                { filter: "blur(4px)", opacity: 0.7, y: 8 },
-                { filter: "blur(0px)", opacity: 1, y: 0 },
-              ]}
-            />
-          </span>
-          <span className="flex items-baseline gap-x-[0.3em]">
-            <motion.span
-              initial={{ filter: "blur(12px)", opacity: 0, y: 30 }}
-              animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.18, ease: smoothEase as any }}
-              className="font-playfair italic font-medium"
-            >
-              <GradientText animationSpeed={5}>finanças</GradientText>
-            </motion.span>
-            <BlurText
-              text="sem complicação"
-              delay={60}
-              className="inline"
-              animateBy="words"
-              direction="bottom"
-              stepDuration={0.5}
-              animationFrom={{ filter: "blur(12px)", opacity: 0, y: 30 }}
-              animationTo={[
-                { filter: "blur(4px)", opacity: 0.7, y: 8 },
-                { filter: "blur(0px)", opacity: 1, y: 0 },
-              ]}
-            />
-          </span>
+        <h1 className="text-[2rem] xs:text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-foreground mb-2 leading-[1.1] md:leading-snug max-w-[20ch] mx-auto text-balance">
+          <BlurText
+            text="Controle total das suas"
+            delay={60}
+            className="inline"
+            animateBy="words"
+            direction="bottom"
+            stepDuration={0.5}
+            animationFrom={{ filter: "blur(12px)", opacity: 0, y: 30 }}
+            animationTo={[
+              { filter: "blur(4px)", opacity: 0.7, y: 8 },
+              { filter: "blur(0px)", opacity: 1, y: 0 },
+            ]}
+          />{" "}
+          <motion.span
+            initial={{ filter: "blur(12px)", opacity: 0, y: 30 }}
+            animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.18, ease: smoothEase as any }}
+            className="font-playfair italic font-medium inline"
+          >
+            <GradientText animationSpeed={5}>finanças</GradientText>
+          </motion.span>{" "}
+          <BlurText
+            text="sem complicação"
+            delay={60}
+            className="inline"
+            animateBy="words"
+            direction="bottom"
+            stepDuration={0.5}
+            animationFrom={{ filter: "blur(12px)", opacity: 0, y: 30 }}
+            animationTo={[
+              { filter: "blur(4px)", opacity: 0.7, y: 8 },
+              { filter: "blur(0px)", opacity: 1, y: 0 },
+            ]}
+          />
         </h1>
 
         <motion.p

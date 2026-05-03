@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
@@ -9,8 +10,12 @@ import { CTASection } from "@/components/landing/CTASection";
 import { SectionDivider } from "@/components/landing/SectionDivider";
 import { HeroVideo } from "@/components/landing/HeroVideo";
 import logoFooter from "@/assets/logo-nexvior-white.png";
+import { useAuth } from "@/store/auth";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const Landing = () => {
+  const { user, loading: authLoading } = useAuth();
+  const { hasAccess, loading: subLoading } = useSubscription();
   useEffect(() => {
     document.title = "Nexvior — Controle total das suas finanças com IA";
     const meta =
@@ -22,6 +27,18 @@ const Landing = () => {
     );
     if (!meta.parentNode) document.head.appendChild(meta);
   }, []);
+
+  if (authLoading || (user && subLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground text-sm">
+        Carregando…
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to={hasAccess ? "/app" : "/planos"} replace />;
+  }
 
   return (
     <div className="lp-root relative min-h-screen text-foreground">
