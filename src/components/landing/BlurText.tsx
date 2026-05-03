@@ -42,7 +42,7 @@ const BlurText = ({
 }: BlurTextProps) => {
   const elements = animateBy === 'words' ? text.split(' ') : text.split('');
   const [inView, setInView] = useState(false);
-  const ref = useRef<HTMLParagraphElement>(null);
+  const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (!ref.current) return;
