@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
@@ -9,6 +10,8 @@ import { CTASection } from "@/components/landing/CTASection";
 import { SectionDivider } from "@/components/landing/SectionDivider";
 import { HeroVideo } from "@/components/landing/HeroVideo";
 import logoFooter from "@/assets/logo-nexvior-white.png";
+import { useAuth } from "@/store/auth";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const Landing = () => {
   useEffect(() => {
