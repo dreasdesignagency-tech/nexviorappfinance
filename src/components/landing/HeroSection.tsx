@@ -74,6 +74,21 @@ export const HeroSection = () => {
           </span>
         </h1>
 
+        {/* Mobile: badge below the title */}
+        <motion.a
+          href="#planos"
+          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1, delay: 0.3, ease: smoothEase as any }}
+          className="md:hidden mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-full bg-neon/10 backdrop-blur-sm border border-neon/30 hover:bg-neon/15 transition-colors cursor-pointer max-w-[95%]"
+        >
+          <Sparkles className="w-4 h-4 text-neon shrink-0" />
+          <span className="text-xs text-foreground text-left">
+            Planos a partir de <strong className="text-neon">R$ 19,90/mês</strong>
+          </span>
+          <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
+        </motion.a>
+
         <motion.p
           initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
