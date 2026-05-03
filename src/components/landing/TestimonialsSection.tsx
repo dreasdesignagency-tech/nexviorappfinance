@@ -51,7 +51,7 @@ export const TestimonialsSection = () => {
             <span className="text-xs md:text-sm text-neon font-medium">Quem usa, recomenda</span>
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 md:mb-6 leading-tight">
-            Histórias reais de quem assumiu o <span className="font-playfair italic">controle</span>
+            Histórias reais de quem assumiu o <span className="italic">controle</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
             Veja o que os usuários do Nexvior estão dizendo sobre como o app transformou a relação deles com o dinheiro.

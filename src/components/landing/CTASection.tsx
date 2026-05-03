@@ -8,7 +8,7 @@ export const CTASection = () => {
       <div className="container mx-auto max-w-4xl">
         <div className="rounded-2xl md:rounded-3xl border border-border/40 bg-gradient-to-br from-card/60 to-muted/20 backdrop-blur-md p-6 md:p-16 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-foreground mb-4 md:mb-6 leading-tight">
-            Comece a organizar suas finanças <span className="font-playfair italic">hoje</span>
+            Comece a organizar suas finanças <span className="italic">hoje</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-8 md:mb-10">
             Junte-se aos usuários que já estão tomando decisões financeiras mais inteligentes com o Nexvior.

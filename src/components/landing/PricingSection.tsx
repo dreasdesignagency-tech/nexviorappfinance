@@ -31,7 +31,7 @@ export const PricingSection = () => {
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-14 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
-            Escolha o plano <span className="font-playfair italic">ideal</span> para você
+            Escolha o plano <span className="italic">ideal</span> para você
           </h2>
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             Comece a organizar sua vida financeira hoje mesmo

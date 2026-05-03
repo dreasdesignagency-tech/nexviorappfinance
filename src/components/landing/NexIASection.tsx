@@ -19,7 +19,7 @@ export const NexIASection = () => {
               <span className="text-sm text-neon font-medium">nex.ia • IA financeira</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 md:mb-6 leading-tight">
-              Uma mentora financeira <span className="font-playfair italic">no seu bolso</span>
+              Uma mentora financeira <span className="italic">no seu bolso</span>
             </h2>
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed mb-6">
               Pergunte qualquer coisa sobre o seu dinheiro e receba uma resposta{" "}
