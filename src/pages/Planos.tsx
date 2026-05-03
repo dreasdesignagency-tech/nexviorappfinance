@@ -39,27 +39,18 @@ const Planos = () => {
     }
   }, [subLoading, hasAccess, navigate]);
 
-  const handleCheckout = async (plan: "mensal" | "anual") => {
+  const STRIPE_LINKS = {
+    mensal: "https://buy.stripe.com/3cI4gs17H3LT9BI91V6Na01",
+    anual: "https://buy.stripe.com/3cIfZag2B3LT5lsce76Na00",
+  } as const;
+
+  const handleCheckout = (plan: "mensal" | "anual") => {
     if (!user) {
       navigate("/auth");
       return;
     }
     setLoadingPlan(plan);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { plan, origin: window.location.origin },
-      });
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error("URL de checkout não retornada");
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Não foi possível iniciar o pagamento. Tente novamente.");
-      setLoadingPlan(null);
-    }
+    window.location.href = STRIPE_LINKS[plan];
   };
 
   return (
