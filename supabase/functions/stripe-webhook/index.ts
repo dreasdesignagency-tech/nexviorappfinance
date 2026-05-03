@@ -49,104 +49,178 @@ Deno.serve(async (req) => {
     return new Response("Invalid signature", { status: 400 });
   }
 
+  // Find a Supabase user_id by checking metadata, client_reference_id, customer, or email.
+  async function resolveUserId(opts: {
+    metadataUserId?: string | null;
+    clientReferenceId?: string | null;
+    customerId?: string | null;
+    email?: string | null;
+  }): Promise<string | null> {
+    if (opts.metadataUserId) return opts.metadataUserId;
+    if (opts.clientReferenceId) return opts.clientReferenceId;
+
+    if (opts.customerId) {
+      const r = await admin
+        .from("user_subscriptions")
+        .select("user_id")
+        .eq("stripe_customer_id", opts.customerId)
+        .maybeSingle();
+      if (r.data?.user_id) return r.data.user_id as string;
+    }
+
+    if (opts.email) {
+      // Search auth users by email
+      try {
+        // @ts-ignore - admin API
+        const { data, error } = await admin.auth.admin.listUsers({
+          page: 1,
+          perPage: 200,
+        });
+        if (!error && data?.users) {
+          const match = data.users.find(
+            (u: any) => u.email?.toLowerCase() === opts.email!.toLowerCase(),
+          );
+          if (match) return match.id as string;
+        }
+      } catch (e) {
+        console.error("listUsers failed", e);
+      }
+    }
+    return null;
+  }
+
+  async function upsertFromSubscription(
+    userId: string,
+    sub: Stripe.Subscription,
+    customerId: string | null,
+  ) {
+    const priceId = sub.items.data[0]?.price?.id;
+    const planType = planFromPriceId(priceId);
+    await admin.from("user_subscriptions").upsert(
+      {
+        user_id: userId,
+        stripe_customer_id: customerId,
+        stripe_subscription_id: sub.id,
+        subscription_status: sub.status,
+        plan_type: planType,
+        current_period_start: new Date(sub.current_period_start * 1000)
+          .toISOString(),
+        current_period_end: new Date(sub.current_period_end * 1000)
+          .toISOString(),
+        cancel_at_period_end: sub.cancel_at_period_end,
+        canceled_at: sub.canceled_at
+          ? new Date(sub.canceled_at * 1000).toISOString()
+          : null,
+      },
+      { onConflict: "user_id" },
+    );
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const userId = (session.metadata?.supabase_user_id ??
-          (session.subscription as any)?.metadata?.supabase_user_id) as
-            | string
-            | undefined;
         const subscriptionId = session.subscription as string | null;
         const customerId = session.customer as string | null;
-        if (!userId || !subscriptionId) break;
+        const email = session.customer_details?.email ??
+          session.customer_email ?? null;
+
+        const userId = await resolveUserId({
+          metadataUserId: session.metadata?.supabase_user_id,
+          clientReferenceId: session.client_reference_id,
+          customerId,
+          email,
+        });
+        if (!userId || !subscriptionId) {
+          console.warn("checkout.session.completed: missing userId or subscriptionId", {
+            userId, subscriptionId, email,
+          });
+          break;
+        }
 
         const sub = await stripe.subscriptions.retrieve(subscriptionId);
-        const priceId = sub.items.data[0]?.price?.id;
-        const planType = planFromPriceId(priceId) ??
-          (session.metadata?.plan_type as string | undefined) ?? null;
-
-        await admin
-          .from("user_subscriptions")
-          .upsert(
-            {
-              user_id: userId,
-              stripe_customer_id: customerId,
-              stripe_subscription_id: subscriptionId,
-              subscription_status: sub.status,
-              plan_type: planType,
-              current_period_start: new Date(
-                sub.current_period_start * 1000,
-              ).toISOString(),
-              current_period_end: new Date(
-                sub.current_period_end * 1000,
-              ).toISOString(),
-              cancel_at_period_end: sub.cancel_at_period_end,
-              canceled_at: sub.canceled_at
-                ? new Date(sub.canceled_at * 1000).toISOString()
-                : null,
-            },
-            { onConflict: "user_id" },
-          );
+        await upsertFromSubscription(userId, sub, customerId);
         break;
       }
+
       case "customer.subscription.created":
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         const customerId = sub.customer as string;
-        const userId = (sub.metadata?.supabase_user_id as string | undefined) ??
-          null;
-        const priceId = sub.items.data[0]?.price?.id;
-        const planType = planFromPriceId(priceId);
 
-        // Find row by stripe_customer_id or stripe_subscription_id
-        let row;
-        if (userId) {
-          const r = await admin
-            .from("user_subscriptions")
-            .select("id")
-            .eq("user_id", userId)
-            .maybeSingle();
-          row = r.data;
-        }
-        if (!row) {
-          const r = await admin
-            .from("user_subscriptions")
-            .select("id, user_id")
-            .eq("stripe_customer_id", customerId)
-            .maybeSingle();
-          row = r.data;
-        }
-        if (!row) {
-          console.warn("No matching subscription row for customer", customerId);
+        // Try to fetch customer email for fallback matching
+        let email: string | null = null;
+        try {
+          const customer = await stripe.customers.retrieve(customerId);
+          if (customer && !(customer as any).deleted) {
+            email = (customer as Stripe.Customer).email ?? null;
+          }
+        } catch (_) { /* ignore */ }
+
+        const userId = await resolveUserId({
+          metadataUserId: sub.metadata?.supabase_user_id,
+          customerId,
+          email,
+        });
+        if (!userId) {
+          console.warn("subscription event: no matching user", { customerId, email });
           break;
         }
 
-        await admin
-          .from("user_subscriptions")
-          .update({
-            stripe_subscription_id: sub.id,
+        const status = event.type === "customer.subscription.deleted"
+          ? "canceled"
+          : sub.status;
+
+        await admin.from("user_subscriptions").upsert(
+          {
+            user_id: userId,
             stripe_customer_id: customerId,
-            subscription_status:
-              event.type === "customer.subscription.deleted"
-                ? "canceled"
-                : sub.status,
-            plan_type: planType ?? undefined,
-            current_period_start: new Date(
-              sub.current_period_start * 1000,
-            ).toISOString(),
-            current_period_end: new Date(
-              sub.current_period_end * 1000,
-            ).toISOString(),
+            stripe_subscription_id: sub.id,
+            subscription_status: status,
+            plan_type: planFromPriceId(sub.items.data[0]?.price?.id) ?? undefined,
+            current_period_start: new Date(sub.current_period_start * 1000)
+              .toISOString(),
+            current_period_end: new Date(sub.current_period_end * 1000)
+              .toISOString(),
             cancel_at_period_end: sub.cancel_at_period_end,
             canceled_at: sub.canceled_at
               ? new Date(sub.canceled_at * 1000).toISOString()
               : null,
-          })
-          .eq("id", row.id);
+          },
+          { onConflict: "user_id" },
+        );
         break;
       }
+
+      case "invoice.payment_succeeded":
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId = invoice.subscription as string | null;
+        const customerId = invoice.customer as string | null;
+        if (!subscriptionId || !customerId) break;
+
+        let email: string | null = invoice.customer_email ?? null;
+        if (!email) {
+          try {
+            const customer = await stripe.customers.retrieve(customerId);
+            if (customer && !(customer as any).deleted) {
+              email = (customer as Stripe.Customer).email ?? null;
+            }
+          } catch (_) { /* ignore */ }
+        }
+
+        const userId = await resolveUserId({ customerId, email });
+        if (!userId) {
+          console.warn("invoice event: no matching user", { customerId, email });
+          break;
+        }
+
+        const sub = await stripe.subscriptions.retrieve(subscriptionId);
+        await upsertFromSubscription(userId, sub, customerId);
+        break;
+      }
+
       default:
         // ignore other events
         break;
