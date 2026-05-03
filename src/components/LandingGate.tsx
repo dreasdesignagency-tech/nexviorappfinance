@@ -7,7 +7,8 @@ export const LandingGate = () => {
 
   const isInstalledApp = (() => {
     if (typeof window === "undefined") return false;
-    return window.matchMedia("(display-mode: standalone)").matches || Boolean(window.navigator.standalone);
+    const iosNavigator = window.navigator as Navigator & { standalone?: boolean };
+    return window.matchMedia("(display-mode: standalone)").matches || Boolean(iosNavigator.standalone);
   })();
 
   if (loading) {
