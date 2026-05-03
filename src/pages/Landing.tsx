@@ -8,6 +8,7 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { SectionDivider } from "@/components/landing/SectionDivider";
 import { HeroVideo } from "@/components/landing/HeroVideo";
+import logoFooter from "@/assets/logo-nexvior-white.png";
 
 const Landing = () => {
   useEffect(() => {
@@ -51,8 +52,13 @@ const Landing = () => {
         <SectionDivider />
         <CTASection />
 
-        <footer className="px-4 md:px-6 py-10 border-t border-border/30 text-center text-muted-foreground text-xs">
-          © {new Date().getFullYear()} Nexvior. Todos os direitos reservados.
+        <footer className="px-4 md:px-6 py-10 border-t border-border/30 flex flex-col items-center gap-3 text-muted-foreground text-xs">
+          <img
+            src={logoFooter}
+            alt="Nexvior"
+            className="h-8 w-auto opacity-90"
+          />
+          <span>© {new Date().getFullYear()} Nexvior. Todos os direitos reservados.</span>
         </footer>
       </div>
     </div>
