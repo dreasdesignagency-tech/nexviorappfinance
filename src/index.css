@@ -500,3 +500,28 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
 }
+
+/* Subtle attention-grabbing pulse for ALL buttons inside the landing page */
+@keyframes lp-btn-pulse {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 0 0 0 hsl(var(--lp-neon) / 0.45);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 0 0 10px hsl(var(--lp-neon) / 0);
+  }
+}
+
+.lp-root button,
+.lp-root a > button {
+  animation: lp-btn-pulse 2.6s ease-in-out infinite;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+.lp-root button:hover,
+.lp-root a:hover > button {
+  animation-play-state: paused;
+  transform: translateY(-3px) scale(1.04);
+  filter: brightness(1.08);
+}
+
