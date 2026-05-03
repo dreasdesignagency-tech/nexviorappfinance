@@ -46,11 +46,16 @@ const Planos = () => {
 
   const handleCheckout = (plan: "mensal" | "anual") => {
     if (!user) {
-      navigate("/auth");
+      navigate("/login");
       return;
     }
     setLoadingPlan(plan);
-    window.location.href = STRIPE_LINKS[plan];
+    const base = STRIPE_LINKS[plan];
+    const params = new URLSearchParams({
+      client_reference_id: user.id,
+      prefilled_email: user.email ?? "",
+    });
+    window.location.href = `${base}?${params.toString()}`;
   };
 
   return (
