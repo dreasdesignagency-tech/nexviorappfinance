@@ -11,15 +11,16 @@ export const HeroSection = () => {
   return (
     <section className="min-h-screen flex items-center justify-center overflow-hidden pt-20 md:pt-24">
       <div className="container mx-auto px-4 md:px-6 py-16 md:py-32 text-center flex flex-col items-center justify-center">
+        {/* Desktop: badge above the title */}
         <motion.a
           href="#planos"
           initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 1, ease: smoothEase as any }}
-          className="relative top-0 mt-0 mb-3 md:mb-4 inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-full bg-neon/10 backdrop-blur-sm border border-neon/30 hover:bg-neon/15 transition-colors cursor-pointer max-w-[95%]"
+          className="hidden md:inline-flex relative top-0 mt-0 mb-4 items-center gap-2 px-4 py-2 rounded-full bg-neon/10 backdrop-blur-sm border border-neon/30 hover:bg-neon/15 transition-colors cursor-pointer max-w-[95%]"
         >
           <Sparkles className="w-4 h-4 text-neon shrink-0" />
-          <span className="text-xs md:text-sm text-foreground text-left">
+          <span className="text-sm text-foreground text-left">
             Planos a partir de <strong className="text-neon">R$ 19,90/mês</strong>
           </span>
           <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
