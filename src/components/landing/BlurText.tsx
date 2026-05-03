@@ -94,7 +94,7 @@ const BlurText = ({
 
         return (
           <motion.span
-            className="inline-block will-change-[transform,filter,opacity]"
+            className="inline will-change-[transform,filter,opacity]"
             key={index}
             initial={fromSnapshot}
             animate={inView ? animateKeyframes : fromSnapshot}
@@ -106,7 +106,7 @@ const BlurText = ({
           </motion.span>
         );
       })}
-    </p>
+    </span>
   );
 };
 
