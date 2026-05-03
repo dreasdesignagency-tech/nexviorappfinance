@@ -25,17 +25,17 @@ export const HeroSection = () => {
           <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </motion.a>
 
-        <h1 className="text-[1.75rem] xs:text-[2rem] sm:text-5xl md:text-7xl lg:text-8xl font-bold text-foreground mb-2 leading-[1.1] md:leading-snug max-w-[18ch] md:max-w-[20ch] mx-auto text-center text-balance tracking-tight">
-          {/* Mobile: clean centered stack */}
-          <span className="md:hidden flex flex-col items-center gap-1">
-            <span className="block">Controle total</span>
-            <span className="block">
+        <h1 className="text-[1.75rem] xs:text-[2rem] sm:text-5xl md:text-7xl lg:text-8xl font-bold text-foreground mb-2 leading-[1.15] md:leading-snug max-w-[18ch] md:max-w-[20ch] mx-auto text-center text-balance tracking-tight">
+          {/* Mobile: clean centered stack with uniform spacing */}
+          <span className="md:hidden flex flex-col items-center leading-[1.15]">
+            <span className="block leading-[1.15]">Controle total</span>
+            <span className="block leading-[1.15]">
               das suas{" "}
               <span className="italic font-medium">
                 <GradientText animationSpeed={5}>finanças</GradientText>
               </span>
             </span>
-            <span className="block">sem complicação</span>
+            <span className="block leading-[1.15]">sem complicação</span>
           </span>
 
           {/* Desktop: original flow */}
