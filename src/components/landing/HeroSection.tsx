@@ -30,9 +30,7 @@ export const HeroSection = () => {
           {/* Mobile: same sentence with natural wrap */}
           <span className="md:hidden inline">
             Controle total das suas{" "}
-            <span className="italic font-medium inline">
-              <GradientText animationSpeed={5}>finanças</GradientText>
-            </span>
+            <span className="font-sans not-italic text-neon inline">finanças</span>
           </span>
 
           {/* Desktop: original flow */}
