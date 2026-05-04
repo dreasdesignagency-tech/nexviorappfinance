@@ -76,8 +76,8 @@ export const PricingSection = () => {
           {/* ANNUAL */}
           <div className="group relative rounded-2xl md:rounded-3xl border-2 border-neon/70 bg-gradient-to-br from-neon/15 via-card/70 to-muted/20 backdrop-blur-md p-8 md:p-10 transition-all duration-300 scale-[1.02] hover:scale-[1.05] hover:border-neon hover:shadow-[0_20px_60px_-10px_hsl(var(--lp-neon)/0.7)] shadow-[0_15px_50px_-12px_hsl(var(--lp-neon)/0.55)]">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-neon text-white text-xs font-semibold uppercase tracking-wide shadow-[0_0_30px_hsl(var(--lp-neon)/0.5)]">
-                <Sparkles className="w-3.5 h-3.5" />
+              <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-neon text-white text-xs font-semibold uppercase tracking-wide shadow-[0_0_30px_hsl(var(--lp-neon)/0.5)] whitespace-nowrap">
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
                 Melhor escolha
               </span>
             </div>
