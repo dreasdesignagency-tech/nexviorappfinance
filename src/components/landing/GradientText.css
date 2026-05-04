@@ -5,6 +5,7 @@
   vertical-align: baseline;
   overflow: visible;
   padding-bottom: 0.2em;
+  padding-right: 0.15em;
 }
 
 .gradient-overlay {
@@ -50,4 +51,5 @@
   animation: gradient linear infinite;
   overflow: visible;
   padding-bottom: 0.2em;
+  padding-right: 0.15em;
 }
