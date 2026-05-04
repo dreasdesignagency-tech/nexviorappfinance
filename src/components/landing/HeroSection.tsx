@@ -52,9 +52,9 @@ export const HeroSection = () => {
               initial={{ filter: "blur(12px)", opacity: 0, y: 30 }}
               animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.18, ease: smoothEase as any }}
-              className="italic font-medium inline"
+              className="font-sans not-italic text-neon inline"
             >
-              <GradientText animationSpeed={5}>finanças</GradientText>
+              finanças
             </motion.span>{" "}
             <BlurText
               text="sem complicação"
