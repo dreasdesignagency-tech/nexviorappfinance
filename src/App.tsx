@@ -27,6 +27,7 @@ import { TransactionsProvider } from "@/store/transactions";
 import { CardsProvider } from "@/store/cards";
 import { RecurrentsProvider } from "@/store/recurrents";
 import { LimitsProvider } from "@/store/limits";
+import { GoalsProvider } from "@/store/goals";
 import { ProfileProvider } from "@/store/profile";
 import { ThemeProvider } from "@/store/theme";
 import { AuthProvider } from "@/store/auth";
@@ -67,6 +68,7 @@ const App = () => (
                 <CardsProvider>
                   <RecurrentsProvider>
                     <LimitsProvider>
+                      <GoalsProvider>
                       <NotificationsProvider>
                         <Routes>
                         <Route path="/" element={<LandingGate />} />
@@ -83,6 +85,9 @@ const App = () => (
                         <Route path="/cartoes" element={<Protected><Cartoes /></Protected>} />
                         <Route path="/recorrentes" element={<Protected><Recorrentes /></Protected>} />
                         <Route path="/limites-investimentos" element={<Protected><LimitesInvestimentos /></Protected>} />
+                        <Route path="/orcamento" element={<Protected><LimitesInvestimentos /></Protected>} />
+                        <Route path="/metas" element={<Protected><LimitesInvestimentos /></Protected>} />
+                        <Route path="/investimentos" element={<Protected><LimitesInvestimentos /></Protected>} />
                         <Route path="/saude-financeira" element={<Protected><SaudeFinanceira /></Protected>} />
                         <Route path="/perfil" element={<Protected><Perfil /></Protected>} />
                         <Route path="/notificacoes" element={<Protected><Notificacoes /></Protected>} />
@@ -92,6 +97,7 @@ const App = () => (
                         <Route path="*" element={<NotFound />} />
                         </Routes>
                       </NotificationsProvider>
+                      </GoalsProvider>
                     </LimitsProvider>
                   </RecurrentsProvider>
                 </CardsProvider>
