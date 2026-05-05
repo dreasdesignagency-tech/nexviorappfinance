@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTransactions, formatBRL } from "@/store/transactions";
 import { useCards } from "@/store/cards";
 import { useRecurrents } from "@/store/recurrents";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type EventType = "receita" | "despesa" | "cartao" | "parcela" | "assinatura";
 
@@ -181,29 +182,21 @@ export const FinancialCalendar = () => {
         })}
       </div>
 
-      {/* Painel do dia selecionado */}
-      {selectedDay !== null && (
-        <div className="mt-4 glass-inner rounded-2xl p-4 border border-border/40">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xs font-semibold">
-              {selectedDay} de {MONTHS[month - 1]}
-            </h4>
-            <button
-              onClick={() => setSelectedDay(null)}
-              className="text-muted-foreground hover:text-foreground transition"
-              aria-label="Fechar"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
+      <Dialog open={selectedDay !== null} onOpenChange={(o) => !o && setSelectedDay(null)}>
+        <DialogContent className="glass-card border-border/40 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold">
+              {selectedDay} de {MONTHS[month - 1]} de {year}
+            </DialogTitle>
+          </DialogHeader>
           {selectedEvents.length === 0 ? (
             <p className="text-xs text-muted-foreground">Nenhum compromisso financeiro neste dia.</p>
           ) : (
-            <ul className="space-y-2 max-h-44 overflow-y-auto pr-1">
+            <ul className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
               {selectedEvents.map((ev, idx) => {
                 const s = TYPE_STYLES[ev.type];
                 return (
-                  <li key={idx} className="flex items-center justify-between gap-3 text-xs">
+                  <li key={idx} className="flex items-center justify-between gap-3 text-xs glass-inner rounded-xl p-3">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className={`w-1.5 h-1.5 rounded-full ${s.dot} shrink-0`} />
                       <div className="min-w-0">
@@ -221,8 +214,8 @@ export const FinancialCalendar = () => {
               })}
             </ul>
           )}
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
