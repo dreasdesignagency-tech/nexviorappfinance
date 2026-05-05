@@ -117,9 +117,7 @@ const Auth = () => {
       return;
     }
 
-    toast.success("Enviamos um e-mail de confirmação.", {
-      description: "Verifique sua caixa de entrada para ativar sua conta.",
-    });
+    toast.success("Seu acesso foi criado, entre e escolha o plano ideal para você");
     setMode("signin");
   };
 
