@@ -1,4 +1,4 @@
-import { Home, ArrowLeftRight, CreditCard, Repeat, Sparkles, Target, HeartPulse, LogOut } from "lucide-react";
+import { Home, ArrowLeftRight, CreditCard, Repeat, Sparkles, Target, PiggyBank, TrendingUp, HeartPulse, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink } from "react-router-dom";
 import { useProfile } from "@/store/profile";
@@ -13,7 +13,9 @@ const items = [
   { icon: ArrowLeftRight, label: "Transações", to: "/transacoes", tour: "nav-transacoes" },
   { icon: CreditCard, label: "Cartões", to: "/cartoes", tour: "nav-cartoes" },
   { icon: Repeat, label: "Parcelas & Assinaturas", to: "/recorrentes" },
-  { icon: Target, label: "Limites & Investimentos", to: "/limites-investimentos" },
+  { icon: Target, label: "Orçamento", to: "/orcamento" },
+  { icon: PiggyBank, label: "Metas", to: "/metas" },
+  { icon: TrendingUp, label: "Investimentos", to: "/investimentos" },
   { icon: HeartPulse, label: "Saúde Financeira", to: "/saude-financeira" },
   { icon: Sparkles, label: "Nex.ia", to: "/nex-ia", tour: "nav-nexia" },
 ];

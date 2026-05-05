@@ -62,6 +62,48 @@ export type Database = {
         }
         Relationships: []
       }
+      goals: {
+        Row: {
+          cor: string | null
+          created_at: string
+          data_alvo: string | null
+          id: string
+          nome: string
+          observacao: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          valor_atual: number
+          valor_objetivo: number
+        }
+        Insert: {
+          cor?: string | null
+          created_at?: string
+          data_alvo?: string | null
+          id?: string
+          nome: string
+          observacao?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          valor_atual?: number
+          valor_objetivo: number
+        }
+        Update: {
+          cor?: string | null
+          created_at?: string
+          data_alvo?: string | null
+          id?: string
+          nome?: string
+          observacao?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valor_atual?: number
+          valor_objetivo?: number
+        }
+        Relationships: []
+      }
       installments: {
         Row: {
           cartao_id: string | null

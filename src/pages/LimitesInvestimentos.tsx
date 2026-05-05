@@ -19,8 +19,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { useState, useMemo } from "react";
-import { Plus, Target, TrendingUp, Trash2, Wallet, Activity } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams, useLocation } from "react-router-dom";
+import { Plus, Target, TrendingUp, Trash2, Wallet, Activity, PiggyBank, Sparkles, Minus } from "lucide-react";
 import {
   useLimits,
   calcularGastoLimite,
@@ -28,6 +29,7 @@ import {
   PeriodoLimite,
   TipoInvestimento,
 } from "@/store/limits";
+import { useGoals } from "@/store/goals";
 import { useTransactions, formatBRL, CATEGORIAS } from "@/store/transactions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -49,9 +51,29 @@ const LimitesInvestimentos = () => {
     lucroPrejuizo,
     rentabilidadeMedia,
   } = useLimits();
+  const { goals, addGoal, removeGoal, addAmount } = useGoals();
   const { transactions } = useTransactions();
 
-  // ---------- Limite ----------
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const pathTab =
+    location.pathname.startsWith("/metas") ? "metas" :
+    location.pathname.startsWith("/investimentos") ? "investimentos" :
+    location.pathname.startsWith("/orcamento") ? "orcamento" : null;
+  const tabParam = searchParams.get("tab");
+  const initialTab =
+    pathTab ?? (tabParam === "metas" || tabParam === "investimentos" ? tabParam : "orcamento");
+  const [tab, setTab] = useState(initialTab);
+  useEffect(() => {
+    if (pathTab && pathTab !== tab) setTab(pathTab);
+  }, [pathTab]);
+  useEffect(() => {
+    if (!pathTab && tab !== (searchParams.get("tab") || "orcamento")) {
+      setSearchParams({ tab }, { replace: true });
+    }
+  }, [tab]);
+
+  // ---------- Orçamento (Limite) ----------
   const [openLimit, setOpenLimit] = useState(false);
   const [lCategoria, setLCategoria] = useState("");
   const [lValor, setLValor] = useState("");
@@ -60,11 +82,7 @@ const LimitesInvestimentos = () => {
   const [lObs, setLObs] = useState("");
 
   const resetLimit = () => {
-    setLCategoria("");
-    setLValor("");
-    setLPeriodo("Mensal");
-    setLData(todayISO());
-    setLObs("");
+    setLCategoria(""); setLValor(""); setLPeriodo("Mensal"); setLData(todayISO()); setLObs("");
   };
 
   const submitLimit = () => {
@@ -80,7 +98,7 @@ const LimitesInvestimentos = () => {
       data_inicial: lData,
       observacao: lObs || undefined,
     });
-    toast.success("Limite criado com sucesso.");
+    toast.success("Orçamento criado com sucesso.");
     resetLimit();
     setOpenLimit(false);
   };
@@ -91,14 +109,56 @@ const LimitesInvestimentos = () => {
         const gasto = calcularGastoLimite(l, transactions);
         const restante = Math.max(0, l.valor_limite - gasto);
         const pct = l.valor_limite > 0 ? (gasto / l.valor_limite) * 100 : 0;
-        let status: "Dentro do limite" | "Próximo do limite" | "Limite excedido" =
-          "Dentro do limite";
-        if (pct >= 100) status = "Limite excedido";
+        let status: "Dentro do orçamento" | "Próximo do limite" | "Orçamento excedido" =
+          "Dentro do orçamento";
+        if (pct >= 100) status = "Orçamento excedido";
         else if (pct >= 80) status = "Próximo do limite";
         return { ...l, gasto, restante, pct, status };
       }),
     [limits, transactions],
   );
+
+  // ---------- Metas ----------
+  const [openGoal, setOpenGoal] = useState(false);
+  const [gNome, setGNome] = useState("");
+  const [gObjetivo, setGObjetivo] = useState("");
+  const [gAtual, setGAtual] = useState("");
+  const [gData, setGData] = useState("");
+  const [gObs, setGObs] = useState("");
+
+  const resetGoal = () => { setGNome(""); setGObjetivo(""); setGAtual(""); setGData(""); setGObs(""); };
+
+  const submitGoal = () => {
+    const objetivo = parseFloat(gObjetivo.replace(",", "."));
+    const atual = gAtual ? parseFloat(gAtual.replace(",", ".")) : 0;
+    if (!gNome.trim() || !objetivo || objetivo <= 0) {
+      toast.error("Preencha o nome e o valor objetivo.");
+      return;
+    }
+    addGoal({
+      nome: gNome.trim(),
+      valor_objetivo: objetivo,
+      valor_atual: atual,
+      data_alvo: gData || undefined,
+      observacao: gObs || undefined,
+    });
+    toast.success("Meta criada! Continue firme. 💪");
+    resetGoal();
+    setOpenGoal(false);
+  };
+
+  const [openAdd, setOpenAdd] = useState<string | null>(null);
+  const [addValue, setAddValue] = useState("");
+
+  const submitAdd = (sign: 1 | -1) => {
+    if (!openAdd) return;
+    const valor = parseFloat(addValue.replace(",", "."));
+    if (!valor || valor <= 0) { toast.error("Informe um valor válido."); return; }
+    addAmount(openAdd, sign * valor);
+    toast.success(sign > 0 ? "Valor adicionado à meta." : "Valor retirado da meta.");
+    setAddValue("");
+    setOpenAdd(null);
+  };
 
   // ---------- Investimento ----------
   const [openInv, setOpenInv] = useState(false);
@@ -111,13 +171,7 @@ const LimitesInvestimentos = () => {
   const [iObs, setIObs] = useState("");
 
   const resetInv = () => {
-    setINome("");
-    setITipo("Renda fixa");
-    setIValor("");
-    setIData(todayISO());
-    setIRent("");
-    setIAtual("");
-    setIObs("");
+    setINome(""); setITipo("Renda fixa"); setIValor(""); setIData(todayISO()); setIRent(""); setIAtual(""); setIObs("");
   };
 
   const submitInv = () => {
@@ -145,48 +199,52 @@ const LimitesInvestimentos = () => {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
-      <main className="flex-1 min-w-0 p-3 sm:p-6 md:p-10 max-w-[1400px] mx-auto overflow-x-hidden pt-safe">
-        <header className="mb-8 pl-12 md:pl-0">
-          <h1 className="text-3xl font-bold tracking-tight">Limites & Investimentos</h1>
+      <main className="flex-1 min-w-0 p-3 sm:p-6 md:p-10 max-w-[1400px] mx-auto overflow-x-hidden pt-safe pb-24 md:pb-10">
+        <header className="mb-6 pl-12 md:pl-0">
+          <h1 className="text-3xl font-bold tracking-tight">Orçamento, Metas & Investimentos</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Defina tetos de gastos por categoria e acompanhe seu patrimônio.
+            Controle seus gastos, conquiste seus sonhos e faça seu dinheiro crescer.
           </p>
         </header>
 
-        <Tabs defaultValue="limites" className="w-full">
-          <TabsList className="bg-surface-elevated border border-border">
-            <TabsTrigger value="limites" className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
-              <Target className="w-4 h-4 mr-2" /> Limites
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
+          <TabsList className="bg-surface-elevated border border-border w-full md:w-auto grid grid-cols-3 md:inline-flex">
+            <TabsTrigger value="orcamento" className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
+              <Target className="w-4 h-4 mr-2" /> Orçamento
+            </TabsTrigger>
+            <TabsTrigger value="metas" className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
+              <PiggyBank className="w-4 h-4 mr-2" /> Metas
             </TabsTrigger>
             <TabsTrigger value="investimentos" className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
               <TrendingUp className="w-4 h-4 mr-2" /> Investimentos
             </TabsTrigger>
           </TabsList>
 
-          {/* ============ LIMITES ============ */}
-          <TabsContent value="limites" className="mt-6 space-y-6">
-            <div className="flex items-center justify-between">
+          {/* ============ ORÇAMENTO ============ */}
+          <TabsContent value="orcamento" className="mt-6 space-y-6">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
-                <h2 className="text-xl font-semibold">Seus Limites</h2>
+                <h2 className="text-xl font-semibold">Seu Orçamento</h2>
                 <p className="text-xs text-muted-foreground">
-                  Acompanhe quanto você já gastou em cada categoria.
+                  Defina quanto pretende gastar em cada categoria e acompanhe o consumo.
                 </p>
               </div>
               <Button onClick={() => setOpenLimit(true)} className="bg-gradient-primary glow-primary">
-                <Plus className="w-4 h-4 mr-2" /> Novo Limite
+                <Plus className="w-4 h-4 mr-2" /> Novo Orçamento
               </Button>
             </div>
 
             {limitesComCalculo.length === 0 ? (
               <div className="glass-card p-12 text-center">
                 <Target className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
-                <p className="text-muted-foreground">Nenhum limite definido</p>
+                <p className="text-muted-foreground">Nenhum orçamento definido ainda</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Crie um orçamento para manter seus gastos sob controle.</p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
                 {limitesComCalculo.map((l) => {
                   const statusColor =
-                    l.status === "Limite excedido"
+                    l.status === "Orçamento excedido"
                       ? "text-destructive border-destructive/30 bg-destructive/10"
                       : l.status === "Próximo do limite"
                       ? "text-yellow-500 border-yellow-500/30 bg-yellow-500/10"
@@ -222,7 +280,7 @@ const LimitesInvestimentos = () => {
                       </div>
 
                       <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Restante</span>
+                        <span className="text-muted-foreground">Disponível</span>
                         <span className="font-semibold text-foreground">{formatBRL(l.restante)}</span>
                       </div>
 
@@ -238,9 +296,99 @@ const LimitesInvestimentos = () => {
             )}
           </TabsContent>
 
+          {/* ============ METAS ============ */}
+          <TabsContent value="metas" className="mt-6 space-y-6">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h2 className="text-xl font-semibold">Suas Metas</h2>
+                <p className="text-xs text-muted-foreground">
+                  Crie caixinhas para realizar seus sonhos. Cada depósito é um passo a mais.
+                </p>
+              </div>
+              <Button onClick={() => setOpenGoal(true)} className="bg-gradient-primary glow-primary">
+                <Plus className="w-4 h-4 mr-2" /> Nova Meta
+              </Button>
+            </div>
+
+            {goals.length === 0 ? (
+              <div className="glass-card p-12 text-center">
+                <PiggyBank className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
+                <p className="text-muted-foreground">Nenhuma meta criada ainda</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Que tal começar com sua próxima viagem? ✈️</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {goals.map((g) => {
+                  const pct = g.valor_objetivo > 0 ? Math.min(100, (g.valor_atual / g.valor_objetivo) * 100) : 0;
+                  const restante = Math.max(0, g.valor_objetivo - g.valor_atual);
+                  const concluida = pct >= 100;
+                  return (
+                    <div key={g.id} className="glass-card p-5 space-y-4 relative overflow-hidden">
+                      {concluida && (
+                        <div className="absolute top-2 right-2 text-success">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                      )}
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 border border-primary/20 flex items-center justify-center">
+                            <PiggyBank className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <div className="font-semibold leading-tight">{g.nome}</div>
+                            {g.data_alvo && (
+                              <div className="text-[11px] text-muted-foreground">até {new Date(g.data_alvo).toLocaleDateString("pt-BR")}</div>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeGoal(g.id)}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between text-sm mb-1.5">
+                          <span className="text-muted-foreground">{formatBRL(g.valor_atual)}</span>
+                          <span className="font-medium">{formatBRL(g.valor_objetivo)}</span>
+                        </div>
+                        <Progress value={pct} className="h-2.5" />
+                        <div className="flex justify-between text-[11px] mt-1.5">
+                          <span className={cn("font-semibold", concluida ? "text-success" : "text-primary")}>
+                            {pct.toFixed(1)}% conquistado
+                          </span>
+                          <span className="text-muted-foreground">faltam {formatBRL(restante)}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => { setOpenAdd(g.id); setAddValue(""); }}
+                        >
+                          <Plus className="w-3.5 h-3.5 mr-1" /> Depositar
+                        </Button>
+                      </div>
+
+                      {g.observacao && (
+                        <p className="text-xs text-muted-foreground italic border-t border-border pt-2">
+                          {g.observacao}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+
           {/* ============ INVESTIMENTOS ============ */}
           <TabsContent value="investimentos" className="mt-6 space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h2 className="text-xl font-semibold">Seus Investimentos</h2>
                 <p className="text-xs text-muted-foreground">
@@ -252,7 +400,6 @@ const LimitesInvestimentos = () => {
               </Button>
             </div>
 
-            {/* Resumo */}
             <div className="grid gap-4 md:grid-cols-4">
               <ResumoCard label="Total Investido" value={formatBRL(totalInvestido)} icon={Wallet} />
               <ResumoCard label="Patrimônio Atual" value={formatBRL(patrimonioAtual)} icon={Activity} />
@@ -329,11 +476,11 @@ const LimitesInvestimentos = () => {
         </Tabs>
       </main>
 
-      {/* ============ MODAL: NOVO LIMITE ============ */}
+      {/* ============ MODAL: NOVO ORÇAMENTO ============ */}
       <Dialog open={openLimit} onOpenChange={setOpenLimit}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle>Novo Limite</DialogTitle>
+            <DialogTitle>Novo Orçamento</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -349,7 +496,7 @@ const LimitesInvestimentos = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Valor limite (R$)</Label>
+                <Label>Valor (R$)</Label>
                 <Input type="number" step="0.01" value={lValor} onChange={(e) => setLValor(e.target.value)} placeholder="0,00" />
               </div>
               <div className="space-y-2">
@@ -376,6 +523,73 @@ const LimitesInvestimentos = () => {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpenLimit(false)}>Cancelar</Button>
             <Button onClick={submitLimit} className="bg-gradient-primary">Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ============ MODAL: NOVA META ============ */}
+      <Dialog open={openGoal} onOpenChange={setOpenGoal}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle>Nova Meta</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Nome da meta</Label>
+              <Input value={gNome} onChange={(e) => setGNome(e.target.value)} placeholder="Ex: Viagem para a praia" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Valor objetivo (R$)</Label>
+                <Input type="number" step="0.01" value={gObjetivo} onChange={(e) => setGObjetivo(e.target.value)} placeholder="0,00" />
+              </div>
+              <div className="space-y-2">
+                <Label>Já guardou (R$)</Label>
+                <Input type="number" step="0.01" value={gAtual} onChange={(e) => setGAtual(e.target.value)} placeholder="0,00" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Data alvo (opcional)</Label>
+              <Input type="date" value={gData} onChange={(e) => setGData(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Observação</Label>
+              <Textarea placeholder="Opcional..." value={gObs} onChange={(e) => setGObs(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setOpenGoal(false)}>Cancelar</Button>
+            <Button onClick={submitGoal} className="bg-gradient-primary">Criar Meta</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ============ MODAL: DEPOSITAR EM META ============ */}
+      <Dialog open={!!openAdd} onOpenChange={(o) => !o && setOpenAdd(null)}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle>Movimentar meta</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Valor (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={addValue}
+                onChange={(e) => setAddValue(e.target.value)}
+                placeholder="0,00"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => submitAdd(-1)} className="w-full sm:w-auto">
+              <Minus className="w-4 h-4 mr-1" /> Retirar
+            </Button>
+            <Button onClick={() => submitAdd(1)} className="bg-gradient-primary w-full sm:w-auto">
+              <Plus className="w-4 h-4 mr-1" /> Depositar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
