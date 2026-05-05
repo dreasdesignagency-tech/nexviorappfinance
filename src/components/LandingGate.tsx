@@ -19,11 +19,11 @@ export const LandingGate = () => {
     );
   }
 
-  if (isInstalledApp) {
-    return <Navigate to="/app" replace />;
+  if (isInstalledApp && !user) {
+    return <Navigate to="/login" replace />;
   }
 
-  if (user) {
+  if (isInstalledApp || user) {
     return <Navigate to="/app" replace />;
   }
 

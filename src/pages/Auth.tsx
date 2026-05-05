@@ -35,6 +35,7 @@ const Auth = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from || "/app";
   const [mode, setMode] = useState<Mode>("signin");
   const [busy, setBusy] = useState(false);
 
@@ -52,7 +53,6 @@ const Auth = () => {
 
   if (loading) return null;
   if (user) {
-    const from = (location.state as any)?.from || "/app";
     return <Navigate to={from} replace />;
   }
 
@@ -81,7 +81,7 @@ const Auth = () => {
       return;
     }
     toast.success("Bem-vindo de volta!");
-    navigate("/app", { replace: true });
+    navigate(from, { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
