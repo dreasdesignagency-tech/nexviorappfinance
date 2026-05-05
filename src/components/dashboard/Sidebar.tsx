@@ -13,9 +13,7 @@ const items = [
   { icon: ArrowLeftRight, label: "Transações", to: "/transacoes", tour: "nav-transacoes" },
   { icon: CreditCard, label: "Cartões", to: "/cartoes", tour: "nav-cartoes" },
   { icon: Repeat, label: "Parcelas & Assinaturas", to: "/recorrentes" },
-  { icon: Target, label: "Orçamento", to: "/orcamento" },
-  { icon: PiggyBank, label: "Metas", to: "/metas" },
-  { icon: TrendingUp, label: "Investimentos", to: "/investimentos" },
+  { icon: Target, label: "Orç/Met/Inv", to: "/orcamento" },
   { icon: HeartPulse, label: "Saúde Financeira", to: "/saude-financeira" },
   { icon: Sparkles, label: "Nex.ia", to: "/nex-ia", tour: "nav-nexia" },
 ];
