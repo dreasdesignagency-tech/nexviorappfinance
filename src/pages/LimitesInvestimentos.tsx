@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { useState, useMemo, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import { Plus, Target, TrendingUp, Trash2, Wallet, Activity, PiggyBank, Sparkles, Minus } from "lucide-react";
 import {
   useLimits,
@@ -55,12 +55,20 @@ const LimitesInvestimentos = () => {
   const { transactions } = useTransactions();
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const pathTab =
+    location.pathname.startsWith("/metas") ? "metas" :
+    location.pathname.startsWith("/investimentos") ? "investimentos" :
+    location.pathname.startsWith("/orcamento") ? "orcamento" : null;
   const tabParam = searchParams.get("tab");
   const initialTab =
-    tabParam === "metas" || tabParam === "investimentos" ? tabParam : "orcamento";
+    pathTab ?? (tabParam === "metas" || tabParam === "investimentos" ? tabParam : "orcamento");
   const [tab, setTab] = useState(initialTab);
   useEffect(() => {
-    if (tab !== (searchParams.get("tab") || "orcamento")) {
+    if (pathTab && pathTab !== tab) setTab(pathTab);
+  }, [pathTab]);
+  useEffect(() => {
+    if (!pathTab && tab !== (searchParams.get("tab") || "orcamento")) {
       setSearchParams({ tab }, { replace: true });
     }
   }, [tab]);
