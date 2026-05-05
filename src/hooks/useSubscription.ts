@@ -23,14 +23,21 @@ export const useSubscription = () => {
   const { user, loading: authLoading } = useAuth();
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     if (!user) {
       setSubscription(null);
       setLoading(false);
+      setResolvedUserId(null);
       return;
     }
-    setLoading(true);
+
+    const isFirstLoadForUser = resolvedUserId !== user.id;
+    if (isFirstLoadForUser) {
+      setLoading(true);
+    }
+
     const { data, error } = await supabase
       .from("user_subscriptions")
       .select("subscription_status, plan_type, current_period_end, cancel_at_period_end")
@@ -40,8 +47,9 @@ export const useSubscription = () => {
       console.error("Failed to load subscription", error);
     }
     setSubscription((data as UserSubscription) ?? null);
+    setResolvedUserId(user.id);
     setLoading(false);
-  }, [user]);
+  }, [resolvedUserId, user]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -54,5 +62,7 @@ export const useSubscription = () => {
     subscription.plan_type === "legacy"
   );
 
-  return { subscription, loading: loading || authLoading, hasAccess, refresh };
+  const needsInitialResolution = !!user && resolvedUserId !== user.id;
+
+  return { subscription, loading: authLoading || needsInitialResolution || loading, hasAccess, refresh };
 };
