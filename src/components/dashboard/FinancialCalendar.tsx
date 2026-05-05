@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTransactions, formatBRL } from "@/store/transactions";
 import { useCards } from "@/store/cards";
 import { useRecurrents } from "@/store/recurrents";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type EventType = "receita" | "despesa" | "cartao" | "parcela" | "assinatura";
 
