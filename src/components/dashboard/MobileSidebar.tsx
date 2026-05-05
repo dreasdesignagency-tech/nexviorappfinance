@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, ArrowLeftRight, CreditCard, Repeat, Sparkles, Target, PiggyBank, TrendingUp, HeartPulse, LogOut, Menu } from "lucide-react";
+import { Home, ArrowLeftRight, CreditCard, Repeat, Sparkles, Target, PiggyBank, TrendingUp, HeartPulse, LogOut, Menu, Headphones, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink } from "react-router-dom";
 import { useProfile } from "@/store/profile";
@@ -92,6 +92,26 @@ export const MobileSidebar = ({ className }: MobileSidebarProps) => {
           </nav>
 
           <div className="mt-auto flex flex-col gap-1.5 pt-4 border-t border-border/40">
+            <a
+              href="https://wa.me/55991932458?text=Preciso%20de%20suporte"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 hover:shadow-[0_0_20px_hsl(var(--primary)/0.25)] transition-all border border-transparent hover:border-primary/20"
+            >
+              <Headphones className="w-[18px] h-[18px] shrink-0" strokeWidth={1.8} />
+              <span className="truncate">Suporte</span>
+            </a>
+            <a
+              href="https://wa.me/55991932458?text=Quero%20o%20Nexvior%20na%20minha%20empresa"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 hover:shadow-[0_0_20px_hsl(var(--primary)/0.25)] transition-all border border-transparent hover:border-primary/20 mb-1"
+            >
+              <Building2 className="w-[18px] h-[18px] shrink-0" strokeWidth={1.8} />
+              <span className="truncate">Nexvior para Empresa</span>
+            </a>
             <NavLink
               to="/perfil"
               onClick={() => setOpen(false)}
