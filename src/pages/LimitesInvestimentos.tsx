@@ -201,24 +201,19 @@ const LimitesInvestimentos = () => {
       <Sidebar />
       <main className="flex-1 min-w-0 p-3 sm:p-6 md:p-10 max-w-[1400px] mx-auto overflow-x-hidden pt-safe pb-24 md:pb-10">
         <header className="mb-6 pl-12 md:pl-0">
-          <h1 className="text-3xl font-bold tracking-tight">Orçamento, Metas & Investimentos</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {tab === "metas" ? "Metas" : tab === "investimentos" ? "Investimentos" : "Orçamento"}
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Controle seus gastos, conquiste seus sonhos e faça seu dinheiro crescer.
+            {tab === "metas"
+              ? "Conquiste seus sonhos com caixinhas dedicadas a cada objetivo."
+              : tab === "investimentos"
+              ? "Acompanhe seu patrimônio e faça seu dinheiro crescer."
+              : "Controle seus gastos por categoria e mantenha o equilíbrio do mês."}
           </p>
         </header>
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="bg-surface-elevated border border-border w-full md:w-auto grid grid-cols-3 md:inline-flex">
-            <TabsTrigger value="orcamento" className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
-              <Target className="w-4 h-4 mr-2" /> Orçamento
-            </TabsTrigger>
-            <TabsTrigger value="metas" className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
-              <PiggyBank className="w-4 h-4 mr-2" /> Metas
-            </TabsTrigger>
-            <TabsTrigger value="investimentos" className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
-              <TrendingUp className="w-4 h-4 mr-2" /> Investimentos
-            </TabsTrigger>
-          </TabsList>
 
           {/* ============ ORÇAMENTO ============ */}
           <TabsContent value="orcamento" className="mt-6 space-y-6">
