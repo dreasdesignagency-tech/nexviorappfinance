@@ -18,9 +18,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarClock, Plus, Repeat, Trash2, Pause, Play, X } from "lucide-react";
+import { CalendarClock, Plus, Repeat, Trash2, Pause, Play, X, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRecurrents, Frequencia } from "@/store/recurrents";
+import { useSubscriptionCharges } from "@/store/subscriptionCharges";
 import { useCards } from "@/store/cards";
 import { CATEGORIAS, formatBRL, formatDateBR } from "@/store/transactions";
 
