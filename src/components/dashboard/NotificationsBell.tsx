@@ -1,7 +1,6 @@
-import { Bell, CheckCheck, Trash2, AlertTriangle, Target, CreditCard, Repeat, HeartPulse } from "lucide-react";
-import { forwardRef, useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Bell, CheckCheck, Trash2, AlertTriangle, Target, CreditCard, Repeat, HeartPulse, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAlerts, type AlertType } from "@/store/alerts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -23,30 +22,50 @@ const formatRelative = (iso: string) => {
   return `${Math.floor(diff / 86400)} d`;
 };
 
-const BellButton = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { unreadCount: number }>(
-  ({ unreadCount, ...props }, ref) => (
-    <button
-      ref={ref}
-      type="button"
-      aria-label="Notificações"
-      {...props}
-      className="relative w-9 h-9 md:w-10 md:h-10 rounded-full glass-inner flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-    >
-      <Bell className="w-4 h-4" />
-      {unreadCount > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-primary to-primary-glow text-[10px] font-bold text-primary-foreground flex items-center justify-center shadow-[0_0_10px_hsl(var(--primary)/0.6)]">
-          {unreadCount > 9 ? "9+" : unreadCount}
-        </span>
-      )}
-    </button>
-  ),
-);
-BellButton.displayName = "BellButton";
-
 export const NotificationsBell = () => {
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useAlerts();
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+
+  // Recompute position when opening / on resize / scroll
+  useEffect(() => {
+    if (!open || isMobile) return;
+    const update = () => {
+      const r = btnRef.current?.getBoundingClientRect();
+      if (!r) return;
+      setPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open, isMobile]);
+
+  // Close on outside click & ESC
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (panelRef.current?.contains(target)) return;
+      if (btnRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   const headerEl = (
     <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
@@ -75,12 +94,21 @@ export const NotificationsBell = () => {
             <Trash2 className="w-4 h-4" />
           </button>
         )}
+        {isMobile && (
+          <button
+            onClick={() => setOpen(false)}
+            title="Fechar"
+            className="w-8 h-8 rounded-lg glass-inner flex items-center justify-center text-muted-foreground hover:text-foreground transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );
 
   const listEl = (
-    <div className={cn("overflow-y-auto", isMobile ? "max-h-[70vh]" : "max-h-[60vh]")}>
+    <div className={cn("overflow-y-auto", isMobile ? "max-h-[70vh]" : "max-h-[340px]")}>
       {notifications.length === 0 ? (
         <div className="p-8 text-center">
           <div className="w-12 h-12 rounded-2xl glass-inner mx-auto mb-3 flex items-center justify-center">
@@ -122,41 +150,52 @@ export const NotificationsBell = () => {
     </div>
   );
 
-  if (isMobile) {
-    return (
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <BellButton unreadCount={unreadCount} />
-        </SheetTrigger>
-        <SheetContent
-          side="bottom"
-          className="p-0 glass-card border-border/40 rounded-t-2xl max-h-[85vh] overflow-hidden"
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Notificações</SheetTitle>
-          </SheetHeader>
-          {headerEl}
-          {listEl}
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <BellButton unreadCount={unreadCount} />
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        side="bottom"
-        sideOffset={10}
-        collisionPadding={16}
-        className="w-[380px] max-w-[calc(100vw-2rem)] p-0 glass-card border-border/40 shadow-xl backdrop-blur-xl rounded-2xl overflow-hidden z-[100]"
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        aria-label="Notificações"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="relative w-9 h-9 md:w-10 md:h-10 rounded-full glass-inner flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
       >
-        {headerEl}
-        {listEl}
-      </PopoverContent>
-    </Popover>
+        <Bell className="w-4 h-4" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-primary to-primary-glow text-[10px] font-bold text-primary-foreground flex items-center justify-center shadow-[0_0_10px_hsl(var(--primary)/0.6)]">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {open &&
+        createPortal(
+          isMobile ? (
+            <div className="fixed inset-0 z-[200]">
+              <div
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in-0"
+                onClick={() => setOpen(false)}
+              />
+              <div
+                ref={panelRef}
+                className="absolute left-0 right-0 bottom-0 max-h-[85vh] glass-card border-t border-border/40 rounded-t-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom"
+              >
+                {headerEl}
+                {listEl}
+              </div>
+            </div>
+          ) : (
+            <div
+              ref={panelRef}
+              style={{ top: pos?.top ?? 0, right: pos?.right ?? 0 }}
+              className="fixed z-[200] w-[340px] glass-card border border-border/40 shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden animate-in fade-in-0 zoom-in-95"
+            >
+              {headerEl}
+              {listEl}
+            </div>
+          ),
+          document.body,
+        )}
+    </>
   );
 };
