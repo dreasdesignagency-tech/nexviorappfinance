@@ -104,6 +104,7 @@ const App = () => (
                       </NotificationsProvider>
                       </GoalsProvider>
                     </LimitsProvider>
+                    </SubscriptionChargesProvider>
                   </RecurrentsProvider>
                 </CardsProvider>
               </TransactionsProvider>
