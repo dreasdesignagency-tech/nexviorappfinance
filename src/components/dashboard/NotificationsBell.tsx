@@ -100,14 +100,8 @@ export const NotificationsBell = () => {
     </div>
   );
 
-  // (mobile close button removed — popover behavior identical to desktop)
-  void 0;
-      </div>
-    </div>
-  );
-
   const listEl = (
-    <div className={cn("overflow-y-auto", isMobile ? "max-h-[70vh]" : "max-h-[340px]")}>
+    <div className="overflow-y-auto max-h-[340px]">
       {notifications.length === 0 ? (
         <div className="p-8 text-center">
           <div className="w-12 h-12 rounded-2xl glass-inner mx-auto mb-3 flex items-center justify-center">
