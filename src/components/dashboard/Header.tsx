@@ -1,9 +1,10 @@
-import { Plus, Sun, Moon, Bell } from "lucide-react";
+import { Plus, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/store/theme";
 import { NavLink } from "react-router-dom";
 import { useProfile } from "@/store/profile";
 import { useAuth } from "@/store/auth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NotificationsBell } from "@/components/dashboard/NotificationsBell";
 
 interface HeaderProps {
   userName?: string;
@@ -46,13 +47,7 @@ export const Header = ({ userName, onNewTransaction }: HeaderProps) => {
       </div>
 
       <div className="flex items-center gap-1.5 md:gap-3 shrink-0 self-center">
-        <NavLink
-          to="/notificacoes"
-          aria-label="Notificações"
-          className="w-9 h-9 md:w-10 md:h-10 rounded-full glass-inner flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Bell className="w-4 h-4" />
-        </NavLink>
+        <NotificationsBell />
 
         {/* Avatar visível apenas no mobile, ao lado do sino */}
         <NavLink

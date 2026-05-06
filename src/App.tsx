@@ -28,6 +28,7 @@ import { CardsProvider } from "@/store/cards";
 import { RecurrentsProvider } from "@/store/recurrents";
 import { LimitsProvider } from "@/store/limits";
 import { GoalsProvider } from "@/store/goals";
+import { AlertsProvider } from "@/store/alerts";
 import { ProfileProvider } from "@/store/profile";
 import { ThemeProvider } from "@/store/theme";
 import { AuthProvider } from "@/store/auth";
@@ -70,6 +71,7 @@ const App = () => (
                     <LimitsProvider>
                       <GoalsProvider>
                       <NotificationsProvider>
+                        <AlertsProvider>
                         <Routes>
                         <Route path="/" element={<LandingGate />} />
                         <Route path="/lp" element={<Landing />} />
@@ -96,6 +98,7 @@ const App = () => (
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                         </Routes>
+                        </AlertsProvider>
                       </NotificationsProvider>
                       </GoalsProvider>
                     </LimitsProvider>
