@@ -347,6 +347,48 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_charges: {
+        Row: {
+          created_at: string
+          data_pagamento: string | null
+          id: string
+          mes_referencia: string
+          status: string
+          subscription_id: string
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+          valor: number
+          vencimento: string
+        }
+        Insert: {
+          created_at?: string
+          data_pagamento?: string | null
+          id?: string
+          mes_referencia: string
+          status?: string
+          subscription_id: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+          valor: number
+          vencimento: string
+        }
+        Update: {
+          created_at?: string
+          data_pagamento?: string | null
+          id?: string
+          mes_referencia?: string
+          status?: string
+          subscription_id?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
+          valor?: number
+          vencimento?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cartao_id: string | null
