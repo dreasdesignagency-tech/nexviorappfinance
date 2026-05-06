@@ -96,15 +96,12 @@ export const NotificationsBell = () => {
             <Trash2 className="w-4 h-4" />
           </button>
         )}
-        {isMobile && (
-          <button
-            onClick={() => setOpen(false)}
-            title="Fechar"
-            className="w-8 h-8 rounded-lg glass-inner flex items-center justify-center text-muted-foreground hover:text-foreground transition"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+      </div>
+    </div>
+  );
+
+  // (mobile close button removed — popover behavior identical to desktop)
+  void 0;
       </div>
     </div>
   );
