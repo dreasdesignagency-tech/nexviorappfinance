@@ -163,30 +163,14 @@ export const NotificationsBell = () => {
 
       {open &&
         createPortal(
-          isMobile ? (
-            <div className="fixed inset-0 z-[200]">
-              <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in-0"
-                onClick={() => setOpen(false)}
-              />
-              <div
-                ref={panelRef}
-                className="absolute left-0 right-0 bottom-0 max-h-[85vh] glass-card border-t border-border/40 rounded-t-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom"
-              >
-                {headerEl}
-                {listEl}
-              </div>
-            </div>
-          ) : (
-            <div
-              ref={panelRef}
-              style={{ top: pos?.top ?? 0, right: pos?.right ?? 0 }}
-              className="fixed z-[200] w-[340px] glass-card border border-border/40 shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden animate-in fade-in-0 zoom-in-95"
-            >
-              {headerEl}
-              {listEl}
-            </div>
-          ),
+          <div
+            ref={panelRef}
+            style={{ top: pos?.top ?? 0, right: pos?.right ?? 0, width: pos?.width ?? 340 }}
+            className="fixed z-[200] glass-card border border-border/40 shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden animate-in fade-in-0 zoom-in-95"
+          >
+            {headerEl}
+            {listEl}
+          </div>,
           document.body,
         )}
     </>
