@@ -33,6 +33,7 @@ const Recorrentes = () => {
     totalMensalParcelas, totalMensalAssinaturas, loading,
   } = useRecurrents();
   const { cards } = useCards();
+  const { getCurrentChargeFor, payCharge } = useSubscriptionCharges();
 
   const [openP, setOpenP] = useState(false);
   const [openA, setOpenA] = useState(false);
