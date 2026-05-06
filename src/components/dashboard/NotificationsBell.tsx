@@ -23,19 +23,22 @@ const formatRelative = (iso: string) => {
 
 export const NotificationsBell = () => {
   const [open, setOpen] = useState(false);
-  const isMobile = useIsMobile();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useAlerts();
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; right: number; width: number } | null>(null);
 
-  // Recompute position when opening / on resize / scroll
   useEffect(() => {
-    if (!open || isMobile) return;
+    if (!open) return;
     const update = () => {
       const r = btnRef.current?.getBoundingClientRect();
       if (!r) return;
-      setPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+      const vw = window.innerWidth;
+      const width = Math.min(360, Math.max(280, vw - 24));
+      let right = vw - r.right;
+      if (right + width > vw - 12) right = vw - width - 12;
+      if (right < 12) right = 12;
+      setPos({ top: r.bottom + 8, right, width });
     };
     update();
     window.addEventListener("resize", update);
@@ -44,7 +47,7 @@ export const NotificationsBell = () => {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [open, isMobile]);
+  }, [open]);
 
   // Close on outside click & ESC
   useEffect(() => {
