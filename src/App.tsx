@@ -69,6 +69,7 @@ const App = () => (
               <TransactionsProvider>
                 <CardsProvider>
                   <RecurrentsProvider>
+                    <SubscriptionChargesProvider>
                     <LimitsProvider>
                       <GoalsProvider>
                       <NotificationsProvider>
