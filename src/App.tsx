@@ -33,6 +33,7 @@ import { ProfileProvider } from "@/store/profile";
 import { ThemeProvider } from "@/store/theme";
 import { AuthProvider } from "@/store/auth";
 import { NotificationsProvider } from "@/store/notifications";
+import { SubscriptionChargesProvider } from "@/store/subscriptionCharges";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
@@ -68,6 +69,7 @@ const App = () => (
               <TransactionsProvider>
                 <CardsProvider>
                   <RecurrentsProvider>
+                    <SubscriptionChargesProvider>
                     <LimitsProvider>
                       <GoalsProvider>
                       <NotificationsProvider>
@@ -102,6 +104,7 @@ const App = () => (
                       </NotificationsProvider>
                       </GoalsProvider>
                     </LimitsProvider>
+                    </SubscriptionChargesProvider>
                   </RecurrentsProvider>
                 </CardsProvider>
               </TransactionsProvider>

@@ -18,9 +18,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarClock, Plus, Repeat, Trash2, Pause, Play, X } from "lucide-react";
+import { CalendarClock, Plus, Repeat, Trash2, Pause, Play, X, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRecurrents, Frequencia } from "@/store/recurrents";
+import { useSubscriptionCharges } from "@/store/subscriptionCharges";
 import { useCards } from "@/store/cards";
 import { CATEGORIAS, formatBRL, formatDateBR } from "@/store/transactions";
 
@@ -32,6 +33,7 @@ const Recorrentes = () => {
     totalMensalParcelas, totalMensalAssinaturas, loading,
   } = useRecurrents();
   const { cards } = useCards();
+  const { getCurrentChargeFor, payCharge } = useSubscriptionCharges();
 
   const [openP, setOpenP] = useState(false);
   const [openA, setOpenA] = useState(false);
@@ -300,6 +302,44 @@ const Recorrentes = () => {
                           <p className={`text-sm font-medium capitalize ${statusColor}`}>{a.status}</p>
                         </div>
                       </div>
+
+                      {a.status === "ativa" && (() => {
+                        const charge = getCurrentChargeFor(a.id);
+                        if (!charge) return null;
+                        const badgeCls =
+                          charge.status === "pago" ? "bg-success/10 text-success border-success/30"
+                          : charge.status === "atrasado" ? "bg-destructive/10 text-destructive border-destructive/30"
+                          : "bg-yellow-500/10 text-yellow-500 border-yellow-500/30";
+                        const label =
+                          charge.status === "pago" ? "Pago"
+                          : charge.status === "atrasado" ? "Atrasado"
+                          : "Pendente";
+                        return (
+                          <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between gap-3">
+                            <div className="flex flex-col gap-1">
+                              <span className={`inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full border w-fit ${badgeCls}`}>
+                                {label} · {formatDateBR(charge.vencimento)}
+                              </span>
+                              {charge.status === "pago" && charge.data_pagamento && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  Pago em {formatDateBR(charge.data_pagamento.slice(0, 10))}
+                                </span>
+                              )}
+                            </div>
+                            {charge.status !== "pago" ? (
+                              <Button
+                                size="sm"
+                                onClick={() => payCharge(charge.id)}
+                                className="h-8 rounded-full bg-gradient-to-r from-primary to-primary-glow glow-primary text-primary-foreground"
+                              >
+                                Pagar
+                              </Button>
+                            ) : (
+                              <CheckCircle2 className="w-5 h-5 text-success" />
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
