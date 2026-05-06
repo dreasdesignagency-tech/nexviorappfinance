@@ -1,5 +1,5 @@
 import { Bell, CheckCheck, Trash2, AlertTriangle, Target, CreditCard, Repeat, HeartPulse } from "lucide-react";
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAlerts, type AlertType } from "@/store/alerts";
@@ -23,19 +23,25 @@ const formatRelative = (iso: string) => {
   return `${Math.floor(diff / 86400)} d`;
 };
 
-const BellButton = ({ unreadCount }: { unreadCount: number }) => (
-  <button
-    aria-label="Notificações"
-    className="relative w-9 h-9 md:w-10 md:h-10 rounded-full glass-inner flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-  >
-    <Bell className="w-4 h-4" />
-    {unreadCount > 0 && (
-      <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-primary to-primary-glow text-[10px] font-bold text-primary-foreground flex items-center justify-center shadow-[0_0_10px_hsl(var(--primary)/0.6)]">
-        {unreadCount > 9 ? "9+" : unreadCount}
-      </span>
-    )}
-  </button>
+const BellButton = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { unreadCount: number }>(
+  ({ unreadCount, ...props }, ref) => (
+    <button
+      ref={ref}
+      type="button"
+      aria-label="Notificações"
+      {...props}
+      className="relative w-9 h-9 md:w-10 md:h-10 rounded-full glass-inner flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+    >
+      <Bell className="w-4 h-4" />
+      {unreadCount > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-primary to-primary-glow text-[10px] font-bold text-primary-foreground flex items-center justify-center shadow-[0_0_10px_hsl(var(--primary)/0.6)]">
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </span>
+      )}
+    </button>
+  ),
 );
+BellButton.displayName = "BellButton";
 
 export const NotificationsBell = () => {
   const [open, setOpen] = useState(false);
