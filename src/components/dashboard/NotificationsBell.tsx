@@ -1,8 +1,7 @@
-import { Bell, CheckCheck, Trash2, AlertTriangle, Target, CreditCard, Repeat, HeartPulse, X } from "lucide-react";
+import { Bell, CheckCheck, Trash2, AlertTriangle, Target, CreditCard, Repeat, HeartPulse } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAlerts, type AlertType } from "@/store/alerts";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 const iconFor = (type: AlertType) => {
@@ -24,19 +23,22 @@ const formatRelative = (iso: string) => {
 
 export const NotificationsBell = () => {
   const [open, setOpen] = useState(false);
-  const isMobile = useIsMobile();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useAlerts();
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; right: number; width: number } | null>(null);
 
-  // Recompute position when opening / on resize / scroll
   useEffect(() => {
-    if (!open || isMobile) return;
+    if (!open) return;
     const update = () => {
       const r = btnRef.current?.getBoundingClientRect();
       if (!r) return;
-      setPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+      const vw = window.innerWidth;
+      const width = Math.min(360, Math.max(280, vw - 24));
+      let right = vw - r.right;
+      if (right + width > vw - 12) right = vw - width - 12;
+      if (right < 12) right = 12;
+      setPos({ top: r.bottom + 8, right, width });
     };
     update();
     window.addEventListener("resize", update);
@@ -45,7 +47,7 @@ export const NotificationsBell = () => {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [open, isMobile]);
+  }, [open]);
 
   // Close on outside click & ESC
   useEffect(() => {
@@ -94,21 +96,12 @@ export const NotificationsBell = () => {
             <Trash2 className="w-4 h-4" />
           </button>
         )}
-        {isMobile && (
-          <button
-            onClick={() => setOpen(false)}
-            title="Fechar"
-            className="w-8 h-8 rounded-lg glass-inner flex items-center justify-center text-muted-foreground hover:text-foreground transition"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
       </div>
     </div>
   );
 
   const listEl = (
-    <div className={cn("overflow-y-auto", isMobile ? "max-h-[70vh]" : "max-h-[340px]")}>
+    <div className="overflow-y-auto max-h-[340px]">
       {notifications.length === 0 ? (
         <div className="p-8 text-center">
           <div className="w-12 h-12 rounded-2xl glass-inner mx-auto mb-3 flex items-center justify-center">
@@ -170,30 +163,14 @@ export const NotificationsBell = () => {
 
       {open &&
         createPortal(
-          isMobile ? (
-            <div className="fixed inset-0 z-[200]">
-              <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in-0"
-                onClick={() => setOpen(false)}
-              />
-              <div
-                ref={panelRef}
-                className="absolute left-0 right-0 bottom-0 max-h-[85vh] glass-card border-t border-border/40 rounded-t-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom"
-              >
-                {headerEl}
-                {listEl}
-              </div>
-            </div>
-          ) : (
-            <div
-              ref={panelRef}
-              style={{ top: pos?.top ?? 0, right: pos?.right ?? 0 }}
-              className="fixed z-[200] w-[340px] glass-card border border-border/40 shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden animate-in fade-in-0 zoom-in-95"
-            >
-              {headerEl}
-              {listEl}
-            </div>
-          ),
+          <div
+            ref={panelRef}
+            style={{ top: pos?.top ?? 0, right: pos?.right ?? 0, width: pos?.width ?? 340 }}
+            className="fixed z-[200] glass-card border border-border/40 shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden animate-in fade-in-0 zoom-in-95"
+          >
+            {headerEl}
+            {listEl}
+          </div>,
           document.body,
         )}
     </>
