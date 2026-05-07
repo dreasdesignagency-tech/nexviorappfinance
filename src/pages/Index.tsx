@@ -12,6 +12,7 @@ import { FinancialCalendar } from "@/components/dashboard/FinancialCalendar";
 import { NewTransactionDialog } from "@/components/dashboard/NewTransactionDialog";
 import { useProfile } from "@/store/profile";
 import { OnboardingTour, hasSeenOnboarding } from "@/components/onboarding/OnboardingTour";
+import { BetaBanner } from "@/components/BetaBanner";
 import {
   InstallAppTour,
   shouldShowInstallTourAuto,
