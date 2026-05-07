@@ -12,6 +12,7 @@ import { FinancialCalendar } from "@/components/dashboard/FinancialCalendar";
 import { NewTransactionDialog } from "@/components/dashboard/NewTransactionDialog";
 import { useProfile } from "@/store/profile";
 import { OnboardingTour, hasSeenOnboarding } from "@/components/onboarding/OnboardingTour";
+import { BetaBanner } from "@/components/BetaBanner";
 import {
   InstallAppTour,
   shouldShowInstallTourAuto,
@@ -59,6 +60,7 @@ const Index = () => {
         style={{ paddingTop: "calc(var(--safe-top) + 1rem)" }}
       >
         <Header userName={profile.nome} onNewTransaction={() => setOpen(true)} />
+        <BetaBanner />
 
         <div data-tour="dashboard-summary" className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
           {/* Coluna esquerda (2/3) */}
