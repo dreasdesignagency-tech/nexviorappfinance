@@ -19,6 +19,7 @@ import Landing from "./pages/Landing.tsx";
 import { LandingGate } from "@/components/LandingGate";
 import Planos from "./pages/Planos.tsx";
 import Sucesso from "./pages/Sucesso.tsx";
+import Beta from "./pages/Beta.tsx";
 
 import AdminMembros from "./pages/AdminMembros.tsx";
 import { AdminRoute } from "@/components/AdminRoute";
