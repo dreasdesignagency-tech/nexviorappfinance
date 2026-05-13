@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
 import { safeQuery } from "@/lib/safe-query";
+import { requireBackend } from "@/lib/backend-guard";
 
 export type ReminderPriority = "baixa" | "média" | "alta";
 export type ReminderStatus = "pendente" | "concluído";
@@ -118,6 +119,10 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
       setTasks([]);
       return;
     }
+    if (!requireBackend("notifications:refetch", { toastMessage: "O backend não está configurado. Tarefas e lembretes foram mantidos em modo seguro." })) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     const [remindersResult, tasksResult] = await Promise.all([
@@ -149,6 +154,7 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
       toast.error("Faça login para cadastrar lembretes.");
       return false;
     }
+    if (!requireBackend("notifications:addReminder")) return false;
 
     const { data, error } = await db
       .from("reminders")
@@ -181,6 +187,7 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
       toast.error("Faça login para atualizar lembretes.");
       return false;
     }
+    if (!requireBackend("notifications:updateReminder")) return false;
 
     const dbPatch: Record<string, unknown> = {};
     if (patch.titulo !== undefined) dbPatch.titulo = patch.titulo;
@@ -215,6 +222,7 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
       toast.error("Faça login para remover lembretes.");
       return false;
     }
+    if (!requireBackend("notifications:removeReminder")) return false;
 
     const { error } = await db.from("reminders").delete().eq("id", id).eq("user_id", user.id);
     if (error) {
@@ -231,6 +239,7 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
       toast.error("Faça login para cadastrar tarefas.");
       return false;
     }
+    if (!requireBackend("notifications:addTask")) return false;
 
     const { data, error } = await db
       .from("tasks")
@@ -260,6 +269,7 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
       toast.error("Faça login para atualizar tarefas.");
       return false;
     }
+    if (!requireBackend("notifications:updateTask")) return false;
 
     const dbPatch: Record<string, unknown> = {};
     if (patch.titulo !== undefined) dbPatch.titulo = patch.titulo;
@@ -291,6 +301,7 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
       toast.error("Faça login para remover tarefas.");
       return false;
     }
+    if (!requireBackend("notifications:removeTask")) return false;
 
     const { error } = await db.from("tasks").delete().eq("id", id).eq("user_id", user.id);
     if (error) {
