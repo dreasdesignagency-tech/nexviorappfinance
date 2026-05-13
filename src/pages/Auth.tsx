@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { getAuthCallbackUrl } from "@/lib/auth-urls";
 import { useAuth } from "@/store/auth";
+import { requireBackend } from "@/lib/backend-guard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireBackend("auth:signin")) return;
     setErrors({});
     const parsed = signInSchema.safeParse({ email, password });
     if (!parsed.success) {
@@ -86,6 +88,7 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireBackend("auth:signup")) return;
     setErrors({});
     const parsed = signUpSchema.safeParse({ full_name: fullName, email, phone, password, confirm });
     if (!parsed.success) {
@@ -122,6 +125,7 @@ const Auth = () => {
   };
 
   const handleGoogle = async () => {
+    if (!requireBackend("auth:google")) return;
     setBusy(true);
     const authCallbackUrl = getAuthCallbackUrl();
     const { error } = await supabase.auth.signInWithOAuth({
