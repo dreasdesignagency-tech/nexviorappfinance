@@ -44,7 +44,16 @@ export const useSubscription = () => {
       .eq("user_id", user.id)
       .maybeSingle();
     if (error) {
-      console.error("Failed to load subscription", error);
+      console.error("[useSubscription] failed to load subscription", {
+        message: (error as any)?.message,
+        code: (error as any)?.code,
+        status: (error as any)?.status,
+      });
+      // On transient failure, keep previous subscription state so the user
+      // is not bounced to /planos or /login because of a network/quota error.
+      setResolvedUserId(user.id);
+      setLoading(false);
+      return;
     }
     setSubscription((data as UserSubscription) ?? null);
     setResolvedUserId(user.id);

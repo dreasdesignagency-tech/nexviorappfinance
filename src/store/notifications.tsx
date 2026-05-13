@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
+import { safeQuery } from "@/lib/safe-query";
 
 export type ReminderPriority = "baixa" | "média" | "alta";
 export type ReminderStatus = "pendente" | "concluído";
@@ -105,13 +106,14 @@ const fromTask = (row: TaskRow): TaskItem => ({
 });
 
 export const NotificationsProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   const refetch = useCallback(async () => {
-    if (!user) {
+    if (authLoading) return;
+    if (!user?.id) {
       setReminders([]);
       setTasks([]);
       return;
@@ -119,23 +121,24 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
 
     setLoading(true);
     const [remindersResult, tasksResult] = await Promise.all([
-      db.from("reminders").select("*").eq("user_id", user.id).order("data", { ascending: true }).order("hora", { ascending: true }),
-      db.from("tasks").select("*").eq("user_id", user.id).order("prazo", { ascending: true }).order("created_at", { ascending: false }),
+      safeQuery<ReminderRow[]>(
+        () => db.from("reminders").select("*").eq("user_id", user.id).order("data", { ascending: true }).order("hora", { ascending: true }),
+        { entity: "lembretes" },
+      ),
+      safeQuery<TaskRow[]>(
+        () => db.from("tasks").select("*").eq("user_id", user.id).order("prazo", { ascending: true }).order("created_at", { ascending: false }),
+        { entity: "tarefas" },
+      ),
     ]);
     setLoading(false);
 
-    if (remindersResult.error) {
-      toast.error("Erro ao carregar lembretes.");
-    } else {
+    if (!remindersResult.error) {
       setReminders(((remindersResult.data ?? []) as ReminderRow[]).map(fromReminder));
     }
-
-    if (tasksResult.error) {
-      toast.error("Erro ao carregar tarefas.");
-    } else {
+    if (!tasksResult.error) {
       setTasks(((tasksResult.data ?? []) as TaskRow[]).map(fromTask));
     }
-  }, [user]);
+  }, [authLoading, user]);
 
   useEffect(() => {
     refetch();

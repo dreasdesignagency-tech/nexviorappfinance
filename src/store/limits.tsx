@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
+import { safeQuery } from "@/lib/safe-query";
 
 export type PeriodoLimite = "Mensal" | "Semanal" | "Anual";
 
@@ -114,13 +115,14 @@ const fromInvestment = (row: InvestmentRow): Investment => ({
 });
 
 export const LimitsProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [limits, setLimits] = useState<Limit[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(false);
 
   const refetch = useCallback(async () => {
-    if (!user) {
+    if (authLoading) return;
+    if (!user?.id) {
       setLimits([]);
       setInvestments([]);
       return;
@@ -128,23 +130,25 @@ export const LimitsProvider = ({ children }: { children: ReactNode }) => {
 
     setLoading(true);
     const [limitsResult, investmentsResult] = await Promise.all([
-      db.from("limits").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      db.from("investments").select("*").eq("user_id", user.id).order("data_investimento", { ascending: false }),
+      safeQuery<LimitRow[]>(
+        () => db.from("limits").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        { entity: "limites" },
+      ),
+      safeQuery<InvestmentRow[]>(
+        () => db.from("investments").select("*").eq("user_id", user.id).order("data_investimento", { ascending: false }),
+        { entity: "investimentos" },
+      ),
     ]);
     setLoading(false);
 
-    if (limitsResult.error) {
-      toast.error("Erro ao carregar limites.");
-    } else {
+    // Only overwrite state on success — preserve existing data on transient errors
+    if (!limitsResult.error) {
       setLimits(((limitsResult.data ?? []) as LimitRow[]).map(fromLimit));
     }
-
-    if (investmentsResult.error) {
-      toast.error("Erro ao carregar investimentos.");
-    } else {
+    if (!investmentsResult.error) {
       setInvestments(((investmentsResult.data ?? []) as InvestmentRow[]).map(fromInvestment));
     }
-  }, [user]);
+  }, [authLoading, user]);
 
   useEffect(() => {
     refetch();
