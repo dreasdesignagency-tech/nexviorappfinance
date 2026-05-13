@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { supabaseConfig } from "@/lib/supabase";
 
 type SupaError = {
   message?: string;
@@ -10,6 +11,7 @@ type SupaError = {
 
 export type ErrorKind =
   | "auth"
+  | "backend_unavailable"
   | "rate_limit"
   | "rls"
   | "schema"
@@ -22,6 +24,7 @@ export const classifyError = (error: SupaError): ErrorKind => {
   const code = String(error.code || "").toUpperCase();
   const status = Number(error.status);
 
+  if (code === "BACKEND_UNAVAILABLE" || (!supabaseConfig.isConfigured && status === 503)) return "backend_unavailable";
   if (status === 401 || msg.includes("jwt") || msg.includes("invalid_grant") || msg.includes("not authenticated")) return "auth";
   if (status === 429 || msg.includes("rate limit") || msg.includes("too many")) return "rate_limit";
   if (status === 403 || msg.includes("row-level security") || msg.includes("policy")) return "rls";
@@ -33,6 +36,8 @@ export const classifyError = (error: SupaError): ErrorKind => {
 
 const friendlyMessage = (entity: string, kind: ErrorKind): string => {
   switch (kind) {
+    case "backend_unavailable":
+      return `O backend não está configurado no momento. ${entity} ficará indisponível temporariamente.`;
     case "rate_limit":
       return `Muitas requisições no momento. Tentaremos carregar ${entity} novamente em instantes.`;
     case "network":
