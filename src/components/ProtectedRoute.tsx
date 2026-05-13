@@ -1,12 +1,17 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/store/auth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { isBackendConfigured } from "@/lib/backend-guard";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const { hasAccess, loading: subLoading } = useSubscription();
   const location = useLocation();
   const returnTo = `${location.pathname}${location.search}${location.hash}`;
+
+  if (!isBackendConfigured()) {
+    return <>{children}</>;
+  }
 
   if (loading || (user && subLoading)) {
     return (
