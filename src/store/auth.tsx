@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth-urls";
 import { startSyncDaemon } from "@/lib/offline/sync";
 import { clearUserData } from "@/lib/offline/db";
+import { canUseBackend } from "@/lib/supabase";
 
 const isOnOfficialDomain = () => {
   if (typeof window === "undefined") return true;
@@ -53,6 +54,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    if (!canUseBackend("auth:init")) {
+      setSession(null);
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     let mounted = true;
 
     // Restore session from storage first so route guards don't briefly think
@@ -79,6 +87,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     const uid = userIdRef.current;
+    if (!canUseBackend("auth:signOut", { silent: true })) {
+      if (uid) await clearUserData(uid);
+      setSession(null);
+      setUser(null);
+      return;
+    }
     await supabase.auth.signOut();
     if (uid) await clearUserData(uid);
   };
