@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/store/auth";
+import { requireBackend } from "@/lib/backend-guard";
+import { classifyError } from "@/lib/safe-query";
 
 export type SubscriptionStatus =
   | "active"
@@ -33,6 +35,12 @@ export const useSubscription = () => {
       return;
     }
 
+    if (!requireBackend("assinatura", { silent: true })) {
+      setResolvedUserId(user.id);
+      setLoading(false);
+      return;
+    }
+
     const isFirstLoadForUser = resolvedUserId !== user.id;
     if (isFirstLoadForUser) {
       setLoading(true);
@@ -44,7 +52,9 @@ export const useSubscription = () => {
       .eq("user_id", user.id)
       .maybeSingle();
     if (error) {
+      const kind = classifyError(error as any);
       console.error("[useSubscription] failed to load subscription", {
+        kind,
         message: (error as any)?.message,
         code: (error as any)?.code,
         status: (error as any)?.status,
