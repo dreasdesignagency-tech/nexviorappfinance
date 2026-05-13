@@ -35,8 +35,7 @@ const Auth = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const betaPending = (() => { try { return localStorage.getItem("nexvior_beta_pending") === "1"; } catch { return false; } })();
-  const from = (location.state as { from?: string } | null)?.from || (betaPending ? "/beta" : "/app");
+  const from = (location.state as { from?: string } | null)?.from || "/app";
   const [mode, setMode] = useState<Mode>("signin");
   const [busy, setBusy] = useState(false);
 

@@ -59,9 +59,7 @@ export const useSubscription = () => {
   const hasAccess = !!subscription && (
     subscription.subscription_status === "active" ||
     subscription.subscription_status === "trialing" ||
-    subscription.subscription_status === "beta" ||
-    subscription.plan_type === "legacy" ||
-    subscription.plan_type === "beta"
+    subscription.plan_type === "legacy"
   );
 
   const needsInitialResolution = !!user && resolvedUserId !== user.id;

@@ -9,8 +9,7 @@ const AuthCallback = () => {
     const finalize = async () => {
       // After confirming email / OAuth, send user to landing planos section.
       // ProtectedRoute / sign-in flows handle access checks elsewhere.
-      const beta = (() => { try { return localStorage.getItem("nexvior_beta_pending") === "1"; } catch { return false; } })();
-      const goNext = () => navigate(beta ? "/beta" : "/lp#planos", { replace: true });
+      const goNext = () => navigate("/lp#planos", { replace: true });
       try {
         const search = new URLSearchParams(window.location.search);
         const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;

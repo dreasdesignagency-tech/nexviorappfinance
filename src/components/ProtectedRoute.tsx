@@ -1,7 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/store/auth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { isBetaPending } from "@/pages/Beta";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -22,7 +21,6 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!hasAccess) {
-    if (isBetaPending()) return <Navigate to="/beta" replace />;
     return <Navigate to="/planos" replace />;
   }
 
