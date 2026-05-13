@@ -64,7 +64,9 @@ export const SubscriptionChargesProvider = ({ children }: { children: ReactNode 
   const { addTransaction } = useTransactions();
   const [charges, setCharges] = useState<SubscriptionCharge[]>([]);
   const [loading, setLoading] = useState(false);
-  const seedingRef = useRef(false);
+  const seededKeyRef = useRef<string | null>(null);
+  const chargesRef = useRef<SubscriptionCharge[]>([]);
+  useEffect(() => { chargesRef.current = charges; }, [charges]);
 
   const refetch = useCallback(async () => {
     if (!user) {
@@ -78,7 +80,10 @@ export const SubscriptionChargesProvider = ({ children }: { children: ReactNode 
       .eq("user_id", user.id)
       .order("vencimento", { ascending: false });
     setLoading(false);
-    if (error) return;
+    if (error) {
+      console.error("[subscription_charges] load error", error);
+      return;
+    }
     setCharges((data ?? []) as SubscriptionCharge[]);
   }, [user]);
 
@@ -86,54 +91,65 @@ export const SubscriptionChargesProvider = ({ children }: { children: ReactNode 
     refetch();
   }, [refetch]);
 
-  // Seeder: garante cobrança do período atual + marca atrasadas
+  // Seeder: roda uma vez por (user, conjunto de assinaturas ativas).
+  // NUNCA depende de `charges` — isso causaria loop infinito de upserts.
   useEffect(() => {
-    if (!user || seedingRef.current) return;
-    if (assinaturas.length === 0) return;
-    seedingRef.current = true;
+    if (!user || assinaturas.length === 0) return;
+    const ativas = assinaturas.filter((a) => a.status === "ativa");
+    if (ativas.length === 0) return;
+    const key = `${user.id}|${ativas.map((a) => a.id).sort().join(",")}`;
+    if (seededKeyRef.current === key) return;
+    seededKeyRef.current = key;
 
     const run = async () => {
-      const today = todayISO();
-      const ativas = assinaturas.filter((a) => a.status === "ativa");
+      try {
+        const today = todayISO();
+        const current = chargesRef.current;
 
-      // 1. Marca atrasadas
-      const toLate = charges.filter(
-        (c) => c.status === "pendente" && c.vencimento < today,
-      );
-      if (toLate.length > 0) {
-        const ids = toLate.map((c) => c.id);
-        await db.from("subscription_charges").update({ status: "atrasado" }).in("id", ids).eq("user_id", user.id);
-        setCharges((prev) => prev.map((c) => (ids.includes(c.id) ? { ...c, status: "atrasado" as ChargeStatus } : c)));
-      }
+        // 1. Marca atrasadas
+        const toLate = current.filter((c) => c.status === "pendente" && c.vencimento < today);
+        if (toLate.length > 0) {
+          const ids = toLate.map((c) => c.id);
+          await db.from("subscription_charges").update({ status: "atrasado" }).in("id", ids).eq("user_id", user.id);
+          setCharges((prev) => prev.map((c) => (ids.includes(c.id) ? { ...c, status: "atrasado" as ChargeStatus } : c)));
+        }
 
-      // 2. Gera cobrança do período atual se não existir
-      const now = new Date();
-      const inserts: any[] = [];
-      for (const a of ativas) {
-        const period = periodKey(a, now);
-        const exists = charges.some((c) => c.subscription_id === a.id && c.mes_referencia === period);
-        if (exists) continue;
-        inserts.push({
-          user_id: user.id,
-          subscription_id: a.id,
-          mes_referencia: period,
-          valor: a.valor,
-          vencimento: computeVencimento(a, now),
-          status: "pendente",
-        });
+        // 2. Gera cobrança do período atual se não existir
+        const now = new Date();
+        const inserts: any[] = [];
+        for (const a of ativas) {
+          const period = periodKey(a, now);
+          const exists = current.some((c) => c.subscription_id === a.id && c.mes_referencia === period);
+          if (exists) continue;
+          inserts.push({
+            user_id: user.id,
+            subscription_id: a.id,
+            mes_referencia: period,
+            valor: a.valor,
+            vencimento: computeVencimento(a, now),
+            status: "pendente",
+          });
+        }
+        if (inserts.length > 0) {
+          const { data, error } = await db
+            .from("subscription_charges")
+            .upsert(inserts, { onConflict: "subscription_id,mes_referencia", ignoreDuplicates: true })
+            .select("*");
+          if (error) console.error("[subscription_charges] seed error", error);
+          if (data && data.length > 0) {
+            setCharges((prev) => {
+              const ids = new Set(prev.map((c) => c.id));
+              const fresh = (data as SubscriptionCharge[]).filter((c) => !ids.has(c.id));
+              return [...fresh, ...prev];
+            });
+          }
+        }
+      } catch (e) {
+        console.error("[subscription_charges] seeder failed", e);
       }
-      if (inserts.length > 0) {
-        const { data } = await db
-          .from("subscription_charges")
-          .upsert(inserts, { onConflict: "subscription_id,mes_referencia", ignoreDuplicates: true })
-          .select("*");
-        if (data) setCharges((prev) => [...(data as SubscriptionCharge[]), ...prev]);
-      }
-
-      seedingRef.current = false;
     };
     run();
-  }, [user, assinaturas, charges]);
+  }, [user, assinaturas]);
 
   const getCurrentChargeFor = useCallback(
     (subscription_id: string) => {
