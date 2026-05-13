@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
+import { safeQuery } from "@/lib/safe-query";
 
 export type ReminderPriority = "baixa" | "média" | "alta";
 export type ReminderStatus = "pendente" | "concluído";
