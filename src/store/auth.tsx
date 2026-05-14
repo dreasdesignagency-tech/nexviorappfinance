@@ -139,6 +139,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return originalSignOut(...args);
         };
       }
+
+      const originalRefreshSession = supabase.auth.refreshSession?.bind(supabase.auth);
+      if (originalRefreshSession && !(supabase.auth as any).__refreshSessionInstrumented) {
+        (supabase.auth as any).__refreshSessionInstrumented = true;
+        supabase.auth.refreshSession = async (...args: any[]) => {
+          console.info("[auth] supabase.auth.refreshSession() invocado", {
+            args,
+            storage: getAuthStorageDiagnostics(),
+            stack: new Error("supabase-refresh-trace").stack,
+          });
+          const result = await originalRefreshSession(...args);
+          console.info("[auth] supabase.auth.refreshSession() resultado", {
+            hasSession: Boolean((result as any)?.data?.session),
+            userId: (result as any)?.data?.session?.user?.id ?? null,
+            error: authErrorSnapshot((result as any)?.error),
+          });
+          return result;
+        };
+      }
     } catch (err) {
       console.warn("[auth] não foi possível instrumentar signOut", err);
     }
