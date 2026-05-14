@@ -8,7 +8,7 @@ import {
 } from "@/lib/auth-urls";
 import { startSyncDaemon } from "@/lib/offline/sync";
 import { clearUserData } from "@/lib/offline/db";
-import { canUseBackend } from "@/lib/supabase";
+import { canUseBackend, clearStoredAuthArtifacts, getAuthStorageDiagnostics } from "@/lib/supabase";
 
 const isOnOfficialDomain = () => {
   if (typeof window === "undefined") return true;
@@ -41,6 +41,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const userIdRef = useRef<string | null>(null);
   const hydratedRef = useRef(false);
   const lastSessionFingerprintRef = useRef<string | null>(null);
+  const invalidSessionRecoveryRef = useRef(false);
+  const manualSignOutRef = useRef(false);
 
   useEffect(() => {
     // Daemon de sincronização offline (uma única vez)
@@ -91,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
       const isMac = /Macintosh|Mac OS X/i.test(ua);
       const hasLocks = typeof (navigator as any)?.locks?.request === "function";
-      console.info("[auth] ambiente", { isSafari, isMac, hasLocks, ua });
+      console.info("[auth] ambiente", { isSafari, isMac, hasLocks, ua, storage: getAuthStorageDiagnostics() });
     }
 
     let mounted = true;
@@ -106,6 +108,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (mounted) {
         setLoading(false);
         setLoadingAuth(false);
+      }
+    };
+
+    const recoverFromInvalidPersistedSession = async (source: string, reason: string) => {
+      if (invalidSessionRecoveryRef.current) return;
+      invalidSessionRecoveryRef.current = true;
+
+      console.warn("[auth] recover invalid persisted session", {
+        source,
+        reason,
+        lastSessionFingerprint: lastSessionFingerprintRef.current,
+        storage: getAuthStorageDiagnostics(),
+      });
+
+      clearStoredAuthArtifacts(`${source}:${reason}`);
+
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        console.info("[auth] getSession after storage cleanup", {
+          source,
+          hasSession: Boolean(data?.session),
+          userId: data?.session?.user?.id ?? null,
+          error: error
+            ? {
+                message: error.message,
+                status: (error as any)?.status,
+                code: (error as any)?.code,
+              }
+            : null,
+        });
+        applyResolvedSession(`${source}:post_cleanup_getSession`, data?.session ?? null);
+      } catch (err) {
+        console.error("[auth] failed to recover invalid persisted session", { source, reason, err });
+        applyResolvedSession(`${source}:post_cleanup_fallback`, null);
+      } finally {
+        invalidSessionRecoveryRef.current = false;
       }
     };
 
@@ -142,6 +180,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.info("[auth] event", event, {
         hasSession: Boolean(s),
         userId: s?.user?.id ?? null,
+        loadingAuth: !hydratedRef.current,
+        lastSessionFingerprint: lastSessionFingerprintRef.current,
       });
 
       // Eventos que SEMPRE refletem a verdade do servidor sobre a sessão.
@@ -170,11 +210,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (event === "SIGNED_OUT" || event === "USER_DELETED") {
+        const hadPersistedSession = Boolean(lastSessionFingerprintRef.current || userIdRef.current);
         console.warn("[auth] sessão encerrada pelo Supabase", {
           event,
           reason: event === "USER_DELETED" ? "user_deleted" : "explicit_logout_or_revoked_session",
+          hadPersistedSession,
+          manualSignOut: manualSignOutRef.current,
           stack: new Error("auth-sign-out-trace").stack,
         });
+        if (event === "SIGNED_OUT" && hadPersistedSession && !manualSignOutRef.current) {
+          void recoverFromInvalidPersistedSession(`event:${event}`, "signed_out_after_existing_session");
+          return;
+        }
+        manualSignOutRef.current = false;
         applyResolvedSession(`event:${event}`, null);
         return;
       }
@@ -194,6 +242,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Restore session after the listener is attached so ProtectedRoute doesn't
     // race against auth hydration and bounce the user back to /login.
+    console.info("[auth] getSession start", {
+      source: "AuthProvider:init",
+      storage: getAuthStorageDiagnostics(),
+    });
+
     supabase.auth.getSession().then(({ data: { session: s }, error }: any) => {
       if (!mounted) return;
       if (error) {
@@ -202,6 +255,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           status: error?.status,
           code: error?.code,
         });
+        const authMessage = String(error?.message ?? "").toLowerCase();
+        const authCode = String(error?.code ?? "").toLowerCase();
+        const shouldClearPersistedSession =
+          authMessage.includes("refresh token") ||
+          authMessage.includes("jwt") ||
+          authMessage.includes("invalid") ||
+          authMessage.includes("session") ||
+          authCode.includes("refresh") ||
+          authCode.includes("jwt") ||
+          authCode.includes("session");
+
+        if (shouldClearPersistedSession) {
+          void recoverFromInvalidPersistedSession("getSession", `auth_error:${error?.message ?? error?.code ?? "unknown"}`);
+          return;
+        }
       }
       applyResolvedSession("getSession", s, {
         preserveIfHydratingWithoutSession: true,
@@ -227,8 +295,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       return;
     }
-    await supabase.auth.signOut();
-    if (uid) await clearUserData(uid);
+    manualSignOutRef.current = true;
+    try {
+      await supabase.auth.signOut();
+      if (uid) await clearUserData(uid);
+    } finally {
+      manualSignOutRef.current = false;
+    }
   };
 
   return (

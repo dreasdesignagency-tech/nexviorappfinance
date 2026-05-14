@@ -53,6 +53,12 @@ const Auth = () => {
 
   if (loading || loadingAuth) return null;
   if (user) {
+    console.info("[auth] redirect", {
+      from: "Auth",
+      to: from,
+      reason: "user_authenticated",
+      userId: user.id,
+    });
     return <Navigate to={from} replace />;
   }
 
@@ -68,12 +74,18 @@ const Auth = () => {
       return;
     }
     setBusy(true);
+    console.info("[auth] signInWithPassword start", { email: parsed.data.email });
     const { error } = await supabase.auth.signInWithPassword({
       email: parsed.data.email,
       password: parsed.data.password,
     });
     setBusy(false);
     if (error) {
+      console.warn("[auth] signInWithPassword error", {
+        message: error.message,
+        status: (error as any)?.status,
+        code: (error as any)?.code,
+      });
       if (error.message.toLowerCase().includes("email not confirmed")) {
         toast.error("Confirme seu e-mail antes de entrar.");
       } else {
@@ -81,6 +93,7 @@ const Auth = () => {
       }
       return;
     }
+    console.info("[auth] signInWithPassword success", { email: parsed.data.email });
     toast.success("Bem-vindo de volta!");
   };
 
