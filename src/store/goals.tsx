@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/store/auth";
 import { toast } from "sonner";
+import { safeQuery } from "@/lib/safe-query";
 
 export interface Goal {
   id: string;
@@ -68,17 +69,15 @@ export const GoalsProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     setLoading(true);
-    const { data, error } = await db
-      .from("goals")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+    const result = await safeQuery<GoalRow[]>(
+      () => db.from("goals").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      { entity: "metas" },
+    );
     setLoading(false);
-    if (error) {
-      toast.error("Erro ao carregar metas.");
-      return;
+    // Preserva metas existentes em caso de falha transitória — sem toast no carregamento.
+    if (!result.error) {
+      setGoals(((result.data ?? []) as GoalRow[]).map(fromRow));
     }
-    setGoals(((data ?? []) as GoalRow[]).map(fromRow));
   }, [user]);
 
   useEffect(() => {
