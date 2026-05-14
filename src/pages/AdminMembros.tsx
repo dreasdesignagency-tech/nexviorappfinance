@@ -809,6 +809,85 @@ export default function AdminMembros() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Liberar acesso dialog */}
+      <Dialog open={grantOpen} onOpenChange={(o) => !grantLoading && setGrantOpen(o)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-primary" /> Liberar acesso gratuito
+            </DialogTitle>
+            <DialogDescription>
+              Informe o email da pessoa. Ela receberá um convite e entrará com acesso liberado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label htmlFor="grant-email">Email</Label>
+              <Input
+                id="grant-email"
+                type="email"
+                placeholder="pessoa@exemplo.com"
+                value={grantEmail}
+                onChange={(e) => setGrantEmail(e.target.value)}
+                disabled={grantLoading}
+                autoFocus
+              />
+            </div>
+            <div>
+              <Label htmlFor="grant-note">Observação (opcional)</Label>
+              <Input
+                id="grant-note"
+                placeholder="ex: amigo, parceiro, beta tester…"
+                value={grantNote}
+                onChange={(e) => setGrantNote(e.target.value)}
+                disabled={grantLoading}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Se a pessoa já tem conta, o acesso é ativado na hora. Se não, o acesso é liberado automaticamente assim que ela se cadastrar com este email.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setGrantOpen(false)} disabled={grantLoading}>
+              Cancelar
+            </Button>
+            <Button onClick={handleGrant} disabled={grantLoading}>
+              {grantLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando…
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4 mr-2" /> Enviar convite e liberar
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revogar acesso confirm */}
+      <AlertDialog open={!!grantToRevoke} onOpenChange={(o) => !o && setGrantToRevoke(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revogar acesso?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {grantToRevoke?.email} perderá o acesso gratuito. Se a pessoa já se cadastrou, a assinatura será marcada como inativa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRevokeGrant}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Revogar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
