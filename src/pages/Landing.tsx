@@ -23,7 +23,7 @@ const Landing = () => {
       Object.assign(document.createElement("meta"), { name: "description" });
     meta.setAttribute(
       "content",
-      "Nexvior: app de finanças pessoais com IA mentora (nex.ia). Planos a partir de R$ 9,90/mês. Sem fidelidade."
+      "Nexvior: app de finanças pessoais com IA mentora (nex.ia). Planos a partir de R$ 19,90/mês. Sem fidelidade."
     );
     if (!meta.parentNode) document.head.appendChild(meta);
   }, []);

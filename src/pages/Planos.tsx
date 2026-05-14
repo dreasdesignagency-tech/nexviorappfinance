@@ -99,7 +99,7 @@ const Planos = () => {
               <p className="text-sm text-muted-foreground">Ideal para começar agora</p>
             </div>
             <div className="mb-8 flex items-baseline gap-1">
-              <span className="text-4xl md:text-5xl font-bold">R$ 9,90</span>
+              <span className="text-4xl md:text-5xl font-bold">R$ 19,90</span>
               <span className="text-muted-foreground text-base">/mês</span>
             </div>
             <ul className="space-y-3 mb-8">
@@ -127,18 +127,18 @@ const Planos = () => {
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-neon text-white text-xs font-semibold uppercase tracking-wide shadow-[0_0_30px_hsl(var(--lp-neon)/0.5)]">
                 <Sparkles className="w-3.5 h-3.5" />
-                Melhor custo-benefício
+                Melhor escolha
               </span>
             </div>
             <div className="mb-6">
               <h3 className="text-xl md:text-2xl font-semibold mb-2">Plano Anual</h3>
-              <p className="text-sm text-muted-foreground">Economize mais de 18% no plano anual</p>
+              <p className="text-sm text-muted-foreground">Economize mais de 35%</p>
             </div>
             <div className="mb-2 flex items-baseline gap-1">
-              <span className="text-4xl md:text-5xl font-bold">R$ 97,00</span>
+              <span className="text-4xl md:text-5xl font-bold">R$ 149,90</span>
               <span className="text-muted-foreground text-base">/ano</span>
             </div>
-            <p className="mb-8 text-sm text-neon font-medium">Tenha acesso completo por apenas R$ 97/ano</p>
+            <p className="mb-8 text-sm text-neon font-medium">Equivalente a menos de R$ 12/mês</p>
             <ul className="space-y-3 mb-8">
               {annualBenefits.map((b) => (
                 <li key={b} className="flex items-start gap-3 text-sm md:text-base text-foreground/90">

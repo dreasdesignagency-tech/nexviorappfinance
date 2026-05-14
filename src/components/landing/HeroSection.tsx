@@ -21,7 +21,7 @@ export const HeroSection = () => {
         >
           <Sparkles className="w-4 h-4 text-neon shrink-0" />
           <span className="text-sm text-foreground text-left">
-            Planos a partir de <strong className="text-neon">R$ 9,90/mês</strong>
+            Planos a partir de <strong className="text-neon">R$ 19,90/mês</strong>
           </span>
           <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </motion.a>
@@ -82,7 +82,7 @@ export const HeroSection = () => {
         >
           <Sparkles className="w-4 h-4 text-neon shrink-0" />
           <span className="text-xs text-foreground text-left">
-            Planos a partir de <strong className="text-neon">R$ 9,90/mês</strong>
+            Planos a partir de <strong className="text-neon">R$ 19,90/mês</strong>
           </span>
           <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </motion.a>
@@ -110,7 +110,7 @@ export const HeroSection = () => {
               className="w-full sm:w-auto bg-neon text-white hover:bg-neon-glow hover:text-white font-semibold text-base md:text-lg px-6 md:px-8 py-5 md:py-6 rounded-full transition-all duration-300 shadow-[0_0_30px_hsl(var(--lp-neon)/0.4),0_0_60px_hsl(var(--lp-neon)/0.2)]"
             >
               <ArrowRight className="w-5 h-5 mr-2" />
-              Comece por apenas R$ 9,90/mês
+              Começar por R$ 19,90/mês
             </Button>
           </Link>
           <a href="#recursos" className="w-full sm:w-auto">

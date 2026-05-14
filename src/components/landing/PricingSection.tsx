@@ -47,7 +47,7 @@ export const PricingSection = () => {
             </div>
 
             <div className="mb-8 flex items-baseline gap-1">
-              <span className="text-4xl md:text-5xl font-bold text-foreground">R$ 9,90</span>
+              <span className="text-4xl md:text-5xl font-bold text-foreground">R$ 19,90</span>
               <span className="text-muted-foreground text-base">/mês</span>
             </div>
 
@@ -78,20 +78,20 @@ export const PricingSection = () => {
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-neon text-white text-xs font-semibold uppercase tracking-wide shadow-[0_0_30px_hsl(var(--lp-neon)/0.5)] whitespace-nowrap">
                 <Sparkles className="w-3.5 h-3.5 shrink-0" />
-                Melhor custo-benefício
+                Melhor escolha
               </span>
             </div>
 
             <div className="mb-6">
               <h3 className="text-xl md:text-2xl font-semibold text-foreground mb-2">Plano Anual</h3>
-              <p className="text-sm text-muted-foreground">Economize mais de 18% no plano anual</p>
+              <p className="text-sm text-muted-foreground">Economize mais de 35%</p>
             </div>
 
             <div className="mb-2 flex items-baseline gap-1">
-              <span className="text-4xl md:text-5xl font-bold text-foreground">R$ 97,00</span>
+              <span className="text-4xl md:text-5xl font-bold text-foreground">R$ 149,90</span>
               <span className="text-muted-foreground text-base">/ano</span>
             </div>
-            <p className="mb-8 text-sm text-neon font-medium">Equivalente a menos de R$ 8,10/mês</p>
+            <p className="mb-8 text-sm text-neon font-medium">Equivalente a menos de R$ 12/mês</p>
 
             <ul className="space-y-3 mb-8">
               {annualBenefits.map((benefit) => (
