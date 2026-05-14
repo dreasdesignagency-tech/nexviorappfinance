@@ -890,6 +890,67 @@ export default function AdminMembros() {
         </DialogContent>
       </Dialog>
 
+      {/* Resultado pós-liberação (link manual) */}
+      <Dialog open={!!grantResult} onOpenChange={(o) => !o && setGrantResult(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-primary" />
+              {grantResult?.activated ? "Acesso ativado" : "Acesso registrado"}
+            </DialogTitle>
+            <DialogDescription>
+              {grantResult?.email}
+              {grantResult?.existed
+                ? " já possui conta — acesso liberado imediatamente."
+                : " ainda não tem conta — o acesso será liberado no cadastro."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2 text-sm">
+            <div className="flex items-center gap-2">
+              {grantResult?.emailSent ? (
+                <span className="inline-flex items-center gap-1 text-emerald-500 text-xs">
+                  <CheckCircle2 className="w-3 h-3" /> Email enviado
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-amber-500 text-xs">
+                  <Mail className="w-3 h-3" /> Email não enviado
+                  {grantResult?.emailError ? ` (${grantResult.emailError})` : ""}
+                </span>
+              )}
+            </div>
+            {grantResult?.actionLink && (
+              <div className="space-y-1">
+                <Label className="text-xs">Link de acesso (envie manualmente)</Label>
+                <div className="flex gap-2">
+                  <Input readOnly value={grantResult.actionLink} className="font-mono text-xs" />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(grantResult!.actionLink!);
+                      toast.success("Link copiado.");
+                    }}
+                  >
+                    Copiar
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Compartilhe esse link com a pessoa para que ela acesse a conta.
+                </p>
+              </div>
+            )}
+            {!grantResult?.actionLink && !grantResult?.emailSent && (
+              <p className="text-xs text-muted-foreground">
+                O acesso ficou registrado. Peça à pessoa para se cadastrar com este email para liberar automaticamente.
+              </p>
+            )}
+          </div>
+          <div className="flex justify-end pt-2">
+            <Button onClick={() => setGrantResult(null)}>Fechar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Revogar acesso confirm */}
       <AlertDialog open={!!grantToRevoke} onOpenChange={(o) => !o && setGrantToRevoke(null)}>
         <AlertDialogContent>
