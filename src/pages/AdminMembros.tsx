@@ -193,13 +193,28 @@ export default function AdminMembros() {
         },
       });
       if (error) throw error;
-      const sent = (data as any)?.email_sent;
-      const activated = (data as any)?.granted?.activated_immediately || (data as any)?.invited_user_id;
-      toast.success(
-        activated
-          ? `Acesso liberado para ${email}. ${sent ? "Email enviado." : ""}`
-          : `Convite enviado para ${email}. Acesso será liberado no cadastro.`,
-      );
+      const d = (data ?? {}) as any;
+      if (d.error) throw new Error(d.error);
+
+      const activated = Boolean(d.activated_immediately);
+      const existed = Boolean(d.existing_user_id);
+      const emailSent = Boolean(d.email_sent);
+      const actionLink: string | null = d.action_link ?? null;
+      const emailError: string | null = d.email_error ?? null;
+
+      if (activated && emailSent) {
+        toast.success(`Acesso liberado para ${email} e email enviado.`);
+      } else if (activated) {
+        toast.success(`Acesso liberado para ${email}. Email não enviado — copie o link.`);
+      } else if (emailSent) {
+        toast.success(`Convite enviado para ${email}. Acesso liberado no cadastro.`);
+      } else {
+        toast.warning(
+          `Acesso registrado para ${email}, mas o email não foi enviado. Use o link manual.`,
+        );
+      }
+
+      setGrantResult({ email, activated, existed, emailSent, emailError, actionLink });
       setGrantEmail("");
       setGrantNote("");
       setGrantOpen(false);
