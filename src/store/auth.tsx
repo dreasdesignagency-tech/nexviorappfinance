@@ -148,6 +148,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     const uid = userIdRef.current;
+    console.info("[auth] signOut chamado", {
+      userId: uid,
+      stack: new Error("signout-trace").stack,
+    });
     if (!canUseBackend("auth:signOut", { silent: true })) {
       if (uid) await clearUserData(uid);
       setSession(null);
