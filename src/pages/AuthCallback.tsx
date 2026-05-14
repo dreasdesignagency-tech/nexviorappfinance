@@ -8,16 +8,42 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const finalize = async () => {
-      // After confirming email / OAuth, send user to landing planos section.
-      // ProtectedRoute / sign-in flows handle access checks elsewhere.
-      const goNext = () => {
+      // After confirming email / OAuth, decide where to go based on the user's
+      // actual subscription / free-access state instead of always sending to /planos.
+      const goNext = async () => {
+        let target = "/lp#planos";
+        try {
+          // Try to claim any pending free-access grant for this email.
+          const { data: claim, error: claimErr } = await supabase.rpc("claim_access_grant" as any);
+          console.info("[auth] callback claim_access_grant", { claim, error: claimErr?.message ?? null });
+
+          const { data: subRow } = await supabase
+            .from("user_subscriptions")
+            .select("subscription_status, plan_type")
+            .maybeSingle();
+
+          const status = subRow?.subscription_status;
+          const plan = subRow?.plan_type;
+          const hasAccess =
+            status === "active" ||
+            status === "trialing" ||
+            status === "beta" ||
+            plan === "legacy" ||
+            plan === "free_access" ||
+            plan === "beta";
+
+          target = hasAccess ? "/app" : "/planos";
+        } catch (e) {
+          console.warn("[auth] callback access check failed", e);
+        }
+
         console.info("[auth] redirect", {
           from: "AuthCallback",
-          to: "/lp#planos",
+          to: target,
           reason: "auth_callback_success",
           storage: getAuthStorageDiagnostics(),
         });
-        navigate("/lp#planos", { replace: true });
+        navigate(target, { replace: true });
       };
       try {
         const search = new URLSearchParams(window.location.search);
@@ -36,7 +62,7 @@ const AuthCallback = () => {
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
-          goNext();
+          await goNext();
           return;
         }
 
@@ -45,7 +71,7 @@ const AuthCallback = () => {
         if (tokenHash && type) {
           const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
           if (error) throw error;
-          goNext();
+          await goNext();
           return;
         }
 
@@ -57,13 +83,13 @@ const AuthCallback = () => {
             refresh_token: refreshToken,
           });
           if (error) throw error;
-          goNext();
+          await goNext();
           return;
         }
 
         const { data } = await supabase.auth.getSession();
         if (data.session) {
-          goNext();
+          await goNext();
           return;
         }
 

@@ -44,6 +44,13 @@ export const useSubscription = () => {
     const isFirstLoadForUser = resolvedUserId !== user.id;
     if (isFirstLoadForUser) {
       setLoading(true);
+      // Claim any pending free-access grant for this email (no-op if none).
+      try {
+        const { error: claimErr } = await supabase.rpc("claim_access_grant" as any);
+        if (claimErr) console.warn("[useSubscription] claim_access_grant failed", claimErr.message);
+      } catch (e) {
+        console.warn("[useSubscription] claim_access_grant exception", e);
+      }
     }
 
     const { data, error } = await supabase
@@ -78,7 +85,10 @@ export const useSubscription = () => {
   const hasAccess = !!subscription && (
     subscription.subscription_status === "active" ||
     subscription.subscription_status === "trialing" ||
-    subscription.plan_type === "legacy"
+    subscription.subscription_status === "beta" ||
+    subscription.plan_type === "legacy" ||
+    subscription.plan_type === "free_access" ||
+    subscription.plan_type === "beta"
   );
 
   const needsInitialResolution = !!user && resolvedUserId !== user.id;
