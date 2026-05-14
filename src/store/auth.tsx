@@ -33,6 +33,62 @@ interface AuthCtx {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
+type AuthLikeError = {
+  message?: string;
+  code?: string;
+  status?: number | string;
+  name?: string;
+} | null | undefined;
+
+const authErrorSnapshot = (error: AuthLikeError) =>
+  error
+    ? {
+        message: error.message ?? null,
+        code: error.code ?? null,
+        status: error.status ?? null,
+        name: error.name ?? null,
+      }
+    : null;
+
+const isConfirmedAuthError = (error: AuthLikeError) => {
+  if (!error) return false;
+
+  const message = String(error.message ?? "").toLowerCase();
+  const code = String(error.code ?? "").toLowerCase();
+  const status = Number(error.status ?? 0);
+
+  if (status === 401) return true;
+
+  const messageMatchers = [
+    "refresh token",
+    "invalid refresh token",
+    "refresh_token",
+    "invalid token",
+    "token has expired",
+    "jwt expired",
+    "bad jwt",
+    "invalid jwt",
+    "auth session missing",
+    "session not found",
+    "invalid session",
+    "invalid grant",
+    "reuse detected",
+    "revoked",
+  ];
+
+  const codeMatchers = [
+    "refresh",
+    "jwt",
+    "session_not_found",
+    "invalid_grant",
+    "bad_jwt",
+    "token_expired",
+    "refresh_token_not_found",
+  ];
+
+  return messageMatchers.some((matcher) => message.includes(matcher)) || codeMatchers.some((matcher) => code.includes(matcher));
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
