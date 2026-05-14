@@ -334,7 +334,6 @@ export const supabase: any = supabaseConfig.isConfigured
         detectSessionInUrl: true,
         flowType: "pkce",
         lock: processLock,
-        lockAcquireTimeout: 2000,
       },
     })
   : noopSupabase;
