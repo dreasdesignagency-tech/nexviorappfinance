@@ -693,6 +693,7 @@ export type Database = {
         Args: { _banned: boolean; _user_id: string }
         Returns: undefined
       }
+      claim_access_grant: { Args: never; Returns: Json }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
