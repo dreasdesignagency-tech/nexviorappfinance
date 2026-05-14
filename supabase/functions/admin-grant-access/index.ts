@@ -6,6 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -15,128 +23,113 @@ Deno.serve(async (req) => {
     const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return json({ error: "unauthorized" }, 401);
+    }
+
+    // Cliente com o JWT do admin chamador (para auth.uid() funcionar nos RPCs)
     const userClient = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
-    // Verifica se quem chamou é admin
+    // 1) Verifica autenticação e papel admin
     const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (userErr || !userData?.user) return json({ error: "unauthorized" }, 401);
 
-    const { data: isAdminData, error: roleErr } = await admin
+    const { data: roleRow, error: roleErr } = await admin
       .from("user_roles")
       .select("role")
       .eq("user_id", userData.user.id)
       .eq("role", "admin")
       .maybeSingle();
-    if (roleErr || !isAdminData) {
-      return new Response(JSON.stringify({ error: "forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (roleErr || !roleRow) return json({ error: "forbidden" }, 403);
 
+    // 2) Body
     const body = await req.json().catch(() => ({}));
     const email = String(body.email ?? "").trim().toLowerCase();
     const planType = String(body.plan_type ?? "free_access");
     const note = body.note ? String(body.note) : null;
     const redirectTo = body.redirect_to ? String(body.redirect_to) : undefined;
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return new Response(JSON.stringify({ error: "email inválido" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!EMAIL_RE.test(email)) return json({ error: "email inválido" }, 400);
 
-    // 1) Cria/atualiza grant + ativa imediatamente se já existir
-    const { data: grantResult, error: grantErr } = await admin.rpc("admin_grant_access", {
+    // 3) Cria/atualiza grant via RPC (auth.uid() = admin chamador)
+    const { data: grantResult, error: grantErr } = await userClient.rpc("admin_grant_access", {
       _email: email,
       _plan_type: planType,
       _note: note,
     });
-    // O RPC respeita has_role(auth.uid()) — chamamos via service role então pulamos a checagem fazendo manualmente
-    // Como service role bypassa RLS mas a função usa auth.uid()=null, precisamos rodar o INSERT direto:
     if (grantErr) {
-      // Fallback direto via service role
-      await admin.from("access_grants").upsert(
-        {
-          email,
-          plan_type: planType,
-          note,
-          granted_by: userData.user.id,
-          granted_at: new Date().toISOString(),
-        },
-        { onConflict: "email" },
-      );
-
-      // Verifica se usuário existe
-      const { data: existing } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-      const found = existing?.users?.find((u) => (u.email ?? "").toLowerCase() === email);
-      if (found) {
-        await admin.from("user_subscriptions").upsert(
-          {
-            user_id: found.id,
-            subscription_status: "active",
-            plan_type: planType,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id" },
-        );
-        await admin
-          .from("access_grants")
-          .update({ claimed_user_id: found.id, claimed_at: new Date().toISOString() })
-          .eq("email", email);
-      }
+      console.error("[admin-grant-access] grant rpc failed", grantErr);
+      return json({ error: "Falha ao registrar acesso: " + grantErr.message }, 500);
     }
 
-    // 2) Envia o convite por email (Supabase Auth: cria usuário se não existir, ou envia magic link se existir)
+    const existingUserId =
+      (grantResult as any)?.existing_user_id ?? null;
+    const activatedImmediately = Boolean(
+      (grantResult as any)?.activated_immediately,
+    );
+
+    // 4) Envio de email + link de fallback
     let emailSent = false;
     let emailError: string | null = null;
+    let actionLink: string | null = null;
+    let invitedUserId: string | null = null;
 
-    const { data: invited, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
-      redirectTo,
-      data: { granted_plan: planType, granted_by_admin: true },
-    });
-
-    if (inviteErr) {
-      // Se já existe, manda magic link
-      const { error: linkErr } = await admin.auth.admin.generateLink({
+    if (existingUserId) {
+      // Usuário já existe → magic link (envia email automaticamente)
+      const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
         type: "magiclink",
         email,
         options: { redirectTo },
       });
       if (linkErr) {
-        emailError = inviteErr.message;
+        emailError = linkErr.message;
       } else {
-        emailSent = true;
+        actionLink = (linkData as any)?.properties?.action_link ?? null;
+        // generateLink dispara o email automaticamente quando SMTP está configurado
+        emailSent = Boolean(actionLink);
       }
     } else {
-      emailSent = true;
+      // Usuário novo → invite (envia email se SMTP ok)
+      const { data: invited, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
+        redirectTo,
+        data: { granted_plan: planType, granted_by_admin: true },
+      });
+      if (inviteErr) {
+        emailError = inviteErr.message;
+        // Fallback: gera signup link para copiar manualmente
+        const { data: signupLink, error: signupErr } = await admin.auth.admin.generateLink({
+          type: "signup",
+          email,
+          password: crypto.randomUUID(),
+          options: { redirectTo },
+        });
+        if (!signupErr) {
+          actionLink = (signupLink as any)?.properties?.action_link ?? null;
+        }
+      } else {
+        invitedUserId = invited?.user?.id ?? null;
+        emailSent = true;
+        // generateLink invite também — pode não estar disponível no payload
+        actionLink = (invited as any)?.properties?.action_link ?? null;
+      }
     }
 
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        email,
-        plan_type: planType,
-        granted: grantResult ?? null,
-        invited_user_id: invited?.user?.id ?? null,
-        email_sent: emailSent,
-        email_error: emailError,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
-  } catch (e) {
-    return new Response(JSON.stringify({ error: String(e?.message ?? e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return json({
+      ok: true,
+      email,
+      plan_type: planType,
+      existing_user_id: existingUserId,
+      invited_user_id: invitedUserId,
+      activated_immediately: activatedImmediately,
+      email_sent: emailSent,
+      email_error: emailError,
+      action_link: actionLink,
     });
+  } catch (e: any) {
+    console.error("[admin-grant-access] uncaught", e);
+    return json({ error: String(e?.message ?? e) }, 500);
   }
 });
