@@ -327,6 +327,74 @@ export default function AdminMembros() {
           </p>
         </header>
 
+        {/* Liberação de acesso gratuito */}
+        <Card className="p-4 md:p-5 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-primary" />
+              <div>
+                <h2 className="font-semibold text-foreground">Liberar acesso gratuito</h2>
+                <p className="text-xs text-muted-foreground">
+                  Envie um convite por email — a pessoa entra com acesso liberado.
+                </p>
+              </div>
+            </div>
+            <Button onClick={() => setGrantOpen(true)} className="md:self-end">
+              <Mail className="w-4 h-4 mr-2" /> Liberar por email
+            </Button>
+          </div>
+
+          {grantsLoading ? (
+            <div className="text-xs text-muted-foreground py-2">Carregando…</div>
+          ) : grants.length === 0 ? (
+            <div className="text-xs text-muted-foreground py-2">Nenhum acesso liberado ainda.</div>
+          ) : (
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <table className="w-full text-sm">
+                <thead className="text-xs text-muted-foreground uppercase">
+                  <tr>
+                    <th className="text-left px-4 py-2 font-medium">Email</th>
+                    <th className="text-left px-4 py-2 font-medium">Status</th>
+                    <th className="text-left px-4 py-2 font-medium">Liberado em</th>
+                    <th className="text-right px-4 py-2 font-medium">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {grants.map((g) => (
+                    <tr key={g.id} className="border-t border-border/40">
+                      <td className="px-4 py-2 text-foreground">{g.email}</td>
+                      <td className="px-4 py-2">
+                        {g.claimed_user_id ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-emerald-500">
+                            <CheckCircle2 className="w-3 h-3" /> Ativo
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs text-amber-500">
+                            <Mail className="w-3 h-3" /> Aguardando cadastro
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-muted-foreground text-xs">
+                        {fmt(g.granted_at)}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setGrantToRevoke(g)}
+                          className="text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+
         {/* Toolbar */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
           <div className="relative flex-1">
