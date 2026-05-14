@@ -3,7 +3,7 @@ import { useAuth } from "@/store/auth";
 import Landing from "@/pages/Landing";
 
 export const LandingGate = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, loadingAuth } = useAuth();
 
   const isInstalledApp = (() => {
     if (typeof window === "undefined") return false;
@@ -11,7 +11,7 @@ export const LandingGate = () => {
     return window.matchMedia("(display-mode: standalone)").matches || Boolean(iosNavigator.standalone);
   })();
 
-  if (loading) {
+  if (loading || loadingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">
         Carregando…
