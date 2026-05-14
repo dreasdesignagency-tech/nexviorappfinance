@@ -22,17 +22,23 @@ const annualBenefits = [
 ];
 
 const Planos = () => {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, loadingAuth, signOut } = useAuth();
   const { hasAccess, loading: subLoading } = useSubscription();
   const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = useState<"mensal" | "anual" | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      console.info("[auth] redirect", { from: "Planos", to: "/auth", reason: "no_user_after_auth_ready" });
+    if (!authLoading && !loadingAuth && !user) {
+      console.info("[auth] redirect", {
+        from: "Planos",
+        to: "/auth",
+        reason: "no_user_after_auth_ready",
+        authLoading,
+        loadingAuth,
+      });
       navigate("/auth", { replace: true });
     }
-  }, [authLoading, user, navigate]);
+  }, [authLoading, loadingAuth, user, navigate]);
 
   useEffect(() => {
     if (!subLoading && hasAccess) {

@@ -4,7 +4,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { isBackendConfigured } from "@/lib/backend-guard";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, loadingAuth } = useAuth();
   const { hasAccess, loading: subLoading } = useSubscription();
   const location = useLocation();
   const returnTo = `${location.pathname}${location.search}${location.hash}`;
@@ -14,7 +14,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <>{children}</>;
   }
 
-  if (loading || (user && subLoading)) {
+  if (loading || loadingAuth || (user && subLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">
         Carregando…
@@ -27,6 +27,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       reason: "missing_user_after_auth_ready",
       returnTo,
       isAuthRoute,
+      loading,
+      loadingAuth,
+      subLoading,
     });
     return <Navigate to="/login" replace state={{ from: returnTo }} />;
   }

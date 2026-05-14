@@ -27,6 +27,7 @@ interface AuthCtx {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  loadingAuth: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -36,7 +37,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingAuth, setLoadingAuth] = useState(true);
   const userIdRef = useRef<string | null>(null);
+  const hydratedRef = useRef(false);
+  const lastSessionFingerprintRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Daemon de sincronização offline (uma única vez)
@@ -58,25 +62,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(null);
       setUser(null);
       setLoading(false);
+      setLoadingAuth(false);
+      hydratedRef.current = true;
       return;
     }
 
     let mounted = true;
 
+    const fingerprint = (nextSession: Session | null) => {
+      if (!nextSession?.access_token || !nextSession?.user?.id) return null;
+      return `${nextSession.user.id}:${nextSession.access_token.slice(-12)}`;
+    };
+
+    const finishHydration = () => {
+      hydratedRef.current = true;
+      if (mounted) {
+        setLoading(false);
+        setLoadingAuth(false);
+      }
+    };
+
     const applyResolvedSession = (
       source: string,
       nextSession: Session | null,
-      options?: { keepLoading?: boolean },
+      options?: { keepLoading?: boolean; preserveIfHydratingWithoutSession?: boolean },
     ) => {
       if (!mounted) return;
+      if (options?.preserveIfHydratingWithoutSession && !hydratedRef.current && !nextSession) {
+        console.info("[auth] preservando sessão local durante hidratação", {
+          source,
+          reason: "hydration_not_finished_and_no_session_payload",
+          localUserId: userIdRef.current,
+        });
+        return;
+      }
+
+      lastSessionFingerprintRef.current = fingerprint(nextSession);
       console.info("[auth] state", source, {
         hasSession: Boolean(nextSession),
         userId: nextSession?.user?.id ?? null,
+        hydrated: hydratedRef.current,
       });
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       if (!options?.keepLoading) {
-        setLoading(false);
+        finishHydration();
       }
     };
 
@@ -89,7 +119,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Eventos que SEMPRE refletem a verdade do servidor sobre a sessão.
       if (event === "INITIAL_SESSION") {
-        applyResolvedSession(`event:${event}`, s, { keepLoading: true });
+        applyResolvedSession(`event:${event}`, s, {
+          keepLoading: true,
+          preserveIfHydratingWithoutSession: true,
+        });
         return;
       }
 
@@ -101,7 +134,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           applyResolvedSession(`event:${event}`, s);
         } else {
           console.warn("[auth] ignoring event without session (mantendo sessão local)", { event });
-          setLoading(false);
+          if (hydratedRef.current) {
+            setLoading(false);
+            setLoadingAuth(false);
+          }
         }
         return;
       }
@@ -122,7 +158,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         applyResolvedSession(`event:${event}`, s);
       } else {
         console.info("[auth] evento sem sessão — preservando estado local", { event });
-        setLoading(false);
+        if (hydratedRef.current) {
+          setLoading(false);
+          setLoadingAuth(false);
+        }
       }
     });
 
@@ -137,7 +176,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           code: error?.code,
         });
       }
-      applyResolvedSession("getSession", s);
+      applyResolvedSession("getSession", s, {
+        preserveIfHydratingWithoutSession: true,
+      });
+      finishHydration();
     });
 
     return () => {
@@ -163,7 +205,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <Ctx.Provider value={{ user, session, loading, signOut }}>
+    <Ctx.Provider value={{ user, session, loading, loadingAuth, signOut }}>
       {children}
     </Ctx.Provider>
   );

@@ -7,15 +7,22 @@ import { useAuth } from "@/store/auth";
 
 const Sucesso = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, loadingAuth } = useAuth();
   const { hasAccess, refresh } = useSubscription();
   const [polling, setPolling] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && !loadingAuth && !user) {
+      console.info("[auth] redirect", {
+        from: "Sucesso",
+        to: "/auth",
+        reason: "no_user_after_auth_ready",
+        authLoading,
+        loadingAuth,
+      });
       navigate("/auth", { replace: true });
     }
-  }, [authLoading, user, navigate]);
+  }, [authLoading, loadingAuth, user, navigate]);
 
   // Poll subscription status for up to ~20s while webhook propagates
   useEffect(() => {

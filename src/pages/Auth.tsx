@@ -33,7 +33,7 @@ const signInSchema = z.object({
 type Mode = "signin" | "signup";
 
 const Auth = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, loadingAuth } = useAuth();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from || "/app";
   const [mode, setMode] = useState<Mode>("signin");
@@ -51,7 +51,7 @@ const Auth = () => {
     document.title = mode === "signin" ? "Entrar — Nexvior" : "Criar conta — Nexvior";
   }, [mode]);
 
-  if (loading) return null;
+  if (loading || loadingAuth) return null;
   if (user) {
     return <Navigate to={from} replace />;
   }
