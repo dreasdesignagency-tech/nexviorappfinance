@@ -22,7 +22,7 @@ export interface UserSubscription {
 }
 
 export const useSubscription = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, loadingAuth } = useAuth();
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
@@ -71,9 +71,9 @@ export const useSubscription = () => {
   }, [resolvedUserId, user]);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || loadingAuth) return;
     refresh();
-  }, [authLoading, refresh]);
+  }, [authLoading, loadingAuth, refresh]);
 
   const hasAccess = !!subscription && (
     subscription.subscription_status === "active" ||
@@ -83,5 +83,5 @@ export const useSubscription = () => {
 
   const needsInitialResolution = !!user && resolvedUserId !== user.id;
 
-  return { subscription, loading: authLoading || needsInitialResolution || loading, hasAccess, refresh };
+  return { subscription, loading: authLoading || loadingAuth || needsInitialResolution || loading, hasAccess, refresh };
 };
