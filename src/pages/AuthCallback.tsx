@@ -62,7 +62,7 @@ const AuthCallback = () => {
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
-          goNext();
+          await goNext();
           return;
         }
 
@@ -71,7 +71,7 @@ const AuthCallback = () => {
         if (tokenHash && type) {
           const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
           if (error) throw error;
-          goNext();
+          await goNext();
           return;
         }
 
@@ -83,13 +83,13 @@ const AuthCallback = () => {
             refresh_token: refreshToken,
           });
           if (error) throw error;
-          goNext();
+          await goNext();
           return;
         }
 
         const { data } = await supabase.auth.getSession();
         if (data.session) {
-          goNext();
+          await goNext();
           return;
         }
 
