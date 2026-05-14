@@ -144,6 +144,14 @@ export default function AdminMembros() {
   const [grants, setGrants] = useState<AccessGrant[]>([]);
   const [grantsLoading, setGrantsLoading] = useState(false);
   const [grantToRevoke, setGrantToRevoke] = useState<AccessGrant | null>(null);
+  const [grantResult, setGrantResult] = useState<{
+    email: string;
+    activated: boolean;
+    existed: boolean;
+    emailSent: boolean;
+    emailError: string | null;
+    actionLink: string | null;
+  } | null>(null);
 
   const load = async () => {
     setLoading(true);
