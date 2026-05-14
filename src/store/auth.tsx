@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const hydratedRef = useRef(false);
   const lastSessionFingerprintRef = useRef<string | null>(null);
   const invalidSessionRecoveryRef = useRef(false);
+  const manualSignOutRef = useRef(false);
 
   useEffect(() => {
     // Daemon de sincronização offline (uma única vez)
@@ -214,12 +215,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           event,
           reason: event === "USER_DELETED" ? "user_deleted" : "explicit_logout_or_revoked_session",
           hadPersistedSession,
+          manualSignOut: manualSignOutRef.current,
           stack: new Error("auth-sign-out-trace").stack,
         });
-        if (event === "SIGNED_OUT" && hadPersistedSession) {
+        if (event === "SIGNED_OUT" && hadPersistedSession && !manualSignOutRef.current) {
           void recoverFromInvalidPersistedSession(`event:${event}`, "signed_out_after_existing_session");
           return;
         }
+        manualSignOutRef.current = false;
         applyResolvedSession(`event:${event}`, null);
         return;
       }
@@ -292,8 +295,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       return;
     }
-    await supabase.auth.signOut();
-    if (uid) await clearUserData(uid);
+    manualSignOutRef.current = true;
+    try {
+      await supabase.auth.signOut();
+      if (uid) await clearUserData(uid);
+    } finally {
+      manualSignOutRef.current = false;
+    }
   };
 
   return (
