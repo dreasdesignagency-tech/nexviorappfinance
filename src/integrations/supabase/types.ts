@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_grants: {
+        Row: {
+          claimed_at: string | null
+          claimed_user_id: string | null
+          created_at: string
+          email: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          note: string | null
+          plan_type: string
+          updated_at: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_user_id?: string | null
+          created_at?: string
+          email: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          note?: string | null
+          plan_type?: string
+          updated_at?: string
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_user_id?: string | null
+          created_at?: string
+          email?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          note?: string | null
+          plan_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cards: {
         Row: {
           ativo: boolean
@@ -611,6 +650,31 @@ export type Database = {
     Functions: {
       admin_delete_user: { Args: { _user_id: string }; Returns: undefined }
       admin_get_user_details: { Args: { _user_id: string }; Returns: Json }
+      admin_grant_access: {
+        Args: { _email: string; _note?: string; _plan_type?: string }
+        Returns: Json
+      }
+      admin_list_access_grants: {
+        Args: never
+        Returns: {
+          claimed_at: string | null
+          claimed_user_id: string | null
+          created_at: string
+          email: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          note: string | null
+          plan_type: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "access_grants"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_list_members: {
         Args: never
         Returns: {
@@ -624,6 +688,7 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
         }[]
       }
+      admin_revoke_access: { Args: { _email: string }; Returns: undefined }
       admin_set_user_banned: {
         Args: { _banned: boolean; _user_id: string }
         Returns: undefined

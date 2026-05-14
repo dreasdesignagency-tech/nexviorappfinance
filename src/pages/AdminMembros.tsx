@@ -47,8 +47,22 @@ import {
   CreditCard,
   Receipt,
   Repeat,
+  Mail,
+  Gift,
+  Loader2,
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+
+interface AccessGrant {
+  id: string;
+  email: string;
+  plan_type: string;
+  note: string | null;
+  granted_at: string;
+  claimed_user_id: string | null;
+  claimed_at: string | null;
+}
 
 interface Member {
   id: string;
@@ -122,6 +136,15 @@ export default function AdminMembros() {
   const [details, setDetails] = useState<UserDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
+  // Liberação de acesso gratuito
+  const [grantOpen, setGrantOpen] = useState(false);
+  const [grantEmail, setGrantEmail] = useState("");
+  const [grantNote, setGrantNote] = useState("");
+  const [grantLoading, setGrantLoading] = useState(false);
+  const [grants, setGrants] = useState<AccessGrant[]>([]);
+  const [grantsLoading, setGrantsLoading] = useState(false);
+  const [grantToRevoke, setGrantToRevoke] = useState<AccessGrant | null>(null);
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase.rpc("admin_list_members");
@@ -133,9 +156,66 @@ export default function AdminMembros() {
     setLoading(false);
   };
 
+  const loadGrants = async () => {
+    setGrantsLoading(true);
+    const { data, error } = await supabase.rpc("admin_list_access_grants");
+    if (!error) setGrants((data as AccessGrant[]) ?? []);
+    setGrantsLoading(false);
+  };
+
   useEffect(() => {
     load();
+    loadGrants();
   }, []);
+
+  const handleGrant = async () => {
+    const email = grantEmail.trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Informe um email válido.");
+      return;
+    }
+    setGrantLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-grant-access", {
+        body: {
+          email,
+          plan_type: "free_access",
+          note: grantNote || null,
+          redirect_to: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+      const sent = (data as any)?.email_sent;
+      const activated = (data as any)?.granted?.activated_immediately || (data as any)?.invited_user_id;
+      toast.success(
+        activated
+          ? `Acesso liberado para ${email}. ${sent ? "Email enviado." : ""}`
+          : `Convite enviado para ${email}. Acesso será liberado no cadastro.`,
+      );
+      setGrantEmail("");
+      setGrantNote("");
+      setGrantOpen(false);
+      loadGrants();
+      load();
+    } catch (e: any) {
+      toast.error("Erro: " + (e?.message ?? String(e)));
+    } finally {
+      setGrantLoading(false);
+    }
+  };
+
+  const handleRevokeGrant = async () => {
+    if (!grantToRevoke) return;
+    const { error } = await supabase.rpc("admin_revoke_access", { _email: grantToRevoke.email });
+    if (error) {
+      toast.error("Erro: " + error.message);
+    } else {
+      toast.success("Acesso revogado.");
+      loadGrants();
+      load();
+    }
+    setGrantToRevoke(null);
+  };
 
   const filtered = useMemo(() => {
     let list = [...members];
@@ -246,6 +326,74 @@ export default function AdminMembros() {
             Painel administrativo — visível apenas para administradores.
           </p>
         </header>
+
+        {/* Liberação de acesso gratuito */}
+        <Card className="p-4 md:p-5 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-primary" />
+              <div>
+                <h2 className="font-semibold text-foreground">Liberar acesso gratuito</h2>
+                <p className="text-xs text-muted-foreground">
+                  Envie um convite por email — a pessoa entra com acesso liberado.
+                </p>
+              </div>
+            </div>
+            <Button onClick={() => setGrantOpen(true)} className="md:self-end">
+              <Mail className="w-4 h-4 mr-2" /> Liberar por email
+            </Button>
+          </div>
+
+          {grantsLoading ? (
+            <div className="text-xs text-muted-foreground py-2">Carregando…</div>
+          ) : grants.length === 0 ? (
+            <div className="text-xs text-muted-foreground py-2">Nenhum acesso liberado ainda.</div>
+          ) : (
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <table className="w-full text-sm">
+                <thead className="text-xs text-muted-foreground uppercase">
+                  <tr>
+                    <th className="text-left px-4 py-2 font-medium">Email</th>
+                    <th className="text-left px-4 py-2 font-medium">Status</th>
+                    <th className="text-left px-4 py-2 font-medium">Liberado em</th>
+                    <th className="text-right px-4 py-2 font-medium">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {grants.map((g) => (
+                    <tr key={g.id} className="border-t border-border/40">
+                      <td className="px-4 py-2 text-foreground">{g.email}</td>
+                      <td className="px-4 py-2">
+                        {g.claimed_user_id ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-emerald-500">
+                            <CheckCircle2 className="w-3 h-3" /> Ativo
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs text-amber-500">
+                            <Mail className="w-3 h-3" /> Aguardando cadastro
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-muted-foreground text-xs">
+                        {fmt(g.granted_at)}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setGrantToRevoke(g)}
+                          className="text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
 
         {/* Toolbar */}
         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
@@ -661,6 +809,85 @@ export default function AdminMembros() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Liberar acesso dialog */}
+      <Dialog open={grantOpen} onOpenChange={(o) => !grantLoading && setGrantOpen(o)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-primary" /> Liberar acesso gratuito
+            </DialogTitle>
+            <DialogDescription>
+              Informe o email da pessoa. Ela receberá um convite e entrará com acesso liberado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label htmlFor="grant-email">Email</Label>
+              <Input
+                id="grant-email"
+                type="email"
+                placeholder="pessoa@exemplo.com"
+                value={grantEmail}
+                onChange={(e) => setGrantEmail(e.target.value)}
+                disabled={grantLoading}
+                autoFocus
+              />
+            </div>
+            <div>
+              <Label htmlFor="grant-note">Observação (opcional)</Label>
+              <Input
+                id="grant-note"
+                placeholder="ex: amigo, parceiro, beta tester…"
+                value={grantNote}
+                onChange={(e) => setGrantNote(e.target.value)}
+                disabled={grantLoading}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Se a pessoa já tem conta, o acesso é ativado na hora. Se não, o acesso é liberado automaticamente assim que ela se cadastrar com este email.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setGrantOpen(false)} disabled={grantLoading}>
+              Cancelar
+            </Button>
+            <Button onClick={handleGrant} disabled={grantLoading}>
+              {grantLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando…
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4 mr-2" /> Enviar convite e liberar
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revogar acesso confirm */}
+      <AlertDialog open={!!grantToRevoke} onOpenChange={(o) => !o && setGrantToRevoke(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revogar acesso?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {grantToRevoke?.email} perderá o acesso gratuito. Se a pessoa já se cadastrou, a assinatura será marcada como inativa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRevokeGrant}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Revogar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
