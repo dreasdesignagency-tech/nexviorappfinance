@@ -67,6 +67,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    // Diagnóstico Safari/Brave/Opera no macOS: instrumenta signOut global
+    // para capturar stack trace de QUALQUER chamada (interna ou externa).
+    try {
+      const originalSignOut = supabase.auth.signOut.bind(supabase.auth);
+      if (!(supabase.auth as any).__signOutInstrumented) {
+        (supabase.auth as any).__signOutInstrumented = true;
+        supabase.auth.signOut = async (...args: any[]) => {
+          console.warn("[auth] supabase.auth.signOut() invocado", {
+            args,
+            stack: new Error("supabase-signout-trace").stack,
+          });
+          return originalSignOut(...args);
+        };
+      }
+    } catch (err) {
+      console.warn("[auth] não foi possível instrumentar signOut", err);
+    }
+
+    // Log de ambiente para diagnóstico Safari/Mac.
+    if (typeof window !== "undefined") {
+      const ua = window.navigator.userAgent;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+      const isMac = /Macintosh|Mac OS X/i.test(ua);
+      const hasLocks = typeof (navigator as any)?.locks?.request === "function";
+      console.info("[auth] ambiente", { isSafari, isMac, hasLocks, ua });
+    }
+
     let mounted = true;
 
     const fingerprint = (nextSession: Session | null) => {
