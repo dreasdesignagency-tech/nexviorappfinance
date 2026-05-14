@@ -8,6 +8,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { hasAccess, loading: subLoading } = useSubscription();
   const location = useLocation();
   const returnTo = `${location.pathname}${location.search}${location.hash}`;
+  const isAuthRoute = location.pathname === "/auth" || location.pathname === "/login" || location.pathname === "/cadastro";
 
   if (!isBackendConfigured()) {
     return <>{children}</>;
@@ -22,6 +23,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user) {
+    console.info("[auth] protected-route redirect", {
+      reason: "missing_user_after_auth_ready",
+      returnTo,
+      isAuthRoute,
+    });
     return <Navigate to="/login" replace state={{ from: returnTo }} />;
   }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation, Navigate } from "react-router-dom";
+import { useLocation, Navigate } from "react-router-dom";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -34,7 +34,6 @@ type Mode = "signin" | "signup";
 
 const Auth = () => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from || "/app";
   const [mode, setMode] = useState<Mode>("signin");
@@ -83,7 +82,6 @@ const Auth = () => {
       return;
     }
     toast.success("Bem-vindo de volta!");
-    navigate(from, { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
