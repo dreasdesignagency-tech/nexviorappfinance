@@ -47,8 +47,22 @@ import {
   CreditCard,
   Receipt,
   Repeat,
+  Mail,
+  Gift,
+  Loader2,
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+
+interface AccessGrant {
+  id: string;
+  email: string;
+  plan_type: string;
+  note: string | null;
+  granted_at: string;
+  claimed_user_id: string | null;
+  claimed_at: string | null;
+}
 
 interface Member {
   id: string;
