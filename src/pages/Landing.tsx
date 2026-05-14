@@ -14,7 +14,7 @@ import { useAuth } from "@/store/auth";
 import { useSubscription } from "@/hooks/useSubscription";
 
 const Landing = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, loadingAuth } = useAuth();
   const { hasAccess, loading: subLoading } = useSubscription();
   useEffect(() => {
     document.title = "Nexvior — Controle total das suas finanças com IA";
@@ -28,7 +28,7 @@ const Landing = () => {
     if (!meta.parentNode) document.head.appendChild(meta);
   }, []);
 
-  if (authLoading || (user && subLoading)) {
+  if (authLoading || loadingAuth || (user && subLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground text-sm">
         Carregando…
