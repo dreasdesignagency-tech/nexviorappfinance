@@ -69,7 +69,10 @@ export async function safeQuery<T>(
   fn: () => Promise<{ data: T | null; error: SupaError }>,
   options: SafeQueryOptions,
 ): Promise<{ data: T | null; error: SupaError; kind: ErrorKind | null }> {
-  const { entity, retries = 2, showToast = true } = options;
+  // Silencioso por padrão: o carregamento inicial NÃO deve mostrar toast.
+  // Erros continuam logados em console.error com classificação completa,
+  // e o estado anterior é preservado para não assustar o usuário.
+  const { entity, retries = 2, showToast = false } = options;
   let lastErr: SupaError = null;
   let lastKind: ErrorKind | null = null;
 
