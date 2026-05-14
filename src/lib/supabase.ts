@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, processLock } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 type BackendError = {
@@ -132,67 +132,198 @@ export const canUseBackend = (scope: string, options?: { silent?: boolean }) => 
   return false;
 };
 
-// Safe storage: some browsers (Safari private mode, Brave with strict shields,
-// Opera privacy mode) throw when accessing localStorage. Fall back to an
-// in-memory store so the auth client can still function during the session
-// instead of crashing and effectively "logging the user out".
+type BrowserStorageName = "localStorage" | "sessionStorage";
+
+const memoryStorage = new Map<string, string>();
+const storageAvailability: Record<BrowserStorageName, boolean | null> = {
+  localStorage: null,
+  sessionStorage: null,
+};
+
+const AUTH_STORAGE_KEY_MATCHERS = [/auth-token/i, /^sb-.*auth-token/i, /^supabase\.auth\./i];
+
+const isAuthStorageKey = (key: string) => AUTH_STORAGE_KEY_MATCHERS.some((matcher) => matcher.test(key));
+
+const getBrowserStorage = (name: BrowserStorageName): Storage | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    return window[name];
+  } catch {
+    return null;
+  }
+};
+
+const probeBrowserStorage = (name: BrowserStorageName) => {
+  if (storageAvailability[name] !== null) return storageAvailability[name] as boolean;
+
+  const storage = getBrowserStorage(name);
+  if (!storage) {
+    storageAvailability[name] = false;
+    return false;
+  }
+
+  try {
+    const probe = `__nexvior_${name}_probe__`;
+    storage.setItem(probe, "1");
+    storage.removeItem(probe);
+    storageAvailability[name] = true;
+    return true;
+  } catch (err) {
+    storageAvailability[name] = false;
+    console.warn(`[auth:storage] ${name} bloqueado`, err);
+    return false;
+  }
+};
+
+const listStorageKeys = (storage: Storage | null) => {
+  if (!storage) return [] as string[];
+  try {
+    return Array.from({ length: storage.length }, (_, index) => storage.key(index)).filter((key): key is string => Boolean(key));
+  } catch {
+    return [] as string[];
+  }
+};
+
+const parseAuthPayload = (storageName: BrowserStorageName, storage: Storage, key: string, value: string | null) => {
+  if (!value || !isAuthStorageKey(key)) return value;
+
+  try {
+    JSON.parse(value);
+    return value;
+  } catch (err) {
+    console.warn("[auth:storage] sessão persistida corrompida detectada", {
+      storage: storageName,
+      key,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    try {
+      storage.removeItem(key);
+    } catch {
+      // ignora: já estamos no caminho de recuperação
+    }
+    memoryStorage.delete(key);
+    return null;
+  }
+};
+
+const readFromStorage = (storageName: BrowserStorageName, key: string) => {
+  if (!probeBrowserStorage(storageName)) return null;
+
+  const storage = getBrowserStorage(storageName);
+  if (!storage) return null;
+
+  try {
+    const value = storage.getItem(key);
+    return parseAuthPayload(storageName, storage, key, value);
+  } catch (err) {
+    console.warn(`[auth:storage] ${storageName}.getItem falhou`, { key, err });
+    return null;
+  }
+};
+
+const writeToStorage = (storageName: BrowserStorageName, key: string, value: string) => {
+  if (!probeBrowserStorage(storageName)) return;
+
+  const storage = getBrowserStorage(storageName);
+  if (!storage) return;
+
+  try {
+    storage.setItem(key, value);
+  } catch (err) {
+    console.warn(`[auth:storage] ${storageName}.setItem falhou`, { key, err });
+  }
+};
+
+const removeFromStorage = (storageName: BrowserStorageName, key: string) => {
+  if (!probeBrowserStorage(storageName)) return;
+
+  const storage = getBrowserStorage(storageName);
+  if (!storage) return;
+
+  try {
+    storage.removeItem(key);
+  } catch (err) {
+    console.warn(`[auth:storage] ${storageName}.removeItem falhou`, { key, err });
+  }
+};
+
+export const getAuthStorageDiagnostics = () => ({
+  localStorageAvailable: probeBrowserStorage("localStorage"),
+  sessionStorageAvailable: probeBrowserStorage("sessionStorage"),
+  localAuthKeys: listStorageKeys(getBrowserStorage("localStorage")).filter(isAuthStorageKey),
+  sessionAuthKeys: listStorageKeys(getBrowserStorage("sessionStorage")).filter(isAuthStorageKey),
+  memoryAuthKeys: Array.from(memoryStorage.keys()).filter(isAuthStorageKey),
+});
+
+export const clearStoredAuthArtifacts = (reason: string) => {
+  const removedKeys = new Set<string>();
+
+  (["localStorage", "sessionStorage"] as BrowserStorageName[]).forEach((storageName) => {
+    const storage = getBrowserStorage(storageName);
+    if (!storage) return;
+
+    listStorageKeys(storage)
+      .filter(isAuthStorageKey)
+      .forEach((key) => {
+        removedKeys.add(`${storageName}:${key}`);
+        removeFromStorage(storageName, key);
+      });
+  });
+
+  Array.from(memoryStorage.keys())
+    .filter(isAuthStorageKey)
+    .forEach((key) => {
+      removedKeys.add(`memory:${key}`);
+      memoryStorage.delete(key);
+    });
+
+  console.warn("[auth:storage] limpando sessão persistida", {
+    reason,
+    removedKeys: Array.from(removedKeys),
+  });
+};
+
 const createSafeStorage = () => {
   if (typeof window === "undefined") return undefined;
 
-  const memory = new Map<string, string>();
-  let canUseLocal = false;
-  try {
-    const probe = "__nexvior_storage_probe__";
-    window.localStorage.setItem(probe, "1");
-    window.localStorage.removeItem(probe);
-    canUseLocal = true;
-  } catch (err) {
-    console.warn("[auth:storage] localStorage bloqueado, usando memória", err);
-  }
+  const canUseLocal = probeBrowserStorage("localStorage");
+  const canUseSession = probeBrowserStorage("sessionStorage");
 
   return {
     getItem: (key: string) => {
-      if (canUseLocal) {
-        try {
-          return window.localStorage.getItem(key);
-        } catch (err) {
-          console.warn("[auth:storage] getItem falhou, fallback memória", err);
-        }
+      const localValue = readFromStorage("localStorage", key);
+      if (localValue !== null) {
+        memoryStorage.set(key, localValue);
+        return localValue;
       }
-      return memory.get(key) ?? null;
+
+      const sessionValue = readFromStorage("sessionStorage", key);
+      if (sessionValue !== null) {
+        memoryStorage.set(key, sessionValue);
+        if (canUseLocal) {
+          writeToStorage("localStorage", key, sessionValue);
+          console.info("[auth:storage] sessão restaurada do backup de sessão", {
+            key,
+            restoredTo: "localStorage",
+          });
+        }
+        return sessionValue;
+      }
+
+      return memoryStorage.get(key) ?? null;
     },
     setItem: (key: string, value: string) => {
-      memory.set(key, value);
-      if (canUseLocal) {
-        try {
-          window.localStorage.setItem(key, value);
-        } catch (err) {
-          console.warn("[auth:storage] setItem falhou, mantido em memória", err);
-        }
-      }
+      memoryStorage.set(key, value);
+      if (canUseLocal) writeToStorage("localStorage", key, value);
+      if (canUseSession) writeToStorage("sessionStorage", key, value);
     },
     removeItem: (key: string) => {
-      memory.delete(key);
-      if (canUseLocal) {
-        try {
-          window.localStorage.removeItem(key);
-        } catch (err) {
-          console.warn("[auth:storage] removeItem falhou", err);
-        }
-      }
+      memoryStorage.delete(key);
+      if (canUseLocal) removeFromStorage("localStorage", key);
+      if (canUseSession) removeFromStorage("sessionStorage", key);
     },
   };
 };
-
-// Detect navigator.locks support (Safari < 15.4 lacks it). Without it, multi-tab
-// refresh tokens race and revoke each other, causing the user to be signed out
-// shortly after login on Safari/Brave/Opera in older macOS versions.
-if (typeof window !== "undefined") {
-  const hasLocks = typeof (navigator as any)?.locks?.request === "function";
-  if (!hasLocks) {
-    console.warn("[auth:storage] navigator.locks indisponível — multi-aba pode revogar tokens (Safari antigo)");
-  }
-}
 
 export const supabase: any = supabaseConfig.isConfigured
   ? createClient<Database>(rawUrl, rawPublishableKey, {
@@ -202,6 +333,8 @@ export const supabase: any = supabaseConfig.isConfigured
         autoRefreshToken: true,
         detectSessionInUrl: true,
         flowType: "pkce",
+        lock: processLock,
+        lockAcquireTimeout: 2000,
       },
     })
   : noopSupabase;
