@@ -85,20 +85,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.info("[auth] event", event, {
         hasSession: Boolean(s),
         userId: s?.user?.id ?? null,
-        reason:
-          event === "SIGNED_OUT"
-            ? "explicit_logout_or_revoked_session"
-            : event === "USER_DELETED"
-              ? "user_deleted"
-              : null,
       });
 
+      // Eventos que SEMPRE refletem a verdade do servidor sobre a sessão.
       if (event === "INITIAL_SESSION") {
         applyResolvedSession(`event:${event}`, s, { keepLoading: true });
         return;
       }
 
-      applyResolvedSession(`event:${event}`, s);
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        // Só atualizamos quando há uma sessão válida. Um TOKEN_REFRESHED com
+        // sessão nula NÃO deve deslogar o usuário (pode ser uma falha
+        // transitória de refresh em Safari/Brave/Opera com storage restrito).
+        if (s) {
+          applyResolvedSession(`event:${event}`, s);
+        } else {
+          console.warn("[auth] ignoring event without session (mantendo sessão local)", { event });
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (event === "SIGNED_OUT" || event === "USER_DELETED") {
+        console.warn("[auth] sessão encerrada pelo Supabase", {
+          event,
+          reason: event === "USER_DELETED" ? "user_deleted" : "explicit_logout_or_revoked_session",
+          stack: new Error("auth-sign-out-trace").stack,
+        });
+        applyResolvedSession(`event:${event}`, null);
+        return;
+      }
+
+      // Qualquer outro evento (ex.: PASSWORD_RECOVERY, MFA_CHALLENGE_VERIFIED):
+      // só atualiza se vier sessão; nunca limpa o usuário sem confirmação.
+      if (s) {
+        applyResolvedSession(`event:${event}`, s);
+      } else {
+        console.info("[auth] evento sem sessão — preservando estado local", { event });
+        setLoading(false);
+      }
     });
 
     // Restore session after the listener is attached so ProtectedRoute doesn't
@@ -123,6 +148,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     const uid = userIdRef.current;
+    console.info("[auth] signOut chamado", {
+      userId: uid,
+      stack: new Error("signout-trace").stack,
+    });
     if (!canUseBackend("auth:signOut", { silent: true })) {
       if (uid) await clearUserData(uid);
       setSession(null);

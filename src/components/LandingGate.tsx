@@ -20,6 +20,7 @@ export const LandingGate = () => {
   }
 
   if (isInstalledApp && !user) {
+    console.info("[auth] redirect", { from: "LandingGate", to: "/login", reason: "installed_app_without_user" });
     return <Navigate to="/login" replace />;
   }
 
