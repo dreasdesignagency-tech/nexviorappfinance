@@ -167,13 +167,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    const recoverFromInvalidPersistedSession = async (source: string, reason: string) => {
+    const recoverFromInvalidPersistedSession = async (source: string, reason: string, originalError?: AuthLikeError) => {
       if (invalidSessionRecoveryRef.current) return;
       invalidSessionRecoveryRef.current = true;
 
       console.warn("[auth] recover invalid persisted session", {
         source,
         reason,
+        originalError: authErrorSnapshot(originalError),
         lastSessionFingerprint: lastSessionFingerprintRef.current,
         storage: getAuthStorageDiagnostics(),
       });
@@ -186,13 +187,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           source,
           hasSession: Boolean(data?.session),
           userId: data?.session?.user?.id ?? null,
-          error: error
-            ? {
-                message: error.message,
-                status: (error as any)?.status,
-                code: (error as any)?.code,
-              }
-            : null,
+          error: authErrorSnapshot(error),
         });
         applyResolvedSession(`${source}:post_cleanup_getSession`, data?.session ?? null);
       } catch (err) {
@@ -238,6 +233,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         userId: s?.user?.id ?? null,
         loadingAuth: !hydratedRef.current,
         lastSessionFingerprint: lastSessionFingerprintRef.current,
+        storage: getAuthStorageDiagnostics(),
       });
 
       // Eventos que SEMPRE refletem a verdade do servidor sobre a sessão.
@@ -256,7 +252,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (s) {
           applyResolvedSession(`event:${event}`, s);
         } else {
-          console.warn("[auth] ignoring event without session (mantendo sessão local)", { event });
+          console.warn("[auth] ignoring event without session (mantendo sessão local)", {
+            event,
+            reason: "event_without_session_payload",
+            storage: getAuthStorageDiagnostics(),
+          });
           if (hydratedRef.current) {
             setLoading(false);
             setLoadingAuth(false);
@@ -272,6 +272,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           reason: event === "USER_DELETED" ? "user_deleted" : "explicit_logout_or_revoked_session",
           hadPersistedSession,
           manualSignOut: manualSignOutRef.current,
+          storage: getAuthStorageDiagnostics(),
           stack: new Error("auth-sign-out-trace").stack,
         });
         if (event === "SIGNED_OUT" && hadPersistedSession && !manualSignOutRef.current) {
@@ -305,25 +306,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     supabase.auth.getSession().then(({ data: { session: s }, error }: any) => {
       if (!mounted) return;
+      console.info("[auth] getSession result", {
+        hasSession: Boolean(s),
+        userId: s?.user?.id ?? null,
+        error: authErrorSnapshot(error),
+        storage: getAuthStorageDiagnostics(),
+      });
       if (error) {
         console.warn("[auth] getSession error (mantendo sessão local se houver)", {
-          message: error?.message,
-          status: error?.status,
-          code: error?.code,
+          error: authErrorSnapshot(error),
         });
-        const authMessage = String(error?.message ?? "").toLowerCase();
-        const authCode = String(error?.code ?? "").toLowerCase();
-        const shouldClearPersistedSession =
-          authMessage.includes("refresh token") ||
-          authMessage.includes("jwt") ||
-          authMessage.includes("invalid") ||
-          authMessage.includes("session") ||
-          authCode.includes("refresh") ||
-          authCode.includes("jwt") ||
-          authCode.includes("session");
 
-        if (shouldClearPersistedSession) {
-          void recoverFromInvalidPersistedSession("getSession", `auth_error:${error?.message ?? error?.code ?? "unknown"}`);
+        if (isConfirmedAuthError(error)) {
+          void recoverFromInvalidPersistedSession(
+            "getSession",
+            `auth_error:${error?.message ?? error?.code ?? "unknown"}`,
+            error,
+          );
           return;
         }
       }
