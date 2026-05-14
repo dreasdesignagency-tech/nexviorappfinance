@@ -198,14 +198,10 @@ export const supabase: any = supabaseConfig.isConfigured
   ? createClient<Database>(rawUrl, rawPublishableKey, {
       auth: {
         storage: createSafeStorage(),
-        // Namespaced key avoids colliding with other apps on the same origin
-        // and makes it possible to detect/clear corrupted legacy entries.
-        storageKey: "nexvior-auth-token",
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
         flowType: "pkce",
-        debug: false,
       },
     })
   : noopSupabase;
