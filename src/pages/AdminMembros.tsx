@@ -136,6 +136,15 @@ export default function AdminMembros() {
   const [details, setDetails] = useState<UserDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
+  // Liberação de acesso gratuito
+  const [grantOpen, setGrantOpen] = useState(false);
+  const [grantEmail, setGrantEmail] = useState("");
+  const [grantNote, setGrantNote] = useState("");
+  const [grantLoading, setGrantLoading] = useState(false);
+  const [grants, setGrants] = useState<AccessGrant[]>([]);
+  const [grantsLoading, setGrantsLoading] = useState(false);
+  const [grantToRevoke, setGrantToRevoke] = useState<AccessGrant | null>(null);
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase.rpc("admin_list_members");
@@ -147,9 +156,66 @@ export default function AdminMembros() {
     setLoading(false);
   };
 
+  const loadGrants = async () => {
+    setGrantsLoading(true);
+    const { data, error } = await supabase.rpc("admin_list_access_grants");
+    if (!error) setGrants((data as AccessGrant[]) ?? []);
+    setGrantsLoading(false);
+  };
+
   useEffect(() => {
     load();
+    loadGrants();
   }, []);
+
+  const handleGrant = async () => {
+    const email = grantEmail.trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Informe um email válido.");
+      return;
+    }
+    setGrantLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-grant-access", {
+        body: {
+          email,
+          plan_type: "free_access",
+          note: grantNote || null,
+          redirect_to: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+      const sent = (data as any)?.email_sent;
+      const activated = (data as any)?.granted?.activated_immediately || (data as any)?.invited_user_id;
+      toast.success(
+        activated
+          ? `Acesso liberado para ${email}. ${sent ? "Email enviado." : ""}`
+          : `Convite enviado para ${email}. Acesso será liberado no cadastro.`,
+      );
+      setGrantEmail("");
+      setGrantNote("");
+      setGrantOpen(false);
+      loadGrants();
+      load();
+    } catch (e: any) {
+      toast.error("Erro: " + (e?.message ?? String(e)));
+    } finally {
+      setGrantLoading(false);
+    }
+  };
+
+  const handleRevokeGrant = async () => {
+    if (!grantToRevoke) return;
+    const { error } = await supabase.rpc("admin_revoke_access", { _email: grantToRevoke.email });
+    if (error) {
+      toast.error("Erro: " + error.message);
+    } else {
+      toast.success("Acesso revogado.");
+      loadGrants();
+      load();
+    }
+    setGrantToRevoke(null);
+  };
 
   const filtered = useMemo(() => {
     let list = [...members];
