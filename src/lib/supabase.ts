@@ -132,12 +132,66 @@ export const canUseBackend = (scope: string, options?: { silent?: boolean }) => 
   return false;
 };
 
+// Safe storage: some browsers (Safari private mode, Brave with strict shields,
+// Opera privacy mode) throw when accessing localStorage. Fall back to an
+// in-memory store so the auth client can still function during the session
+// instead of crashing and effectively "logging the user out".
+const createSafeStorage = () => {
+  if (typeof window === "undefined") return undefined;
+
+  const memory = new Map<string, string>();
+  let canUseLocal = false;
+  try {
+    const probe = "__nexvior_storage_probe__";
+    window.localStorage.setItem(probe, "1");
+    window.localStorage.removeItem(probe);
+    canUseLocal = true;
+  } catch (err) {
+    console.warn("[auth:storage] localStorage bloqueado, usando memória", err);
+  }
+
+  return {
+    getItem: (key: string) => {
+      if (canUseLocal) {
+        try {
+          return window.localStorage.getItem(key);
+        } catch (err) {
+          console.warn("[auth:storage] getItem falhou, fallback memória", err);
+        }
+      }
+      return memory.get(key) ?? null;
+    },
+    setItem: (key: string, value: string) => {
+      memory.set(key, value);
+      if (canUseLocal) {
+        try {
+          window.localStorage.setItem(key, value);
+        } catch (err) {
+          console.warn("[auth:storage] setItem falhou, mantido em memória", err);
+        }
+      }
+    },
+    removeItem: (key: string) => {
+      memory.delete(key);
+      if (canUseLocal) {
+        try {
+          window.localStorage.removeItem(key);
+        } catch (err) {
+          console.warn("[auth:storage] removeItem falhou", err);
+        }
+      }
+    },
+  };
+};
+
 export const supabase: any = supabaseConfig.isConfigured
   ? createClient<Database>(rawUrl, rawPublishableKey, {
       auth: {
-        storage: typeof window !== "undefined" ? window.localStorage : undefined,
+        storage: createSafeStorage(),
         persistSession: true,
         autoRefreshToken: true,
+        detectSessionInUrl: true,
+        flowType: "pkce",
       },
     })
   : noopSupabase;
