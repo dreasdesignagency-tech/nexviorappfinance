@@ -134,6 +134,12 @@ export const canUseBackend = (scope: string, options?: { silent?: boolean }) => 
 
 type BrowserStorageName = "localStorage" | "sessionStorage";
 
+type GlobalSupabaseState = typeof globalThis & {
+  __nexviorSupabaseClient?: ReturnType<typeof createClient<Database>>;
+  __nexviorSafeStorage?: ReturnType<typeof createSafeStorage>;
+  __nexviorSupabaseInstanceId?: string;
+};
+
 const memoryStorage = new Map<string, string>();
 const storageAvailability: Record<BrowserStorageName, boolean | null> = {
   localStorage: null,
@@ -143,6 +149,13 @@ const storageAvailability: Record<BrowserStorageName, boolean | null> = {
 const AUTH_STORAGE_KEY_MATCHERS = [/auth-token/i, /^sb-.*auth-token/i, /^supabase\.auth\./i];
 
 const isAuthStorageKey = (key: string) => AUTH_STORAGE_KEY_MATCHERS.some((matcher) => matcher.test(key));
+
+const logStorageOperation = (
+  op: "getItem" | "setItem" | "removeItem" | "fallback",
+  payload: Record<string, unknown>,
+) => {
+  console.info("[auth:storage] operation", { op, ...payload });
+};
 
 const getBrowserStorage = (name: BrowserStorageName): Storage | null => {
   if (typeof window === "undefined") return null;
@@ -294,12 +307,18 @@ const createSafeStorage = () => {
       const localValue = readFromStorage("localStorage", key);
       if (localValue !== null) {
         memoryStorage.set(key, localValue);
+        if (isAuthStorageKey(key)) {
+          logStorageOperation("getItem", { key, source: "localStorage", hit: true });
+        }
         return localValue;
       }
 
       const sessionValue = readFromStorage("sessionStorage", key);
       if (sessionValue !== null) {
         memoryStorage.set(key, sessionValue);
+        if (isAuthStorageKey(key)) {
+          logStorageOperation("getItem", { key, source: "sessionStorage", hit: true });
+        }
         if (canUseLocal) {
           writeToStorage("localStorage", key, sessionValue);
           console.info("[auth:storage] sessão restaurada do backup de sessão", {
@@ -310,30 +329,91 @@ const createSafeStorage = () => {
         return sessionValue;
       }
 
-      return memoryStorage.get(key) ?? null;
+      const memoryValue = memoryStorage.get(key) ?? null;
+      if (isAuthStorageKey(key)) {
+        logStorageOperation(memoryValue === null ? "fallback" : "getItem", {
+          key,
+          source: "memory",
+          hit: memoryValue !== null,
+        });
+      }
+      return memoryValue;
     },
     setItem: (key: string, value: string) => {
       memoryStorage.set(key, value);
       if (canUseLocal) writeToStorage("localStorage", key, value);
       if (canUseSession) writeToStorage("sessionStorage", key, value);
+      if (isAuthStorageKey(key)) {
+        logStorageOperation("setItem", {
+          key,
+          persistedTo: {
+            localStorage: canUseLocal,
+            sessionStorage: canUseSession,
+            memory: true,
+          },
+          bytes: value.length,
+        });
+      }
     },
     removeItem: (key: string) => {
       memoryStorage.delete(key);
       if (canUseLocal) removeFromStorage("localStorage", key);
       if (canUseSession) removeFromStorage("sessionStorage", key);
+      if (isAuthStorageKey(key)) {
+        logStorageOperation("removeItem", {
+          key,
+          removedFrom: {
+            localStorage: canUseLocal,
+            sessionStorage: canUseSession,
+            memory: true,
+          },
+        });
+      }
     },
   };
 };
 
-export const supabase: any = supabaseConfig.isConfigured
-  ? createClient<Database>(rawUrl, rawPublishableKey, {
-      auth: {
-        storage: createSafeStorage(),
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        flowType: "pkce",
-        lock: processLock,
-      },
-    })
-  : noopSupabase;
+const globalSupabaseState = globalThis as GlobalSupabaseState;
+
+const getSafeStorageSingleton = () => {
+  if (!globalSupabaseState.__nexviorSafeStorage) {
+    globalSupabaseState.__nexviorSafeStorage = createSafeStorage();
+  }
+
+  return globalSupabaseState.__nexviorSafeStorage;
+};
+
+const createSupabaseSingleton = () => {
+  if (globalSupabaseState.__nexviorSupabaseClient) {
+    console.info("[auth] supabase client reuse", {
+      instanceId: globalSupabaseState.__nexviorSupabaseInstanceId,
+    });
+    return globalSupabaseState.__nexviorSupabaseClient;
+  }
+
+  const instanceId = `sb-${Math.random().toString(36).slice(2, 10)}`;
+  const client = createClient<Database>(rawUrl, rawPublishableKey, {
+    auth: {
+      storage: getSafeStorageSingleton(),
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: "pkce",
+      lock: processLock,
+    },
+  });
+
+  globalSupabaseState.__nexviorSupabaseClient = client;
+  globalSupabaseState.__nexviorSupabaseInstanceId = instanceId;
+
+  console.info("[auth] supabase client created", {
+    instanceId,
+    urlConfigured,
+    keyConfigured,
+    storage: getAuthStorageDiagnostics(),
+  });
+
+  return client;
+};
+
+export const supabase: any = supabaseConfig.isConfigured ? createSupabaseSingleton() : noopSupabase;

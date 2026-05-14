@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/store/auth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { isBackendConfigured } from "@/lib/backend-guard";
+import { getAuthStorageDiagnostics } from "@/lib/supabase";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, loadingAuth } = useAuth();
@@ -44,6 +45,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       loading,
       loadingAuth,
       subLoading,
+      storage: getAuthStorageDiagnostics(),
+      stack: new Error("protected-route-redirect-trace").stack,
     });
     return <Navigate to="/login" replace state={{ from: returnTo }} />;
   }
@@ -54,6 +57,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       returnTo,
       pathname: location.pathname,
       userId: user.id,
+      stack: new Error("protected-route-plan-redirect-trace").stack,
     });
     return <Navigate to="/planos" replace />;
   }

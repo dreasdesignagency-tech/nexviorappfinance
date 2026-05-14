@@ -33,6 +33,62 @@ interface AuthCtx {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
+type AuthLikeError = {
+  message?: string;
+  code?: string;
+  status?: number | string;
+  name?: string;
+} | null | undefined;
+
+const authErrorSnapshot = (error: AuthLikeError) =>
+  error
+    ? {
+        message: error.message ?? null,
+        code: error.code ?? null,
+        status: error.status ?? null,
+        name: error.name ?? null,
+      }
+    : null;
+
+const isConfirmedAuthError = (error: AuthLikeError) => {
+  if (!error) return false;
+
+  const message = String(error.message ?? "").toLowerCase();
+  const code = String(error.code ?? "").toLowerCase();
+  const status = Number(error.status ?? 0);
+
+  if (status === 401) return true;
+
+  const messageMatchers = [
+    "refresh token",
+    "invalid refresh token",
+    "refresh_token",
+    "invalid token",
+    "token has expired",
+    "jwt expired",
+    "bad jwt",
+    "invalid jwt",
+    "auth session missing",
+    "session not found",
+    "invalid session",
+    "invalid grant",
+    "reuse detected",
+    "revoked",
+  ];
+
+  const codeMatchers = [
+    "refresh",
+    "jwt",
+    "session_not_found",
+    "invalid_grant",
+    "bad_jwt",
+    "token_expired",
+    "refresh_token_not_found",
+  ];
+
+  return messageMatchers.some((matcher) => message.includes(matcher)) || codeMatchers.some((matcher) => code.includes(matcher));
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -83,6 +139,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return originalSignOut(...args);
         };
       }
+
+      const originalRefreshSession = supabase.auth.refreshSession?.bind(supabase.auth);
+      if (originalRefreshSession && !(supabase.auth as any).__refreshSessionInstrumented) {
+        (supabase.auth as any).__refreshSessionInstrumented = true;
+        supabase.auth.refreshSession = async (...args: any[]) => {
+          console.info("[auth] supabase.auth.refreshSession() invocado", {
+            args,
+            storage: getAuthStorageDiagnostics(),
+            stack: new Error("supabase-refresh-trace").stack,
+          });
+          const result = await originalRefreshSession(...args);
+          console.info("[auth] supabase.auth.refreshSession() resultado", {
+            hasSession: Boolean((result as any)?.data?.session),
+            userId: (result as any)?.data?.session?.user?.id ?? null,
+            error: authErrorSnapshot((result as any)?.error),
+          });
+          return result;
+        };
+      }
     } catch (err) {
       console.warn("[auth] não foi possível instrumentar signOut", err);
     }
@@ -111,13 +186,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    const recoverFromInvalidPersistedSession = async (source: string, reason: string) => {
+    const recoverFromInvalidPersistedSession = async (source: string, reason: string, originalError?: AuthLikeError) => {
       if (invalidSessionRecoveryRef.current) return;
       invalidSessionRecoveryRef.current = true;
 
       console.warn("[auth] recover invalid persisted session", {
         source,
         reason,
+        originalError: authErrorSnapshot(originalError),
         lastSessionFingerprint: lastSessionFingerprintRef.current,
         storage: getAuthStorageDiagnostics(),
       });
@@ -130,13 +206,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           source,
           hasSession: Boolean(data?.session),
           userId: data?.session?.user?.id ?? null,
-          error: error
-            ? {
-                message: error.message,
-                status: (error as any)?.status,
-                code: (error as any)?.code,
-              }
-            : null,
+          error: authErrorSnapshot(error),
         });
         applyResolvedSession(`${source}:post_cleanup_getSession`, data?.session ?? null);
       } catch (err) {
@@ -182,6 +252,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         userId: s?.user?.id ?? null,
         loadingAuth: !hydratedRef.current,
         lastSessionFingerprint: lastSessionFingerprintRef.current,
+        storage: getAuthStorageDiagnostics(),
       });
 
       // Eventos que SEMPRE refletem a verdade do servidor sobre a sessão.
@@ -200,7 +271,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (s) {
           applyResolvedSession(`event:${event}`, s);
         } else {
-          console.warn("[auth] ignoring event without session (mantendo sessão local)", { event });
+          console.warn("[auth] ignoring event without session (mantendo sessão local)", {
+            event,
+            reason: "event_without_session_payload",
+            storage: getAuthStorageDiagnostics(),
+          });
           if (hydratedRef.current) {
             setLoading(false);
             setLoadingAuth(false);
@@ -216,6 +291,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           reason: event === "USER_DELETED" ? "user_deleted" : "explicit_logout_or_revoked_session",
           hadPersistedSession,
           manualSignOut: manualSignOutRef.current,
+          storage: getAuthStorageDiagnostics(),
           stack: new Error("auth-sign-out-trace").stack,
         });
         if (event === "SIGNED_OUT" && hadPersistedSession && !manualSignOutRef.current) {
@@ -249,25 +325,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     supabase.auth.getSession().then(({ data: { session: s }, error }: any) => {
       if (!mounted) return;
+      console.info("[auth] getSession result", {
+        hasSession: Boolean(s),
+        userId: s?.user?.id ?? null,
+        error: authErrorSnapshot(error),
+        storage: getAuthStorageDiagnostics(),
+      });
       if (error) {
         console.warn("[auth] getSession error (mantendo sessão local se houver)", {
-          message: error?.message,
-          status: error?.status,
-          code: error?.code,
+          error: authErrorSnapshot(error),
         });
-        const authMessage = String(error?.message ?? "").toLowerCase();
-        const authCode = String(error?.code ?? "").toLowerCase();
-        const shouldClearPersistedSession =
-          authMessage.includes("refresh token") ||
-          authMessage.includes("jwt") ||
-          authMessage.includes("invalid") ||
-          authMessage.includes("session") ||
-          authCode.includes("refresh") ||
-          authCode.includes("jwt") ||
-          authCode.includes("session");
 
-        if (shouldClearPersistedSession) {
-          void recoverFromInvalidPersistedSession("getSession", `auth_error:${error?.message ?? error?.code ?? "unknown"}`);
+        if (isConfirmedAuthError(error)) {
+          void recoverFromInvalidPersistedSession(
+            "getSession",
+            `auth_error:${error?.message ?? error?.code ?? "unknown"}`,
+            error,
+          );
           return;
         }
       }
