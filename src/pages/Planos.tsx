@@ -29,6 +29,7 @@ const Planos = () => {
 
   useEffect(() => {
     if (!authLoading && !user) {
+      console.info("[auth] redirect", { from: "Planos", to: "/auth", reason: "no_user_after_auth_ready" });
       navigate("/auth", { replace: true });
     }
   }, [authLoading, user, navigate]);
