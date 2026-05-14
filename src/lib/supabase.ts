@@ -184,14 +184,28 @@ const createSafeStorage = () => {
   };
 };
 
+// Detect navigator.locks support (Safari < 15.4 lacks it). Without it, multi-tab
+// refresh tokens race and revoke each other, causing the user to be signed out
+// shortly after login on Safari/Brave/Opera in older macOS versions.
+if (typeof window !== "undefined") {
+  const hasLocks = typeof (navigator as any)?.locks?.request === "function";
+  if (!hasLocks) {
+    console.warn("[auth:storage] navigator.locks indisponível — multi-aba pode revogar tokens (Safari antigo)");
+  }
+}
+
 export const supabase: any = supabaseConfig.isConfigured
   ? createClient<Database>(rawUrl, rawPublishableKey, {
       auth: {
         storage: createSafeStorage(),
+        // Namespaced key avoids colliding with other apps on the same origin
+        // and makes it possible to detect/clear corrupted legacy entries.
+        storageKey: "nexvior-auth-token",
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
         flowType: "pkce",
+        debug: false,
       },
     })
   : noopSupabase;
