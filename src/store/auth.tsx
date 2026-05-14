@@ -65,15 +65,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Restore session from storage first so route guards don't briefly think
     // the user is logged out when the app regains focus.
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    supabase.auth.getSession().then(({ data: { session: s }, error }: any) => {
       if (!mounted) return;
+      if (error) {
+        console.warn("[auth] getSession error (mantendo sessão local se houver)", error);
+      }
+      console.info("[auth] init", { hasSession: Boolean(s), userId: s?.user?.id ?? null });
       setSession(s);
       setUser(s?.user ?? null);
       setLoading(false);
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event: string, s: Session | null) => {
       if (!mounted) return;
+      console.info("[auth] event", event, { hasSession: Boolean(s), userId: s?.user?.id ?? null });
+      // Only clear local user state on explicit auth events. Transient errors
+      // (network/query/rate-limit) do NOT trigger onAuthStateChange, so this
+      // listener is safe — it fires only for real auth lifecycle events.
       setSession(s);
       setUser(s?.user ?? null);
       setLoading(false);
