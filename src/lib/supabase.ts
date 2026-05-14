@@ -188,7 +188,6 @@ export const supabase: any = supabaseConfig.isConfigured
   ? createClient<Database>(rawUrl, rawPublishableKey, {
       auth: {
         storage: createSafeStorage(),
-        storageKey: "nexvior-auth",
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
