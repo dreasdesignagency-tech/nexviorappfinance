@@ -69,6 +69,7 @@ interface RecurrentsContextValue {
   updateAssinatura: (id: string, patch: Partial<Assinatura>) => Promise<boolean>;
   removeAssinatura: (id: string) => Promise<boolean>;
   updateAssinaturaStatus: (id: string, status: AssinaturaStatus) => Promise<boolean>;
+  payParcela: (id: string) => Promise<boolean>;
   totalMensalParcelas: number;
   totalMensalAssinaturas: number;
   refetch: () => Promise<void>;
