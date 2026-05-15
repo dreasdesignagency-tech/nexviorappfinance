@@ -28,7 +28,7 @@ import { CATEGORIAS, formatBRL, formatDateBR } from "@/store/transactions";
 const Recorrentes = () => {
   const {
     parcelas, assinaturas,
-    addParcela, removeParcela,
+    addParcela, removeParcela, payParcela,
     addAssinatura, removeAssinatura, updateAssinaturaStatus,
     totalMensalParcelas, totalMensalAssinaturas, loading,
   } = useRecurrents();
