@@ -69,6 +69,7 @@ interface RecurrentsContextValue {
   updateAssinatura: (id: string, patch: Partial<Assinatura>) => Promise<boolean>;
   removeAssinatura: (id: string) => Promise<boolean>;
   updateAssinaturaStatus: (id: string, status: AssinaturaStatus) => Promise<boolean>;
+  payParcela: (id: string) => Promise<boolean>;
   totalMensalParcelas: number;
   totalMensalAssinaturas: number;
   refetch: () => Promise<void>;
@@ -409,6 +410,104 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
 
   const updateAssinaturaStatus = async (id: string, status: AssinaturaStatus) => updateAssinatura(id, { status });
 
+  const payParcela = async (id: string): Promise<boolean> => {
+    if (!user) {
+      toast.error("Faça login para registrar pagamento.");
+      return false;
+    }
+    if (!isOnline()) {
+      toast.info("Essa ação estará disponível quando você estiver online.");
+      return false;
+    }
+
+    const parcela = parcelas.find((p) => p.id === id);
+    if (!parcela) return false;
+    if (parcela.status === "Finalizado") {
+      toast.info("Esta compra já foi finalizada.");
+      return false;
+    }
+
+    const numero = parcela.parcela_atual;
+
+    // Dedup: unique (installment_id, parcela_numero) impede pagar 2x a mesma parcela.
+    const paymentId = uuidv4();
+    const today = new Date().toISOString();
+    const { error: payErr } = await db.from("installment_payments").insert({
+      id: paymentId,
+      user_id: user.id,
+      installment_id: parcela.id,
+      parcela_numero: numero,
+      valor: parcela.valor_parcela,
+      data_pagamento: today,
+    });
+    if (payErr) {
+      const msg = String(payErr.message || "");
+      if (msg.includes("duplicate") || msg.includes("unique")) {
+        toast.info("Esta parcela já foi paga.");
+        await refetch();
+        return false;
+      }
+      toast.error("Erro ao registrar pagamento.");
+      return false;
+    }
+
+    // Registra a despesa no histórico de transações
+    const txId = uuidv4();
+    const txPayload = {
+      id: txId,
+      user_id: user.id,
+      tipo: "despesa",
+      descricao: `${parcela.nome} - Parcela ${numero}/${parcela.total_parcelas}`,
+      valor: parcela.valor_parcela,
+      categoria: parcela.categoria || "Outros",
+      data: today.slice(0, 10),
+      forma_pagamento: parcela.cartao_id ? "cartao_credito" : null,
+      cartao_id: parcela.cartao_id ?? null,
+      parcelado: true,
+      numero_parcelas: parcela.total_parcelas,
+      parcela_atual: numero,
+      recorrente: false,
+      observacoes: "Pagamento de parcela",
+    };
+    const { error: txErr } = await db.from("transactions").insert(txPayload);
+    if (!txErr) {
+      await db.from("installment_payments").update({ transaction_id: txId }).eq("id", paymentId);
+    }
+
+    // Avança ou finaliza
+    const isLast = numero >= parcela.total_parcelas;
+    const nextPatch: Record<string, unknown> = {};
+    if (isLast) {
+      nextPatch.status = "Finalizado";
+    } else {
+      nextPatch.parcela_atual = numero + 1;
+      nextPatch.proxima_cobranca = addMonths(parcela.proxima_cobranca, 1);
+    }
+
+    const { data: updated, error: updErr } = await db
+      .from("installments")
+      .update(nextPatch)
+      .eq("id", parcela.id)
+      .eq("user_id", user.id)
+      .select("*")
+      .single();
+    if (updErr) {
+      toast.warning("Pagamento registrado, mas a parcela não avançou.");
+      await refetch();
+      return true;
+    }
+
+    const row = fromInstallment(updated as ParcelaRow);
+    setParcelas((prev) => prev.map((x) => (x.id === id ? row : x)));
+    await upsertCache(user.id, "installments", row.id, updated, false);
+
+    toast.success(
+      isLast ? "Parcela final paga · Compra finalizada" : `Parcela ${numero}/${parcela.total_parcelas} paga`,
+      { description: parcela.nome }
+    );
+    return true;
+  };
+
   const { totalMensalParcelas, totalMensalAssinaturas } = useMemo(() => {
     const parcelasMensais = parcelas
       .filter((item) => item.status === "Em andamento")
@@ -437,6 +536,7 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
         updateAssinatura,
         removeAssinatura,
         updateAssinaturaStatus,
+        payParcela,
         totalMensalParcelas,
         totalMensalAssinaturas,
         refetch,

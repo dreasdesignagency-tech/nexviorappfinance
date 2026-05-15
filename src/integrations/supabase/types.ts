@@ -143,6 +143,39 @@ export type Database = {
         }
         Relationships: []
       }
+      installment_payments: {
+        Row: {
+          created_at: string
+          data_pagamento: string
+          id: string
+          installment_id: string
+          parcela_numero: number
+          transaction_id: string | null
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          data_pagamento?: string
+          id?: string
+          installment_id: string
+          parcela_numero: number
+          transaction_id?: string | null
+          user_id: string
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          data_pagamento?: string
+          id?: string
+          installment_id?: string
+          parcela_numero?: number
+          transaction_id?: string | null
+          user_id?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       installments: {
         Row: {
           cartao_id: string | null

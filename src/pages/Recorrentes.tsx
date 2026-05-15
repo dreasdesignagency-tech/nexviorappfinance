@@ -28,7 +28,7 @@ import { CATEGORIAS, formatBRL, formatDateBR } from "@/store/transactions";
 const Recorrentes = () => {
   const {
     parcelas, assinaturas,
-    addParcela, removeParcela,
+    addParcela, removeParcela, payParcela,
     addAssinatura, removeAssinatura, updateAssinaturaStatus,
     totalMensalParcelas, totalMensalAssinaturas, loading,
   } = useRecurrents();
@@ -170,7 +170,9 @@ const Recorrentes = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {parcelas.map((p) => {
-                  const progresso = (p.parcela_atual / p.total_parcelas) * 100;
+                  const isDone = p.status === "Finalizado";
+                  const pagas = isDone ? p.total_parcelas : Math.max(0, p.parcela_atual - 1);
+                  const progresso = (pagas / p.total_parcelas) * 100;
                   return (
                     <div key={p.id} className="glass-card p-5 group relative">
                       <div className="flex items-start justify-between mb-3">
@@ -199,24 +201,46 @@ const Recorrentes = () => {
                           <p className="text-sm font-medium tabular-nums">{formatBRL(p.valor_parcela)}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Progresso</p>
-                          <p className="text-sm font-medium tabular-nums">{p.parcela_atual}/{p.total_parcelas}</p>
+                          <p className="text-[10px] uppercase text-muted-foreground tracking-wider">
+                            {isDone ? "Parcelas" : "Parcela atual"}
+                          </p>
+                          <p className="text-sm font-medium tabular-nums">
+                            {isDone ? `${p.total_parcelas}/${p.total_parcelas}` : `${p.parcela_atual} de ${p.total_parcelas}`}
+                          </p>
                         </div>
                         <div>
                           <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Próxima</p>
-                          <p className="text-sm font-medium">{formatDateBR(p.proxima_cobranca)}</p>
+                          <p className="text-sm font-medium">{isDone ? "—" : formatDateBR(p.proxima_cobranca)}</p>
                         </div>
                       </div>
 
                       <div className="mt-4 h-1.5 rounded-full bg-surface-elevated overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-primary to-primary-glow"
+                          className="h-full bg-gradient-to-r from-primary to-primary-glow transition-all"
                           style={{ width: `${progresso}%` }}
                         />
                       </div>
-                      <p className="text-[11px] mt-2 text-muted-foreground">
-                        Status: <span className={p.status === "Finalizado" ? "text-success" : "text-primary"}>{p.status}</span>
-                      </p>
+                      <div className="mt-2 flex items-center justify-between gap-3">
+                        <p className="text-[11px] text-muted-foreground">
+                          {pagas}/{p.total_parcelas} pagas · Status:{" "}
+                          <span className={isDone ? "text-success" : "text-primary"}>
+                            {isDone ? "Concluído" : "Em andamento"}
+                          </span>
+                        </p>
+                        {isDone ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-success">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Finalizado
+                          </span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => payParcela(p.id)}
+                            className="h-8 rounded-full bg-gradient-to-r from-primary to-primary-glow glow-primary text-primary-foreground"
+                          >
+                            Marcar como pago
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
