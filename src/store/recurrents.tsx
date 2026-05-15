@@ -536,6 +536,7 @@ export const RecurrentsProvider = ({ children }: { children: ReactNode }) => {
         updateAssinatura,
         removeAssinatura,
         updateAssinaturaStatus,
+        payParcela,
         totalMensalParcelas,
         totalMensalAssinaturas,
         refetch,
