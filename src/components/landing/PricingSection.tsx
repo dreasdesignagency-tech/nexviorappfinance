@@ -47,7 +47,7 @@ export const PricingSection = () => {
             </div>
 
             <div className="mb-8 flex items-baseline gap-1">
-              <span className="text-4xl md:text-5xl font-bold text-foreground">R$ 19,90</span>
+              <span className="text-4xl md:text-5xl font-bold text-foreground">R$ 9,90</span>
               <span className="text-muted-foreground text-base">/mês</span>
             </div>
 
