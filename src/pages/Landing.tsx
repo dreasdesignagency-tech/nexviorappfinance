@@ -7,7 +7,6 @@ import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { NexIASection } from "@/components/landing/NexIASection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { CTASection } from "@/components/landing/CTASection";
-import { SectionDivider } from "@/components/landing/SectionDivider";
 import { HeroVideo } from "@/components/landing/HeroVideo";
 import logoFooter from "@/assets/logo-nexvior-white.png";
 import { useAuth } from "@/store/auth";
