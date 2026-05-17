@@ -84,14 +84,14 @@ export const PricingSection = () => {
 
             <div className="mb-6">
               <h3 className="text-xl md:text-2xl font-semibold text-foreground mb-2">Plano Anual</h3>
-              <p className="text-sm text-muted-foreground">Economize mais de 35%</p>
+              <p className="text-sm text-muted-foreground">Economize mais de 18%</p>
             </div>
 
             <div className="mb-2 flex items-baseline gap-1">
-              <span className="text-4xl md:text-5xl font-bold text-foreground">R$ 149,90</span>
+              <span className="text-4xl md:text-5xl font-bold text-foreground">R$ 97</span>
               <span className="text-muted-foreground text-base">/ano</span>
             </div>
-            <p className="mb-8 text-sm text-neon font-medium">Equivalente a menos de R$ 12/mês</p>
+            <p className="mb-8 text-sm text-neon font-medium">Equivalente a menos de R$ 8,09/mês</p>
 
             <ul className="space-y-3 mb-8">
               {annualBenefits.map((benefit) => (
