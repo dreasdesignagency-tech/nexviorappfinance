@@ -7,12 +7,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, content-type, stripe-signature",
 };
 
-const PRICE_MENSAL = "price_1TSdsZ2asWCLjZqeOIwfhiOd";
-const PRICE_ANUAL = "price_1TSdx62asWCLjZqe7NuEeKff";
+// Keep legacy price IDs so existing subscriptions continue to map correctly.
+const PRICE_MENSAL_LEGACY = "price_1TSdsZ2asWCLjZqeOIwfhiOd";
+const PRICE_ANUAL_LEGACY = "price_1TSdx62asWCLjZqe7NuEeKff";
+const PRICE_MENSAL = "price_1TYBHH2asWCLjZqebEO6PjNu";
+const PRICE_ANUAL = "price_1TYBNz2asWCLjZqeRWYgw99C";
 
 function planFromPriceId(priceId?: string | null): string | null {
-  if (priceId === PRICE_MENSAL) return "mensal";
-  if (priceId === PRICE_ANUAL) return "anual";
+  if (priceId === PRICE_MENSAL || priceId === PRICE_MENSAL_LEGACY) return "mensal";
+  if (priceId === PRICE_ANUAL || priceId === PRICE_ANUAL_LEGACY) return "anual";
   return null;
 }
 
