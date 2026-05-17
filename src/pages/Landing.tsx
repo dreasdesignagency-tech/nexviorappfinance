@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
+import { motion } from "motion/react";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
