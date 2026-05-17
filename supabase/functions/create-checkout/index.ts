@@ -7,8 +7,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const PRICE_MENSAL = "price_1TSdsZ2asWCLjZqeOIwfhiOd";
-const PRICE_ANUAL = "price_1TSdx62asWCLjZqe7NuEeKff";
+const PRICE_MENSAL = "price_1TYBHH2asWCLjZqebEO6PjNu";
+const PRICE_ANUAL = "price_1TYBNz2asWCLjZqeRWYgw99C";
 
 const log = (msg: string, data?: unknown) => {
   if (data !== undefined) {
