@@ -82,7 +82,7 @@ export const HeroSection = () => {
         >
           <Sparkles className="w-4 h-4 text-neon shrink-0" />
           <span className="text-xs text-foreground text-left">
-            Planos a partir de <strong className="text-neon">R$ 19,90/mês</strong>
+            Planos a partir de <strong className="text-neon">R$ 9,90/mês</strong>
           </span>
           <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </motion.a>
