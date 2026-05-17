@@ -54,19 +54,19 @@ const Landing = () => {
         <HeroSection />
       </div>
 
-      <SectionDivider />
-
       {/* Below-the-fold sections with solid background to cover the fixed video */}
       <div className="relative bg-background" style={{ zIndex: 10 }}>
-        <TestimonialsSection />
-        <SectionDivider />
-        <FeaturesSection />
-        <SectionDivider />
-        <NexIASection />
-        <SectionDivider />
-        <PricingSection />
-        <SectionDivider />
-        <CTASection />
+        {[TestimonialsSection, FeaturesSection, NexIASection, PricingSection, CTASection].map((Section, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
+            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <Section />
+          </motion.div>
+        ))}
 
         <footer className="px-4 md:px-6 py-10 border-t border-border/30 flex flex-col items-center gap-3 text-muted-foreground text-xs">
           <img
