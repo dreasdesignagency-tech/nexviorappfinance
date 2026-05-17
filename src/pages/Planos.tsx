@@ -101,7 +101,7 @@ const Planos = () => {
               <p className="text-sm text-muted-foreground">Ideal para começar agora</p>
             </div>
             <div className="mb-8 flex items-baseline gap-1">
-              <span className="text-4xl md:text-5xl font-bold">R$ 19,90</span>
+              <span className="text-4xl md:text-5xl font-bold">R$ 9,90</span>
               <span className="text-muted-foreground text-base">/mês</span>
             </div>
             <ul className="space-y-3 mb-8">
