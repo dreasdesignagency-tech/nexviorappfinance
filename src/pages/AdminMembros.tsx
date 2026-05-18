@@ -499,6 +499,9 @@ export default function AdminMembros() {
               <SelectItem value="oldest">Mais antigos</SelectItem>
             </SelectContent>
           </Select>
+          <Button onClick={() => setCreateOpen(true)} className="md:self-end">
+            <UserPlus className="w-4 h-4 mr-2" /> Criar usuário
+          </Button>
         </div>
 
         <Card className="overflow-hidden">
