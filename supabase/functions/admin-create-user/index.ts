@@ -51,21 +51,29 @@ Deno.serve(async (req) => {
     if (!EMAIL_RE.test(email)) return json({ error: "Email inválido" }, 400);
     if (password.length < 6) return json({ error: "Senha deve ter pelo menos 6 caracteres" }, 400);
 
-    // Cria usuário já confirmado
+    // Normaliza telefone para E.164 (apenas dígitos, com +). Se inválido, não envia ao auth.
+    let phoneE164: string | undefined;
+    if (phone) {
+      const digits = phone.replace(/\D/g, "");
+      if (digits.length >= 10 && digits.length <= 15) {
+        phoneE164 = `+${digits}`;
+      }
+    }
+
+    // Cria usuário já confirmado (sem phone — evita exigir provedor SMS)
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      phone: phone || undefined,
-      phone_confirm: phone ? true : undefined,
       user_metadata: {
         full_name: fullName,
-        phone,
+        phone: phoneE164 ?? phone,
         created_by_admin: true,
       },
     });
 
     if (createErr || !created?.user) {
+      console.error("[admin-create-user] createUser failed", createErr);
       return json({ error: createErr?.message ?? "Falha ao criar usuário" }, 400);
     }
 
