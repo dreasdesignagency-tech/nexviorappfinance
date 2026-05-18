@@ -76,8 +76,8 @@ export const MonthlySpending = () => {
   const selectedLabel = `${MONTHS_SHORT[selected.month]} ${selected.year}`;
 
   return (
-    <div className="glass-card p-4 sm:p-6 md:p-7 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6 md:mb-8 gap-3">
+    <div className="glass-card p-4 sm:p-5 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-4 gap-3">
         <h3 className="text-sm font-semibold">Gastos mensais</h3>
         <DropdownMenu>
           <DropdownMenuTrigger className="glass-inner px-3.5 py-1.5 rounded-full text-xs flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition border border-border/50">
@@ -97,7 +97,7 @@ export const MonthlySpending = () => {
       </div>
 
       {hasData ? (
-        <div className="flex-1 flex items-end justify-between gap-2 md:gap-3 px-1 min-h-[160px] pt-4 md:pt-6 overflow-hidden">
+        <div className="flex-1 flex items-end justify-between gap-2 md:gap-3 px-1 min-h-[130px] pt-3 overflow-hidden">
           {windowData.map((d, i) => {
             const pct = max > 0 ? (d.value / max) * 100 : 0;
             const isMax = i === maxIdx;
@@ -107,7 +107,7 @@ export const MonthlySpending = () => {
                 className="flex flex-col items-center gap-2.5 md:gap-3 flex-1 min-w-0 group"
                 title={`${d.label}/${d.year} · ${formatFull(d.value)}`}
               >
-                <div className="relative w-full flex items-end justify-center" style={{ height: 140 }}>
+                <div className="relative w-full flex items-end justify-center" style={{ height: 110 }}>
                   {isMax && (
                     <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shadow-[0_4px_12px_hsl(var(--primary)/0.4)]">
                       {formatCompact(d.value)}
