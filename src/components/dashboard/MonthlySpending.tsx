@@ -76,8 +76,8 @@ export const MonthlySpending = () => {
   const selectedLabel = `${MONTHS_SHORT[selected.month]} ${selected.year}`;
 
   return (
-    <div className="glass-card p-4 sm:p-6 md:p-7 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6 md:mb-8 gap-3">
+    <div className="glass-card p-4 sm:p-5 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-4 gap-3">
         <h3 className="text-sm font-semibold">Gastos mensais</h3>
         <DropdownMenu>
           <DropdownMenuTrigger className="glass-inner px-3.5 py-1.5 rounded-full text-xs flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition border border-border/50">
