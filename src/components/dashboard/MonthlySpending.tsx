@@ -107,7 +107,7 @@ export const MonthlySpending = () => {
                 className="flex flex-col items-center gap-2.5 md:gap-3 flex-1 min-w-0 group"
                 title={`${d.label}/${d.year} · ${formatFull(d.value)}`}
               >
-                <div className="relative w-full flex items-end justify-center" style={{ height: 140 }}>
+                <div className="relative w-full flex items-end justify-center" style={{ height: 110 }}>
                   {isMax && (
                     <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shadow-[0_4px_12px_hsl(var(--primary)/0.4)]">
                       {formatCompact(d.value)}
