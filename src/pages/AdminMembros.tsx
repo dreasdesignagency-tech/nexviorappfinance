@@ -1025,6 +1025,101 @@ export default function AdminMembros() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Criar usuário dialog */}
+      <Dialog open={createOpen} onOpenChange={(o) => !createLoading && setCreateOpen(o)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-primary" /> Criar usuário
+            </DialogTitle>
+            <DialogDescription>
+              Cria a conta direto no app — sem precisar de confirmação por email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label htmlFor="new-name">Nome completo</Label>
+              <Input
+                id="new-name"
+                placeholder="Nome do usuário"
+                value={newFullName}
+                onChange={(e) => setNewFullName(e.target.value)}
+                disabled={createLoading}
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-email">Email</Label>
+              <Input
+                id="new-email"
+                type="email"
+                placeholder="pessoa@exemplo.com"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                disabled={createLoading}
+                autoFocus
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-phone">Telefone</Label>
+              <Input
+                id="new-phone"
+                placeholder="+55 11 99999-0000"
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value)}
+                disabled={createLoading}
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-password">Senha</Label>
+              <Input
+                id="new-password"
+                type="text"
+                placeholder="Mínimo 6 caracteres"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                disabled={createLoading}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Compartilhe a senha com o usuário — ele poderá alterar depois.
+              </p>
+            </div>
+            <div className="flex items-center justify-between bg-surface-elevated/40 rounded-lg p-3">
+              <div>
+                <p className="text-sm text-foreground font-medium">Liberar acesso gratuito</p>
+                <p className="text-xs text-muted-foreground">
+                  Ativa automaticamente o plano free_access para esse usuário.
+                </p>
+              </div>
+              <Switch
+                checked={newFreeAccess}
+                onCheckedChange={setNewFreeAccess}
+                disabled={createLoading}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setCreateOpen(false)}
+              disabled={createLoading}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateUser} disabled={createLoading}>
+              {createLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Criando…
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" /> Criar usuário
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
