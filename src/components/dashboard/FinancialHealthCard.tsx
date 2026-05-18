@@ -66,12 +66,12 @@ export const FinancialHealthCard = () => {
     <button
       type="button"
       onClick={handleOpen}
-      className="text-left w-full rounded-[var(--radius)] p-4 sm:p-6 md:p-7 h-full relative overflow-hidden bg-gradient-portfolio border border-primary/30 shadow-card focus:outline-none focus:ring-2 focus:ring-primary/40"
+      className="text-left w-full rounded-[var(--radius)] p-4 sm:p-5 h-full relative overflow-hidden bg-gradient-portfolio border border-primary/30 shadow-card focus:outline-none focus:ring-2 focus:ring-primary/40"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary-glow/20 via-transparent to-accent/30 pointer-events-none" />
       <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary-glow/30 blur-3xl pointer-events-none" />
 
-      <div className="relative flex items-center justify-between mb-8 -mt-1">
+      <div className="relative flex items-center justify-between mb-5 -mt-1">
         <div className="flex items-center gap-2">
           <HeartPulse className="w-4 h-4 text-foreground/80" />
           <h3 className="text-sm font-semibold">Saúde Financeira</h3>
