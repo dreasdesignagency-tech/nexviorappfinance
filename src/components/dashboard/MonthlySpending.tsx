@@ -97,7 +97,7 @@ export const MonthlySpending = () => {
       </div>
 
       {hasData ? (
-        <div className="flex-1 flex items-end justify-between gap-2 md:gap-3 px-1 min-h-[160px] pt-4 md:pt-6 overflow-hidden">
+        <div className="flex-1 flex items-end justify-between gap-2 md:gap-3 px-1 min-h-[130px] pt-3 overflow-hidden">
           {windowData.map((d, i) => {
             const pct = max > 0 ? (d.value / max) * 100 : 0;
             const isMax = i === maxIdx;
