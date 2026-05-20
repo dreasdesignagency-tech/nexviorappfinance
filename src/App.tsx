@@ -31,6 +31,7 @@ import { GoalsProvider } from "@/store/goals";
 import { AlertsProvider } from "@/store/alerts";
 import { ProfileProvider } from "@/store/profile";
 import { ThemeProvider } from "@/store/theme";
+import { ColorThemeProvider } from "@/store/colorTheme";
 import { AuthProvider } from "@/store/auth";
 import { NotificationsProvider } from "@/store/notifications";
 import { SubscriptionChargesProvider } from "@/store/subscriptionCharges";
