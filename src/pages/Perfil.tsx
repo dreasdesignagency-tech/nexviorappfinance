@@ -265,8 +265,7 @@ const Perfil = () => {
                     style={
                       {
                         background: preset.swatch,
-                        // @ts-expect-error custom CSS var for hover glow
-                        "--swatch": preset.swatch,
+                        ["--swatch" as any]: preset.swatch,
                       } as React.CSSProperties
                     }
                   >
