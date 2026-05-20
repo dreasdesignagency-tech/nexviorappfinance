@@ -91,13 +91,16 @@ export const SubscriptionChargesProvider = ({ children }: { children: ReactNode 
     refetch();
   }, [refetch]);
 
-  // Seeder: roda uma vez por (user, conjunto de assinaturas ativas).
+  // Seeder: roda quando muda o user, conjunto de assinaturas ativas OU o mês corrente.
   // NUNCA depende de `charges` — isso causaria loop infinito de upserts.
   useEffect(() => {
     if (!user || assinaturas.length === 0) return;
     const ativas = assinaturas.filter((a) => a.status === "ativa");
     if (ativas.length === 0) return;
-    const key = `${user.id}|${ativas.map((a) => a.id).sort().join(",")}`;
+    const now = new Date();
+    // Inclui mês/ano corrente para que ao virar o mês uma nova cobrança "pendente" seja gerada
+    const monthToken = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
+    const key = `${user.id}|${monthToken}|${ativas.map((a) => a.id).sort().join(",")}`;
     if (seededKeyRef.current === key) return;
     seededKeyRef.current = key;
 
@@ -115,7 +118,6 @@ export const SubscriptionChargesProvider = ({ children }: { children: ReactNode 
         }
 
         // 2. Gera cobrança do período atual se não existir
-        const now = new Date();
         const inserts: any[] = [];
         for (const a of ativas) {
           const period = periodKey(a, now);
@@ -150,6 +152,17 @@ export const SubscriptionChargesProvider = ({ children }: { children: ReactNode 
     };
     run();
   }, [user, assinaturas]);
+
+  // Re-verifica seeder ao voltar foco/online (ex.: virou o mês com o app aberto)
+  useEffect(() => {
+    const recheck = () => { seededKeyRef.current = null; };
+    window.addEventListener("focus", recheck);
+    window.addEventListener("online", recheck);
+    return () => {
+      window.removeEventListener("focus", recheck);
+      window.removeEventListener("online", recheck);
+    };
+  }, []);
 
   const getCurrentChargeFor = useCallback(
     (subscription_id: string) => {
