@@ -288,6 +288,7 @@ const Perfil = () => {
           </div>
         </div>
 
+        <InstallAppTour open={installOpen} onClose={() => setInstallOpen(false)} />
       </main>
     </div>
   );
