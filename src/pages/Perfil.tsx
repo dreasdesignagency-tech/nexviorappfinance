@@ -226,7 +226,69 @@ const Perfil = () => {
           </Button>
         </div>
 
-        <InstallAppTour open={installOpen} onClose={() => setInstallOpen(false)} />
+        <div className="glass-card p-5 mt-5">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shrink-0 shadow-[0_0_20px_hsl(var(--primary)/0.45)]">
+              <Palette className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Personalização do tema</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Escolha a cor principal do Nexvior do seu jeito.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-5 gap-2 sm:gap-3">
+            {presets.map((preset) => {
+              const active = preset.id === colorTheme;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => setColorTheme(preset.id)}
+                  title={preset.label}
+                  aria-label={preset.label}
+                  aria-pressed={active}
+                  className={`group flex flex-col items-center gap-2 rounded-xl p-2 sm:p-3 transition-all duration-300 ${
+                    active
+                      ? "bg-primary/10 ring-1 ring-primary/60 shadow-[0_0_24px_hsl(var(--primary)/0.35)]"
+                      : "hover:bg-foreground/5"
+                  }`}
+                >
+                  <span
+                    className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full transition-all duration-300 ${
+                      active
+                        ? "ring-2 ring-primary ring-offset-2 ring-offset-background scale-105"
+                        : "ring-1 ring-border group-hover:scale-105 group-hover:shadow-[0_0_18px_var(--swatch)]"
+                    }`}
+                    style={
+                      {
+                        background: preset.swatch,
+                        // @ts-expect-error custom CSS var for hover glow
+                        "--swatch": preset.swatch,
+                      } as React.CSSProperties
+                    }
+                  >
+                    {active && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white drop-shadow" strokeWidth={3} />
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    className={`text-[10px] sm:text-xs text-center leading-tight transition-colors ${
+                      active ? "text-foreground font-medium" : "text-muted-foreground"
+                    }`}
+                  >
+                    {preset.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
       </main>
     </div>
   );
