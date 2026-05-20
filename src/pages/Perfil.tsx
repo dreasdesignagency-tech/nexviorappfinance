@@ -26,6 +26,7 @@ const Perfil = () => {
   const [installOpen, setInstallOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { colorTheme, setColorTheme, presets } = useColorTheme();
 
   const replayInstallTour = () => {
     resetInstallTour();
