@@ -36,6 +36,8 @@ import { AuthProvider } from "@/store/auth";
 import { NotificationsProvider } from "@/store/notifications";
 import { SubscriptionChargesProvider } from "@/store/subscriptionCharges";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ProfileCompletionGate } from "@/components/ProfileCompletionGate";
+import CompletarPerfil from "./pages/CompletarPerfil.tsx";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 const queryClient = new QueryClient({
