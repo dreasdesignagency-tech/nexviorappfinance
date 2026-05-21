@@ -42,16 +42,6 @@ interface Props {
 
 const formasPagamento: FormaPagamento[] = ["PIX", "Dinheiro", "Cartão"];
 
-// Workaround para bug conhecido do Radix: Select dentro de Dialog
-// deixa `pointer-events: none` no body ao fechar, travando o modal.
-const restoreBodyPointerEvents = (isOpen: boolean) => {
-  if (!isOpen) {
-    setTimeout(() => {
-      document.body.style.pointerEvents = "";
-    }, 0);
-  }
-};
-
 export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despesa", initialValues = null }: Props) => {
   const { addTransaction, updateTransaction } = useTransactions();
   const { cards } = useCards();
@@ -206,7 +196,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <div className="space-y-1.5 sm:space-y-2">
               <Label>Categoria</Label>
-              <Select value={categoria} onValueChange={setCategoria} onOpenChange={restoreBodyPointerEvents}>
+              <Select value={categoria} onValueChange={setCategoria}>
                 <SelectTrigger className="h-9 sm:h-10"><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {CATEGORIAS.map((c) => (
@@ -220,7 +210,6 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
               <Select
                 value={formaPagamento}
                 onValueChange={(v) => setFormaPagamento(v as FormaPagamento)}
-                onOpenChange={restoreBodyPointerEvents}
               >
                 <SelectTrigger className="h-9 sm:h-10"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -247,7 +236,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
                   </Button>
                 </div>
               ) : (
-                <Select value={cartaoId} onValueChange={setCartaoId} onOpenChange={restoreBodyPointerEvents}>
+                <Select value={cartaoId} onValueChange={setCartaoId}>
                   <SelectTrigger className="h-9 sm:h-10"><SelectValue placeholder="Selecione o cartão" /></SelectTrigger>
                   <SelectContent>
                     {availableCards.map((c) => (
