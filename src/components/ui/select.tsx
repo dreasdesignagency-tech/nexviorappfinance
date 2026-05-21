@@ -4,7 +4,43 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const Select = SelectPrimitive.Root;
+const resetLockedPointerState = () => {
+  if (typeof document === "undefined") return;
+
+  const clearInteractiveLock = (style: CSSStyleDeclaration) => {
+    style.removeProperty("pointer-events");
+    style.removeProperty("touch-action");
+  };
+
+  clearInteractiveLock(document.body.style);
+  clearInteractiveLock(document.documentElement.style);
+};
+
+const schedulePointerStateReset = () => {
+  resetLockedPointerState();
+
+  if (typeof window === "undefined") return;
+
+  window.requestAnimationFrame(() => {
+    resetLockedPointerState();
+    window.setTimeout(resetLockedPointerState, 0);
+  });
+};
+
+const Select = ({ onOpenChange, ...props }: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>) => {
+  const handleOpenChange = React.useCallback(
+    (open: boolean) => {
+      onOpenChange?.(open);
+
+      if (!open) {
+        schedulePointerStateReset();
+      }
+    },
+    [onOpenChange],
+  );
+
+  return <SelectPrimitive.Root {...props} onOpenChange={handleOpenChange} />;
+};
 
 const SelectGroup = SelectPrimitive.Group;
 
@@ -61,10 +97,14 @@ SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayNam
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
+>(({ className, children, position = "popper", onCloseAutoFocus, ...props }, ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
+      onCloseAutoFocus={(event) => {
+        onCloseAutoFocus?.(event);
+        schedulePointerStateReset();
+      }}
       className={cn(
         "relative z-[100] max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         position === "popper" &&
