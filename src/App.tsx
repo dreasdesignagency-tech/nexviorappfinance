@@ -90,6 +90,7 @@ const App = () => (
                         <Route path="/planos" element={<Planos />} />
                         <Route path="/sucesso" element={<Sucesso />} />
                         <Route path="/pagamento-sucesso" element={<Sucesso />} />
+                        <Route path="/completar-perfil" element={<ProtectedRoute><CompletarPerfil /></ProtectedRoute>} />
                         <Route path="/app" element={<Protected><Index /></Protected>} />
                         <Route path="/transacoes" element={<Protected><Transacoes /></Protected>} />
                         <Route path="/cartoes" element={<Protected><Cartoes /></Protected>} />
