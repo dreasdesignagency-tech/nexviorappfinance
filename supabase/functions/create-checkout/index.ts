@@ -135,11 +135,10 @@ Deno.serve(async (req) => {
       "https://nexviorappfinance.vercel.app";
     log("base url", { baseUrl });
 
-    let session;
-    try {
-      session = await stripe.checkout.sessions.create({
+    const createSession = (cid: string) =>
+      stripe.checkout.sessions.create({
         mode: "subscription",
-        customer: customerId!,
+        customer: cid,
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: `${baseUrl}/sucesso?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${baseUrl}/planos`,
@@ -149,6 +148,10 @@ Deno.serve(async (req) => {
         },
         metadata: { supabase_user_id: userId, plan_type: plan, email: email ?? "" },
       });
+
+    let session;
+    try {
+      session = await createSession(customerId!);
     } catch (stripeErr) {
       const err = stripeErr as { message?: string; type?: string; code?: string; raw?: unknown };
       log("stripe.checkout.sessions.create FAILED", {
@@ -156,18 +159,54 @@ Deno.serve(async (req) => {
         type: err.type,
         code: err.code,
       });
-      return new Response(
-        JSON.stringify({
-          error: "Stripe error",
-          stripe_message: err.message,
-          stripe_code: err.code,
-          stripe_type: err.type,
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+
+      // Customer not found in this Stripe environment (e.g. carryover from test mode) — recreate.
+      if (err.code === "resource_missing" && (err.message ?? "").includes("customer")) {
+        log("recreating stripe customer (stale id)", { oldCustomerId: customerId });
+        const created = await stripe.customers.create({
+          email,
+          metadata: { supabase_user_id: userId },
+        });
+        customerId = created.id;
+        await admin
+          .from("user_subscriptions")
+          .upsert(
+            { user_id: userId, stripe_customer_id: customerId },
+            { onConflict: "user_id" },
+          );
+        try {
+          session = await createSession(customerId);
+        } catch (retryErr) {
+          const rErr = retryErr as { message?: string; type?: string; code?: string };
+          log("retry checkout.sessions.create FAILED", {
+            message: rErr.message,
+            type: rErr.type,
+            code: rErr.code,
+          });
+          return new Response(
+            JSON.stringify({
+              error: "Stripe error",
+              stripe_message: rErr.message,
+              stripe_code: rErr.code,
+              stripe_type: rErr.type,
+            }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+      } else {
+        return new Response(
+          JSON.stringify({
+            error: "Stripe error",
+            stripe_message: err.message,
+            stripe_code: err.code,
+            stripe_type: err.type,
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
     }
 
     log("checkout session created", { id: session.id, url: session.url });
