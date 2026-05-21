@@ -247,7 +247,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
                   </Button>
                 </div>
               ) : (
-                <Select value={cartaoId} onValueChange={setCartaoId}>
+                <Select value={cartaoId} onValueChange={setCartaoId} onOpenChange={restoreBodyPointerEvents}>
                   <SelectTrigger className="h-9 sm:h-10"><SelectValue placeholder="Selecione o cartão" /></SelectTrigger>
                   <SelectContent>
                     {availableCards.map((c) => (
