@@ -42,6 +42,16 @@ interface Props {
 
 const formasPagamento: FormaPagamento[] = ["PIX", "Dinheiro", "Cartão"];
 
+// Workaround para bug conhecido do Radix: Select dentro de Dialog
+// deixa `pointer-events: none` no body ao fechar, travando o modal.
+const restoreBodyPointerEvents = (isOpen: boolean) => {
+  if (!isOpen) {
+    setTimeout(() => {
+      document.body.style.pointerEvents = "";
+    }, 0);
+  }
+};
+
 export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despesa", initialValues = null }: Props) => {
   const { addTransaction, updateTransaction } = useTransactions();
   const { cards } = useCards();
