@@ -206,7 +206,7 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <div className="space-y-1.5 sm:space-y-2">
               <Label>Categoria</Label>
-              <Select value={categoria} onValueChange={setCategoria}>
+              <Select value={categoria} onValueChange={setCategoria} onOpenChange={restoreBodyPointerEvents}>
                 <SelectTrigger className="h-9 sm:h-10"><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   {CATEGORIAS.map((c) => (
@@ -217,7 +217,11 @@ export const NewTransactionDialog = ({ open, onOpenChange, defaultType = "despes
             </div>
             <div className="space-y-1.5 sm:space-y-2">
               <Label>Forma de pagamento</Label>
-              <Select value={formaPagamento} onValueChange={(v) => setFormaPagamento(v as FormaPagamento)}>
+              <Select
+                value={formaPagamento}
+                onValueChange={(v) => setFormaPagamento(v as FormaPagamento)}
+                onOpenChange={restoreBodyPointerEvents}
+              >
                 <SelectTrigger className="h-9 sm:h-10"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {formasPagamento.map((f) => (
