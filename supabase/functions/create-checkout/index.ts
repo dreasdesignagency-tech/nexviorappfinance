@@ -194,18 +194,19 @@ Deno.serve(async (req) => {
           );
         }
       } else {
-      return new Response(
-        JSON.stringify({
-          error: "Stripe error",
-          stripe_message: err.message,
-          stripe_code: err.code,
-          stripe_type: err.type,
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+        return new Response(
+          JSON.stringify({
+            error: "Stripe error",
+            stripe_message: err.message,
+            stripe_code: err.code,
+            stripe_type: err.type,
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
     }
 
     log("checkout session created", { id: session.id, url: session.url });
