@@ -154,54 +154,8 @@ export default function AdminMembros() {
     actionLink: string | null;
   } | null>(null);
 
-  // Criação de usuário pelo admin
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createLoading, setCreateLoading] = useState(false);
-  const [newEmail, setNewEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [newFullName, setNewFullName] = useState("");
-  const [newPhone, setNewPhone] = useState("");
-  const [newFreeAccess, setNewFreeAccess] = useState(true);
 
-  const handleCreateUser = async () => {
-    const email = newEmail.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Informe um email válido.");
-      return;
-    }
-    if (newPassword.length < 6) {
-      toast.error("A senha precisa ter pelo menos 6 caracteres.");
-      return;
-    }
-    setCreateLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-create-user", {
-        body: {
-          email,
-          password: newPassword,
-          full_name: newFullName.trim(),
-          phone: newPhone.trim(),
-          grant_free_access: newFreeAccess,
-        },
-      });
-      if (error) throw error;
-      const d = (data ?? {}) as any;
-      if (d.error) throw new Error(d.error);
-      toast.success(`Usuário ${email} criado com sucesso.`);
-      setCreateOpen(false);
-      setNewEmail("");
-      setNewPassword("");
-      setNewFullName("");
-      setNewPhone("");
-      setNewFreeAccess(true);
-      load();
-      loadGrants();
-    } catch (e: any) {
-      toast.error("Erro: " + (e?.message ?? String(e)));
-    } finally {
-      setCreateLoading(false);
-    }
-  };
+
 
   const load = async () => {
     setLoading(true);
