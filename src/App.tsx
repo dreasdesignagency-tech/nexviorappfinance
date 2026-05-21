@@ -56,7 +56,9 @@ const queryClient = new QueryClient({
 });
 
 const Protected = ({ children }: { children: React.ReactNode }) => (
-  <ProtectedRoute>{children}</ProtectedRoute>
+  <ProtectedRoute>
+    <ProfileCompletionGate>{children}</ProfileCompletionGate>
+  </ProtectedRoute>
 );
 
 const App = () => (
