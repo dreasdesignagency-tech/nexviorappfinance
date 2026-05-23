@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Sparkles, Crown, ArrowRight, Check, Lock } from "lucide-react";
+import { Rocket, Crown, ArrowRight, Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/lib/supabase";
