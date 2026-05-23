@@ -68,15 +68,6 @@ const FounderLanding = () => {
       </header>
 
       <main className="relative z-10 px-6 pt-8 pb-24 max-w-3xl mx-auto text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/40 bg-primary/10 backdrop-blur-md text-primary text-xs font-semibold mb-8 shadow-[0_0_30px_-8px_hsl(var(--primary)/0.7)]"
-        >
-          <Crown className="w-3.5 h-3.5" />
-          Founder Access · Lançamento
-        </motion.div>
 
         <motion.h1
           initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
