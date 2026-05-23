@@ -105,7 +105,10 @@ const Perfil = () => {
             />
           </div>
           <div className="flex-1">
-            <p className="text-lg font-semibold">{profile.nome}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-lg font-semibold">{profile.nome}</p>
+              {isFounder && <FounderBadge />}
+            </div>
             <p className="text-xs text-muted-foreground">{profile.email}</p>
             <div className="flex gap-2 mt-2">
               <Button

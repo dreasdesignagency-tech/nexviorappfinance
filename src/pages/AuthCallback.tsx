@@ -13,6 +13,16 @@ const AuthCallback = () => {
       const goNext = async () => {
         let target = "/lp#planos";
         try {
+          const search0 = new URLSearchParams(window.location.search);
+          const isFounderFlow = search0.get("source") === "founder";
+
+          if (isFounderFlow) {
+            const { data: regData, error: regErr } = await supabase.rpc("register_founder_user" as any, {
+              p_source: "instagram_launch",
+            });
+            console.info("[auth] callback register_founder_user", { regData, error: regErr?.message ?? null });
+          }
+
           // Try to claim any pending free-access grant for this email.
           const { data: claim, error: claimErr } = await supabase.rpc("claim_access_grant" as any);
           console.info("[auth] callback claim_access_grant", { claim, error: claimErr?.message ?? null });
@@ -30,7 +40,8 @@ const AuthCallback = () => {
             status === "beta" ||
             plan === "legacy" ||
             plan === "free_access" ||
-            plan === "beta";
+            plan === "beta" ||
+            plan === "founder";
 
           target = hasAccess ? "/app" : "/planos";
         } catch (e) {

@@ -19,6 +19,9 @@ import Landing from "./pages/Landing.tsx";
 import { LandingGate } from "@/components/LandingGate";
 import Planos from "./pages/Planos.tsx";
 import Sucesso from "./pages/Sucesso.tsx";
+import FounderLanding from "./pages/FounderLanding.tsx";
+import FounderSignup from "./pages/FounderSignup.tsx";
+import AdminLancamento from "./pages/AdminLancamento.tsx";
 
 import AdminMembros from "./pages/AdminMembros.tsx";
 import { AdminRoute } from "@/components/AdminRoute";
@@ -90,6 +93,9 @@ const App = () => (
                         <Route path="/planos" element={<Planos />} />
                         <Route path="/sucesso" element={<Sucesso />} />
                         <Route path="/pagamento-sucesso" element={<Sucesso />} />
+                        <Route path="/founder" element={<FounderLanding />} />
+                        <Route path="/founder/cadastro" element={<FounderSignup />} />
+                        <Route path="/admin/lancamento" element={<Protected><AdminRoute><AdminPasswordGate><AdminLancamento /></AdminPasswordGate></AdminRoute></Protected>} />
                         <Route path="/completar-perfil" element={<ProtectedRoute><CompletarPerfil /></ProtectedRoute>} />
                         <Route path="/app" element={<Protected><Index /></Protected>} />
                         <Route path="/transacoes" element={<Protected><Transacoes /></Protected>} />

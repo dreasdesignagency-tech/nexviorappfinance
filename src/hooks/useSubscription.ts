@@ -88,7 +88,8 @@ export const useSubscription = () => {
     subscription.subscription_status === "beta" ||
     subscription.plan_type === "legacy" ||
     subscription.plan_type === "free_access" ||
-    subscription.plan_type === "beta"
+    subscription.plan_type === "beta" ||
+    subscription.plan_type === "founder"
   );
 
   const needsInitialResolution = !!user && resolvedUserId !== user.id;
