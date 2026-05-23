@@ -139,7 +139,7 @@ const FounderLanding = () => {
         >
           {[
             { icon: Crown, title: "Selo Founder", desc: "Reconhecimento permanente como membro inicial." },
-            { icon: Sparkles, title: "Acesso Premium", desc: "Todos os recursos liberados desde o primeiro dia." },
+            { icon: Rocket, title: "Acesso Premium", desc: "Todos os recursos liberados desde o primeiro dia." },
             { icon: Check, title: "Sem cobrança", desc: "Não precisa cartão. Sem fidelidade. Sem pegadinha." },
           ].map((perk, i) => (
             <div
