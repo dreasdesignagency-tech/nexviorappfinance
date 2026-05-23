@@ -118,10 +118,6 @@ const FounderSignup = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 mb-4 p-3 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.7)]">
             <Logo className="w-full h-full" />
           </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[linear-gradient(135deg,hsl(var(--primary)/0.18),hsl(var(--primary-glow)/0.12))] border border-primary/40 text-primary text-[11px] font-semibold mb-3 shadow-[0_0_20px_-6px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(var(--foreground)/0.08)]">
-            <Crown className="w-3 h-3" />
-            Founder Access
-          </div>
           <h1 className="text-2xl font-bold tracking-tight">Crie sua conta gratuita</h1>
           <p className="text-sm text-muted-foreground mt-2">
             Acesso premium completo, sem cobrança.
