@@ -269,6 +269,63 @@ export type Database = {
         }
         Relationships: []
       }
+      launch_settings: {
+        Row: {
+          id: number
+          is_open: boolean
+          max_slots: number | null
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          is_open?: boolean
+          max_slots?: number | null
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          is_open?: boolean
+          max_slots?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      launch_signups: {
+        Row: {
+          created_at: string
+          created_from_launch: boolean
+          email: string
+          founder_user: boolean
+          full_name: string | null
+          id: string
+          phone: string | null
+          signup_source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_from_launch?: boolean
+          email: string
+          founder_user?: boolean
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          signup_source?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_from_launch?: boolean
+          email?: string
+          founder_user?: boolean
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          signup_source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       limits: {
         Row: {
           categoria: string
@@ -639,7 +696,9 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           id: string
+          is_founder: boolean
           plan_type: string | null
+          signup_source: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_status: string
@@ -653,7 +712,9 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          is_founder?: boolean
           plan_type?: string | null
+          signup_source?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string
@@ -667,7 +728,9 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          is_founder?: boolean
           plan_type?: string | null
+          signup_source?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string
@@ -687,6 +750,7 @@ export type Database = {
         Args: { _email: string; _note?: string; _plan_type?: string }
         Returns: Json
       }
+      admin_launch_stats: { Args: never; Returns: Json }
       admin_list_access_grants: {
         Args: never
         Returns: {
@@ -722,6 +786,11 @@ export type Database = {
         }[]
       }
       admin_revoke_access: { Args: { _email: string }; Returns: undefined }
+      admin_revoke_founder: { Args: { _user_id: string }; Returns: undefined }
+      admin_set_launch_open: {
+        Args: { p_max_slots?: number; p_open: boolean }
+        Returns: undefined
+      }
       admin_set_user_banned: {
         Args: { _banned: boolean; _user_id: string }
         Returns: undefined
@@ -735,6 +804,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      public_launch_status: { Args: never; Returns: Json }
+      register_founder_user: { Args: { p_source?: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
