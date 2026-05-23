@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Sparkles, Crown, ArrowRight, Check, Lock } from "lucide-react";
+import { Rocket, Crown, ArrowRight, Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/lib/supabase";
@@ -139,7 +139,7 @@ const FounderLanding = () => {
         >
           {[
             { icon: Crown, title: "Selo Founder", desc: "Reconhecimento permanente como membro inicial." },
-            { icon: Sparkles, title: "Acesso Premium", desc: "Todos os recursos liberados desde o primeiro dia." },
+            { icon: Rocket, title: "Acesso Premium", desc: "Todos os recursos liberados desde o primeiro dia." },
             { icon: Check, title: "Sem cobrança", desc: "Não precisa cartão. Sem fidelidade. Sem pegadinha." },
           ].map((perk, i) => (
             <div
