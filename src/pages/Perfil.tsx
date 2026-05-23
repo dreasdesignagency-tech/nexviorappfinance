@@ -10,6 +10,8 @@ import { useColorTheme } from "@/store/colorTheme";
 import { resetOnboarding } from "@/components/onboarding/OnboardingTour";
 import { resetInstallTour, InstallAppTour } from "@/components/onboarding/InstallAppTour";
 import { useNavigate } from "react-router-dom";
+import { FounderBadge } from "@/components/FounderBadge";
+import { useFounderStatus } from "@/hooks/useFounderStatus";
 
 const formatPhone = (raw: string) => {
   const d = raw.replace(/\D/g, "").slice(0, 11);
@@ -21,6 +23,7 @@ const formatPhone = (raw: string) => {
 
 const Perfil = () => {
   const { profile, updateProfile } = useProfile();
+  const { isFounder } = useFounderStatus();
   const [nome, setNome] = useState(profile.nome);
   const [telefone, setTelefone] = useState(profile.telefone);
   const [installOpen, setInstallOpen] = useState(false);
