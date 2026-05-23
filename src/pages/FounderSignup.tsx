@@ -94,16 +94,17 @@ const FounderSignup = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#070711] text-foreground flex items-center justify-center p-6">
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground flex items-center justify-center p-6">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-amber-400/10 blur-[140px]" />
-        <div className="absolute bottom-0 -right-40 w-[600px] h-[600px] rounded-full bg-primary/15 blur-[140px]" />
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-primary/20 blur-[140px]" />
+        <div className="absolute bottom-0 -right-40 w-[600px] h-[600px] rounded-full bg-primary-glow/20 blur-[140px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-primary/10 blur-[160px]" />
       </div>
 
       <main className="relative z-10 w-full max-w-md">
         <Link
           to="/founder"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Voltar
         </Link>
@@ -114,10 +115,10 @@ const FounderSignup = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-8"
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-300/20 to-amber-500/10 border border-amber-300/30 mb-4 p-3 shadow-[0_0_40px_-10px_rgba(251,191,36,0.6)]">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 mb-4 p-3 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.7)]">
             <Logo className="w-full h-full" />
           </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-300/10 border border-amber-300/40 text-amber-200 text-[11px] font-semibold mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[linear-gradient(135deg,hsl(var(--primary)/0.18),hsl(var(--primary-glow)/0.12))] border border-primary/40 text-primary text-[11px] font-semibold mb-3 shadow-[0_0_20px_-6px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(var(--foreground)/0.08)]">
             <Crown className="w-3 h-3" />
             Founder Access
           </div>
@@ -127,7 +128,7 @@ const FounderSignup = () => {
           </p>
         </motion.div>
 
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-md p-6 md:p-7">
+        <div className="rounded-3xl border border-[hsl(var(--glass-border)/0.45)] bg-foreground/[0.04] backdrop-blur-xl p-6 md:p-7 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.06),0_8px_32px_-12px_hsl(var(--primary)/0.25)]">
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="full_name">Nome completo</Label>
@@ -152,7 +153,7 @@ const FounderSignup = () => {
             <Button
               type="submit"
               disabled={busy}
-              className="w-full h-12 mt-2 rounded-xl font-semibold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-[#1a1200] hover:from-amber-200 hover:to-amber-400 shadow-[0_10px_30px_-10px_rgba(251,191,36,0.7)]"
+              className="w-full h-12 mt-2 rounded-xl font-semibold bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:opacity-95 shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.8),0_0_0_1px_hsl(var(--primary)/0.4)_inset]"
             >
               {busy ? "Criando…" : "Criar conta Founder"}
             </Button>
@@ -160,7 +161,7 @@ const FounderSignup = () => {
 
           <p className="text-center text-xs text-muted-foreground mt-5">
             Já tem conta?{" "}
-            <Link to="/login" className="text-amber-200 hover:underline font-medium">
+            <Link to="/login" className="text-primary hover:underline font-medium">
               Entrar
             </Link>
           </p>
