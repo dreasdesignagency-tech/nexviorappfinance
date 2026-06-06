@@ -239,7 +239,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         hydrated: hydratedRef.current,
       });
       setSession(nextSession);
-      setUser(nextSession?.user ?? null);
+      // Preserva a referência de `user` quando é o mesmo usuário (ex.:
+      // TOKEN_REFRESHED ao voltar de outra aba). Trocar a referência faria
+      // todos os useEffects que dependem de `user` re-executarem, e o
+      // usuário percebe como "a página recarregou ao voltar pra aba".
+      const nextUser = nextSession?.user ?? null;
+      setUser((prev) => {
+        if (prev && nextUser && prev.id === nextUser.id) return prev;
+        return nextUser;
+      });
       if (!options?.keepLoading) {
         finishHydration();
       }
